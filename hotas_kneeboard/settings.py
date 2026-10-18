@@ -26,6 +26,8 @@ class Settings:
     # None: detected (registry for the install, the Saved Games known folder for the other)
     dcs_install_dir: str | None = None
     saved_games_dir: str | None = None
+    # language of the command names (DCS's l10n folder: "en", "fr"…); None: the game's own
+    language: str | None = None
     # profile -> device full name (with GUID: two devices may share a name) -> page exported or
     # not; a device not listed is exported
     exported: dict[str, dict[str, bool]] = field(default_factory=dict)

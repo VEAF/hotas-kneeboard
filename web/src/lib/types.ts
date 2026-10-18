@@ -65,6 +65,7 @@ export type LayerMode = 'merge' | 'split'
 export interface Settings {
   dcs_install_dir: string | null
   saved_games_dir: string | null
+  language: string | null
   exported: Record<string, Record<string, boolean>>
   device_templates: Record<string, string>
   device_order: Record<string, string[]>
@@ -77,6 +78,7 @@ export interface DcsState {
   install_detected: boolean
   saved_games_dir: string | null
   saved_games_detected: boolean
+  language: string
   problems: string[]
 }
 

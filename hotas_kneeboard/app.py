@@ -10,7 +10,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from . import __version__
-from .dcs import resolve_dirs
+from .dcs import command_translator, resolve_dirs
 from .engine import EffectiveBindingsError, list_user_profiles, load_effective_bindings
 from .kneeboard import KneeboardError, write_pages
 from .pages import build_page, split_device_name
@@ -63,12 +63,13 @@ class Bindings:
         except EffectiveBindingsError as error:
             _logger.error(f"engine failed: {error}")
             return {"profiles": [], "error": str(error)}
+        translate = command_translator(install, dirs["language"])
         profiles = []
         for name in names:
             entry = result["profiles"].get(name) or {"found": False, "devices": []}
             devices = []
             for device in entry["devices"]:
-                page = build_page(device)
+                page = build_page(device, translate)
                 template = library.match(page.name)
                 devices.append(
                     page.as_dict()
@@ -102,7 +103,10 @@ def create_app(
     def current_dirs() -> dict:
         settings = store.load()
         return resolve_dirs(
-            settings.dcs_install_dir, settings.saved_games_dir, own_interpreter=bool(lua_interpreter)
+            settings.dcs_install_dir,
+            settings.saved_games_dir,
+            own_interpreter=bool(lua_interpreter),
+            language_override=settings.language,
         )
 
     @app.get("/api/state")
@@ -117,7 +121,8 @@ def create_app(
         except (TypeError, ValueError) as error:
             raise HTTPException(422, str(error)) from error
         store.save(new)
-        if (new.dcs_install_dir, new.saved_games_dir) != (old.dcs_install_dir, old.saved_games_dir):
+        read = ("dcs_install_dir", "saved_games_dir", "language")
+        if any(getattr(new, field) != getattr(old, field) for field in read):
             bindings.invalidate()
         return {"dcs": current_dirs(), "settings": new.as_dict()}
 

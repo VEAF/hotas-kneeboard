@@ -6,6 +6,7 @@ position (``JOY_BTN17_OFF``) goes on its input, next to the pressed one: "LG Han
 """
 
 import re
+from collections.abc import Callable
 from dataclasses import dataclass, field
 
 RELEASED_SUFFIX = "_OFF"
@@ -98,8 +99,9 @@ class DevicePage:
         }
 
 
-def build_page(device: dict) -> DevicePage:
-    """Page of one device of the engine's output."""
+def build_page(device: dict, translate: Callable[[str], str] | None = None) -> DevicePage:
+    """Page of one device of the engine's output; ``translate`` gives the command names as the
+    game shows them (see ``dcs.command_translator``)."""
     inputs: dict[str, dict[str, Label]] = {}
     for binding in device.get("bindings") or []:
         key, released = binding["key"], False
@@ -112,6 +114,8 @@ def build_page(device: dict) -> DevicePage:
         label = inputs.setdefault(key, {}).setdefault(layer, Label())
         commands = label.released if released else label.pressed
         command = binding.get("command") or ""
+        if translate and command:
+            command = translate(command)
         if command not in commands:
             commands.append(command)
     ordered = {key: inputs[key] for key in sorted(inputs, key=input_sort_key)}

@@ -118,11 +118,12 @@ async function flushSettings(): Promise<void> {
   }
 }
 
-async function saveFolders(install: string | null, savedGames: string | null): Promise<void> {
+/** Settings that change what is read from DCS: saved at once, then everything is read again */
+async function saveReading(changes: Pick<Settings, 'dcs_install_dir' | 'saved_games_dir' | 'language'>): Promise<void> {
   if (!state.settings) return
   clearTimeout(saveTimer)
   await flushSettings()
-  const saved = await api.saveSettings({ dcs_install_dir: install, saved_games_dir: savedGames })
+  const saved = await api.saveSettings(changes)
   state.dcs = saved.dcs
   state.settings = saved.settings
   await load(true)
@@ -214,7 +215,7 @@ export function useStore() {
     device,
     load,
     changeSettings,
-    saveFolders,
+    saveReading,
     orderedDevices,
     isExported,
     templateIdFor,
