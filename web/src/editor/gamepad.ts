@@ -24,8 +24,9 @@ export function gamepadSupported(): boolean {
 }
 
 /** First input that moves on any device, compared with its state when listening started.
- * A device the browser had not shown yet appears on its first press: what is pressed then counts. */
-export function detectInput(signal: AbortSignal): Promise<Detected> {
+ * A device the browser had not shown yet appears on its first press; its state then becomes its
+ * reference (a switch held on a throttle would look pressed), `onAppear` tells to press again. */
+export function detectInput(signal: AbortSignal, onAppear?: (device: string) => void): Promise<Detected> {
   return new Promise((resolve, reject) => {
     if (!gamepadSupported()) {
       reject(new Error("Ce navigateur ne donne pas accès aux manettes (Gamepad API)."))
@@ -46,21 +47,24 @@ export function detectInput(signal: AbortSignal): Promise<Detected> {
       for (const pad of navigator.getGamepads()) {
         if (!pad) continue
         const known = baselines.get(keyOf(pad))
-        const base: Baseline = known ?? { buttons: pad.buttons.map(() => false), axes: pad.axes.map(() => 0) }
+        if (!known) {
+          baselines.set(keyOf(pad), { buttons: pad.buttons.map((b) => b.value > PRESSED), axes: [...pad.axes] })
+          onAppear?.(pad.id)
+          continue
+        }
+        const base = known
         const button = pad.buttons.findIndex((b, i) => b.value > PRESSED && !base.buttons[i])
         if (button !== -1) {
           stop()
           resolve({ key: `JOY_BTN${button + 1}`, device: pad.id })
           return
         }
-        // a new device's axes start wherever they rest: only a known device's axes count
-        const axis = known ? pad.axes.findIndex((v, i) => Math.abs(v - (base.axes[i] ?? 0)) > AXIS_MOVE) : -1
+        const axis = pad.axes.findIndex((v, i) => Math.abs(v - (base.axes[i] ?? 0)) > AXIS_MOVE)
         if (axis !== -1 && axis < AXES.length) {
           stop()
           resolve({ key: AXES[axis], device: pad.id })
           return
         }
-        if (!known) baselines.set(keyOf(pad), { buttons: pad.buttons.map((b) => b.value > PRESSED), axes: [...pad.axes] })
       }
       frame = requestAnimationFrame(poll)
     }

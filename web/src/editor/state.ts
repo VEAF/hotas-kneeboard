@@ -24,7 +24,9 @@ export interface Selection {
   index: number
 }
 
-type Snapshot = Omit<Draft, 'inputs' | 'devices'> & { inputs: Record<string, TemplateInput>; devices: string[] }
+// where the draft is saved (id, overrides) is not part of the history: undoing a change made
+// before a save must not make the next save create another template
+type Snapshot = Omit<Draft, 'id' | 'overrides'>
 
 const HISTORY_LIMIT = 200
 export const DEFAULT_BOX: [number, number] = [120, 24]
@@ -41,8 +43,9 @@ export const editor = reactive({
 })
 
 function snapshot(draft: Draft): Snapshot {
+  const { id: _, overrides: __, ...rest } = draft
   // the picture (a long data: URL) is shared, not copied: it is never changed in place
-  return { ...draft, devices: [...draft.devices], inputs: JSON.parse(JSON.stringify(draft.inputs)) }
+  return { ...rest, devices: [...draft.devices], inputs: JSON.parse(JSON.stringify(draft.inputs)) }
 }
 
 export function newDraft(fields: Partial<Draft> = {}): Draft {
@@ -67,13 +70,17 @@ export function open(draft: Draft): void {
   editor.redo = []
 }
 
-export function fromTemplate(template: Template, image: string, user: boolean): Draft {
+/** A draft from a template. For a device the template is not made for (chosen by hand, or a
+ * starting point), the draft is a new template for that device: saving it must not change the
+ * template of another device. */
+export function fromTemplate(template: Template, image: string, user: boolean, forDevice?: string): Draft {
   const extension = template.image.split('.').pop() ?? 'png'
+  const copy = !!forDevice && !template.devices.some((d) => d.toLowerCase() === forDevice.toLowerCase())
   return newDraft({
-    id: template.id,
-    overrides: !user,
-    name: template.name,
-    devices: [...template.devices],
+    id: copy ? null : template.id,
+    overrides: !copy && !user,
+    name: copy ? forDevice : template.name,
+    devices: copy ? [forDevice] : [...template.devices],
     size: [...template.size],
     image: { dataUrl: image, name: `background.${extension}` },
     inputs: JSON.parse(JSON.stringify(template.inputs)),
@@ -93,7 +100,7 @@ export function remember(): void {
 function restore(from: Snapshot[], to: Snapshot[]): void {
   if (!editor.draft || !from.length) return
   to.push(snapshot(editor.draft))
-  editor.draft = { ...from.pop()! }
+  editor.draft = { ...from.pop()!, id: editor.draft.id, overrides: editor.draft.overrides }
   editor.dirty = true
   if (editor.selection && !(editor.selection.key in editor.draft.inputs)) editor.selection = null
 }

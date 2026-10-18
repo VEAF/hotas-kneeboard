@@ -46,6 +46,13 @@ const mode = ref<'edit' | 'preview'>('edit')
 const saving = ref(false)
 const deviceName = ref('')
 const draggingFile = ref(false)
+// one undo step per editing of the name, taken before its first change
+let nameRemembered = false
+function rememberName() {
+  if (nameRemembered) return
+  remember()
+  nameRemembered = true
+}
 
 const draft = computed(() => editor.draft)
 const keys = computed(() => (draft.value ? sortedKeys(Object.keys(draft.value.inputs)) : []))
@@ -74,8 +81,7 @@ async function startFrom(id: string) {
   try {
     const loaded = await loadTemplate(id)
     const summary = store.state.templates.find((t) => t.id === id)
-    open(fromTemplate(loaded.data, loaded.image, !!summary?.user))
-    if (editor.forDevice && !editor.draft!.devices.includes(editor.forDevice.name)) editor.draft!.devices.push(editor.forDevice.name)
+    open(fromTemplate(loaded.data, loaded.image, !!summary?.user, editor.forDevice?.name))
     fit()
   } catch (e) {
     toast.add({ severity: 'error', summary: 'Gabarit impossible à ouvrir', detail: (e as Error).message, life: 8000 })
@@ -189,7 +195,9 @@ async function identify() {
   listening.value = controller
   detected.value = ''
   try {
-    const found = await detectInput(controller.signal)
+    const found = await detectInput(controller.signal, (device) => {
+      detected.value = `${device} vient d'apparaître : appuie encore une fois sur le bouton`
+    })
     detected.value = `${inputName(found.key)} sur ${found.device}`
     if (editor.selection) renameSelected(found.key)
     else placing.value = found.key
@@ -260,8 +268,11 @@ async function save() {
       image: d.image.dataUrl.split(',')[1],
       id: d.id,
     })
-    d.id = summary.id
-    d.overrides = false
+    // the draft now in the editor (an undo during the request replaced the object)
+    if (editor.draft) {
+      editor.draft.id = summary.id
+      editor.draft.overrides = false
+    }
     editor.dirty = false
     const target = editor.forDevice
     await store.load(true)
@@ -275,6 +286,14 @@ async function save() {
   } finally {
     saving.value = false
   }
+}
+
+/** The draft as a new template, whatever it was started from */
+function saveAsNew() {
+  if (!editor.draft) return
+  editor.draft.id = null
+  editor.draft.overrides = false
+  save()
 }
 
 async function importFile(file: File) {
@@ -302,12 +321,17 @@ const savedUserTemplate = computed(() => {
   return !!id && !editor.draft?.overrides && !!store.state.templates.find((t) => t.id === id && t.user)
 })
 
+const replacesBundled = computed(() => !!store.state.templates.find((t) => t.id === editor.draft?.id)?.replaces_bundled)
+
 async function deleteTemplate() {
   const d = editor.draft
-  if (!d?.id || !window.confirm(`Supprimer le gabarit « ${d.name} » ? Il disparaît de ta bibliothèque.`)) return
+  const question = replacesBundled.value
+    ? `Supprimer ta version de « ${d?.name} » ? Celle de la bibliothèque reviendra.`
+    : `Supprimer le gabarit « ${d?.name} » ? Il disparaît de ta bibliothèque.`
+  if (!d?.id || !window.confirm(question)) return
   try {
     await api.deleteTemplate(d.id)
-    open(newDraft())
+    open(newDraft({ devices: editor.forDevice ? [editor.forDevice.name] : [] }))
     await store.load(true)
     toast.add({ severity: 'info', summary: 'Gabarit supprimé', life: 3000 })
   } catch (e) {
@@ -389,7 +413,15 @@ const nextKey = computed(() => (draft.value ? inputName(nextFree(Object.keys(dra
   <div v-if="draft" class="editor">
     <header class="ebar">
       <Button icon="pi pi-arrow-left" text label="Pages" @click="close" />
-      <InputText v-model="draft.name" placeholder="Nom du gabarit" size="small" class="name" aria-label="Nom du gabarit" @change="editor.dirty = true" />
+      <InputText
+        v-model="draft.name"
+        placeholder="Nom du gabarit"
+        size="small"
+        class="name"
+        aria-label="Nom du gabarit"
+        @focus="nameRemembered = false"
+        @beforeinput="rememberName"
+      />
       <span v-if="draft.overrides" class="pill warn" v-tooltip.bottom="'Enregistré, ton gabarit passera devant celui de la bibliothèque'">remplace la bibliothèque</span>
       <span v-if="editor.dirty" class="pill">non enregistré</span>
       <span class="spacer" />
@@ -399,6 +431,7 @@ const nextKey = computed(() => (draft.value ? inputName(nextFree(Object.keys(dra
       <Button icon="pi pi-expand" text rounded aria-label="Ajuster (0)" v-tooltip.bottom="'Ajuster (0)'" @click="fit" />
       <Button icon="pi pi-search-plus" text rounded aria-label="Zoom avant (+)" @click="zoomBy(1.2)" />
       <SelectButton v-model="mode" :options="modes" option-label="label" option-value="value" :allow-empty="false" size="small" aria-label="Édition ou aperçu" />
+      <Button v-if="draft.id" size="small" severity="secondary" text label="Enregistrer comme nouveau" :disabled="saving" @click="saveAsNew" />
       <Button icon="pi pi-save" :loading="saving" @click="save"><span class="btn-label">Enregistrer</span><kbd>Ctrl S</kbd></Button>
     </header>
 

@@ -79,6 +79,39 @@ describe('editor state', () => {
     expect(editor.draft!.inputs).toEqual({})
   })
 
+  it('keeps where the draft is saved out of the history', () => {
+    addInput('JOY_BTN1', [50, 50])
+    editor.draft!.id = 'my-icp' // saved meanwhile
+    undo()
+    expect(editor.draft!.id).toBe('my-icp')
+  })
+
+  it('makes a new template when starting from the template of another device', async () => {
+    const { fromTemplate } = await import('../state')
+    const warthog = {
+      id: 'thrustmaster-warthog-throttle',
+      name: 'Warthog',
+      devices: ['Throttle - HOTAS Warthog'],
+      size: [10, 10] as [number, number],
+      credits: {},
+      checked: null,
+      user: false,
+      image: 'background.svg',
+      inputs: {},
+    }
+    expect(fromTemplate(warthog, 'data:', false, 'VPC Stick MT-50CM3')).toMatchObject({
+      id: null,
+      overrides: false,
+      name: 'VPC Stick MT-50CM3',
+      devices: ['VPC Stick MT-50CM3'],
+    })
+    // the device's own template: fixing it, in front of the bundled one
+    expect(fromTemplate(warthog, 'data:', false, 'Throttle - HOTAS Warthog')).toMatchObject({
+      id: 'thrustmaster-warthog-throttle',
+      overrides: true,
+    })
+  })
+
   it('gives the renderer and the server a template', () => {
     addInput('JOY_X', [50, 50])
     const t = draftTemplate(editor.draft!)
@@ -129,12 +162,17 @@ describe('gamepad', () => {
     await expect(found).resolves.toMatchObject({ key: 'JOY_Z' })
   })
 
-  it('takes the press that makes a device appear', async () => {
+  it('waits for a second press on a device that just appeared', async () => {
+    // the press that wakes the device up is not known: a held switch may look pressed too
     pads = []
-    const found = detectInput(new AbortController().signal)
-    pads = [pad([0])]
+    const notices: string[] = []
+    const found = detectInput(new AbortController().signal, (n) => notices.push(n))
+    pads = [pad([0, 7])]
     await vi.advanceTimersByTimeAsync(50)
-    await expect(found).resolves.toMatchObject({ key: 'JOY_BTN1' })
+    expect(notices).toEqual(['WINWING ICP (Vendor: 4098)'])
+    pads = [pad([0, 7, 3])]
+    await vi.advanceTimersByTimeAsync(50)
+    await expect(found).resolves.toMatchObject({ key: 'JOY_BTN4' })
   })
 
   it('stops when asked', async () => {

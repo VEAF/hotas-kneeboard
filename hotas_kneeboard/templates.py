@@ -40,6 +40,7 @@ IMAGE_TYPES = {".svg": "image/svg+xml", ".png": "image/png", ".jpg": "image/jpeg
 TEMPLATE_FILE = "template.json"
 # a shared template file: template.json and its picture, nothing else, of a reasonable size
 MAX_IMAGE_BYTES = 20 * 1024 * 1024
+MAX_JSON_BYTES = 1024 * 1024
 _ID = re.compile(r"^[a-z0-9][a-z0-9-]{0,63}$")
 
 
@@ -134,7 +135,8 @@ class TemplateLibrary:
             for root in self.folders:
                 if not root.is_dir():
                     continue
-                for folder in sorted(p for p in root.iterdir() if p.is_dir()):
+                # ".<id>…" folders are a save in progress or left by a failed one
+                for folder in sorted(p for p in root.iterdir() if p.is_dir() and not p.name.startswith(".")):
                     try:
                         data = json.loads((folder / "template.json").read_text(encoding="utf-8"))
                         validate(data, folder)
@@ -183,32 +185,56 @@ class TemplateLibrary:
             "image": f"background{suffix}",
         }
         staging = folder.with_name(f".{template_id}.{uuid.uuid4().hex}")
-        staging.mkdir(parents=True)
         try:
+            staging.mkdir(parents=True)
             (staging / data["image"]).write_bytes(image)
             validate(data, staging)
             (staging / TEMPLATE_FILE).write_text(
                 json.dumps(data, indent=1, ensure_ascii=False), encoding="utf-8"
             )
-            if folder.exists():
-                old = folder.with_name(f".{template_id}.old.{uuid.uuid4().hex}")
-                folder.replace(old)
-                staging.replace(folder)
-                shutil.rmtree(old, ignore_errors=True)
-            else:
-                staging.replace(folder)
+            self._swap(folder, staging)
+        except OSError as error:
+            raise TemplateError(f"gabarit impossible à écrire : {error}") from error
         finally:
             if staging.exists():
                 shutil.rmtree(staging, ignore_errors=True)
         self.reload()
         return self.templates[template_id]
 
+    @staticmethod
+    def _swap(folder: Path, staging: Path) -> None:
+        """``staging`` takes the place of ``folder``; the old one comes back if that fails."""
+        if not folder.exists():
+            staging.replace(folder)
+            return
+        old = folder.with_name(f".{folder.name}.old.{uuid.uuid4().hex}")
+        folder.replace(old)
+        try:
+            staging.replace(folder)
+        except OSError:
+            old.replace(folder)
+            raise
+        shutil.rmtree(old, ignore_errors=True)
+
     def delete(self, template_id: str) -> None:
         template = self.get(template_id)
         if template is None or not template.user:
             raise TemplateError("seuls tes propres gabarits peuvent être supprimés")
-        shutil.rmtree(template.folder)
+        try:
+            shutil.rmtree(template.folder)
+        except OSError as error:
+            raise TemplateError(f"gabarit impossible à supprimer : {error}") from error
         self.reload()
+
+    def bundled_ids(self) -> set[str]:
+        """Ids of the templates shipped with the app, a user's version in front of them or not."""
+        return {
+            p.name
+            for root in self.folders
+            if root != self.user_dir and root.is_dir()
+            for p in root.iterdir()
+            if p.is_dir() and (p / TEMPLATE_FILE).is_file()
+        }
 
     def export_file(self, template_id: str) -> bytes:
         """The template as one file to share: a zip of template.json and its picture."""
@@ -225,6 +251,8 @@ class TemplateLibrary:
         """A shared template file into the user's folder; its id comes from its name, made unique."""
         try:
             with zipfile.ZipFile(io.BytesIO(content)) as archive:
+                if archive.getinfo(TEMPLATE_FILE).file_size > MAX_JSON_BYTES:
+                    raise TemplateError("fichier de gabarit invalide : template.json trop grand")
                 data = json.loads(archive.read(TEMPLATE_FILE).decode("utf-8"))
                 image_name = data.get("image") if isinstance(data, dict) else None
                 if not isinstance(image_name, str) or Path(image_name).name != image_name:

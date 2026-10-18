@@ -1,4 +1,7 @@
+import io
 import json
+import zipfile
+from pathlib import Path
 
 import pytest
 
@@ -125,3 +128,35 @@ def test_import_refuses_other_files(tmp_path):
     library = TemplateLibrary([], user_dir=tmp_path / "user")
     with pytest.raises(TemplateError, match="invalide"):
         library.import_file(b"not a zip")
+
+
+def test_a_failed_replace_keeps_the_previous_template(tmp_path, monkeypatch):
+    library = TemplateLibrary([], user_dir=tmp_path / "user")
+    data = {"name": "x", "size": [10, 10], "inputs": {}}
+    library.save("t", data, "a.png", b"old")
+    real_replace = Path.replace
+
+    def locked(self, target):
+        if self.name.startswith(".t.") and ".old." not in self.name:
+            raise PermissionError("in use")  # the new folder cannot take its place
+        return real_replace(self, target)
+
+    monkeypatch.setattr(Path, "replace", locked)
+    with pytest.raises(TemplateError, match="impossible à écrire"):
+        library.save("t", data | {"name": "y"}, "a.png", b"new")
+    monkeypatch.undo()
+    assert [p.name for p in (tmp_path / "user").iterdir()] == ["t"]
+    assert library.get("t").data["name"] == "x"
+
+
+def test_leftover_folders_are_not_templates(tmp_path):
+    make_template(tmp_path / "user", ".t.old.abc")
+    assert TemplateLibrary([], user_dir=tmp_path / "user").templates == {}
+
+
+def test_import_refuses_a_huge_template_json(tmp_path):
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as archive:
+        archive.writestr("template.json", " " * (2 * 1024 * 1024))
+    with pytest.raises(TemplateError, match="trop grand"):
+        TemplateLibrary([], user_dir=tmp_path / "user").import_file(buffer.getvalue())

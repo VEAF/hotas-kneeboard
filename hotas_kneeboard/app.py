@@ -174,7 +174,10 @@ def create_app(
 
     @app.get("/api/templates")
     def list_templates() -> list[dict]:
-        return [t.summary() for t in library.templates.values()]
+        bundled = library.bundled_ids()
+        return [
+            t.summary() | {"replaces_bundled": t.user and t.id in bundled} for t in library.templates.values()
+        ]
 
     @app.get("/api/templates/{template_id}")
     def get_template(template_id: str) -> dict:
@@ -232,6 +235,13 @@ def create_app(
             library.delete(template_id)
         except TemplateError as error:
             raise HTTPException(422, str(error)) from error
+        # devices given this template by hand go back to the automatic match
+        with settings_lock:
+            settings = store.load()
+            kept = {d: t for d, t in settings.device_templates.items() if t != template_id}
+            if kept != settings.device_templates:
+                settings.device_templates = kept
+                store.save(settings)
         template_changed()
         return {"deleted": template_id}
 

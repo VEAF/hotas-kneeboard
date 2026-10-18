@@ -150,7 +150,12 @@ def test_template_made_in_the_editor_is_matched_and_shared(client):
     imported = client.post("/api/templates/import", json={"file": base64.b64encode(shared.content).decode()})
     assert imported.json()["id"] == "fake-stick-v2-3"
 
+    client.put(
+        "/api/settings", json={"device_templates": {"Fake Stick": "fake-stick-v2", "Other": "fake-stick"}}
+    )
     assert client.delete("/api/templates/fake-stick-v2").status_code == 200
+    # the device given the deleted template by hand goes back to the automatic match
+    assert client.get("/api/state").json()["settings"]["device_templates"] == {"Other": "fake-stick"}
     assert client.delete("/api/templates/fake-stick").status_code == 422  # bundled
     bad = client.post("/api/templates", json=body | {"image_name": "x.exe"})
     assert bad.status_code == 422

@@ -52,8 +52,7 @@ async function editTemplate() {
   if (id) {
     const loaded = await loadTemplate(id)
     const user = !!state.templates.find((t) => t.id === id)?.user
-    open(fromTemplate(loaded.data, loaded.image, user))
-    if (!editor.draft!.devices.includes(d.name)) editor.draft!.devices.push(d.name)
+    open(fromTemplate(loaded.data, loaded.image, user, d.name))
   } else {
     open(newDraft({ name: d.name, devices: [d.name] }))
   }
