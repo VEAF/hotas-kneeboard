@@ -56,7 +56,8 @@ def resolve_dirs(
     own_interpreter: bool = False,
     language_override: str | None = None,
 ) -> dict:
-    """The two folders to use, each from the settings or detected, and what is wrong with them.
+    """The two folders to use, each from the settings or detected, and what is wrong with them
+    (``problems``, shown to the user as they are: in French, like the UI).
 
     ``own_interpreter``: the engine runs with another Lua than the install's (tests).
     """
@@ -64,13 +65,15 @@ def resolve_dirs(
     saved = Path(saved_override) if saved_override else detect_saved_games_dir()
     problems = []
     if install is None:
-        problems.append("DCS install not found: set it in the settings")
+        problems.append("Installation de DCS introuvable : indique-la dans les réglages")
     elif not own_interpreter and not (install / DCS_INTERPRETER).is_file():
-        problems.append(f"no {DCS_INTERPRETER.as_posix()} in {install}: not a DCS install")
+        problems.append(
+            f"Pas de {DCS_INTERPRETER.as_posix()} dans {install} : ce n'est pas une installation de DCS"
+        )
     if saved is None:
-        problems.append("Saved Games/DCS not found: set it in the settings")
+        problems.append("Dossier Saved Games de DCS introuvable : indique-le dans les réglages")
     elif not (saved / "Config" / "Input").is_dir():
-        problems.append(f"no Config/Input in {saved}: not a DCS Saved Games folder")
+        problems.append(f"Pas de Config/Input dans {saved} : ce n'est pas le dossier Saved Games de DCS")
     return {
         "install_dir": str(install) if install else None,
         "install_detected": not install_override,

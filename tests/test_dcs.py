@@ -41,9 +41,9 @@ def test_no_translation_file_keeps_the_names(tmp_path):
 def test_folders_from_the_settings_are_checked(tmp_path):
     dirs = resolve_dirs(str(tmp_path), str(tmp_path), language_override="FR")
     assert dirs["language"] == "fr"
-    assert [p.split(": ")[0] for p in dirs["problems"]] == [
-        f"no bin/luae.exe in {tmp_path}",
-        f"no Config/Input in {tmp_path}",
+    assert [p.split(" : ")[0] for p in dirs["problems"]] == [
+        f"Pas de bin/luae.exe dans {tmp_path}",
+        f"Pas de Config/Input dans {tmp_path}",
     ]
     ok = resolve_dirs(str(INSTALL), str(SAVED_GAMES), own_interpreter=True)
     assert ok["problems"] == []

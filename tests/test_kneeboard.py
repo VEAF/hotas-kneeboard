@@ -1,4 +1,5 @@
 import base64
+from pathlib import Path
 
 import pytest
 
@@ -50,7 +51,7 @@ def test_unit_type_is_a_folder_name(tmp_path, unit_type):
 
 
 def test_only_png_is_written(tmp_path):
-    with pytest.raises(KneeboardError, match="not a PNG"):
+    with pytest.raises(KneeboardError, match="pas une image PNG"):
         write_pages(tmp_path, "F-16C_50", "p", [{"title": "x", "png": base64.b64encode(b"GIF89a").decode()}])
     with pytest.raises(KneeboardError, match="base64"):
         write_pages(tmp_path, "F-16C_50", "p", [{"title": "x", "png": "%%%"}])
@@ -78,3 +79,25 @@ def test_a_failed_write_keeps_the_previous_pages(tmp_path, monkeypatch):
     monkeypatch.undo()
     assert old.read_bytes() == b"old"
     assert [p.name for p in folder.iterdir()] == [old.name]
+
+
+def test_a_page_open_elsewhere_puts_everything_back(tmp_path, monkeypatch):
+    folder = tmp_path / "Kneeboard" / "F-16C_50"
+    folder.mkdir(parents=True)
+    pages = ["HOTAS - F-16C_50 - 01 Stick.png", "HOTAS - F-16C_50 - 02 Throttle.png"]
+    for name in pages:
+        (folder / name).write_bytes(b"old")
+    real_replace = Path.replace
+
+    def locked(self, target):
+        # Windows refuses to move a file another program has open
+        if self.name == pages[1]:
+            raise PermissionError("in use")
+        return real_replace(self, target)
+
+    monkeypatch.setattr(Path, "replace", locked)
+    with pytest.raises(PermissionError):
+        write_pages(tmp_path, "F-16C_50", "F-16C_50", [{"title": "New", "png": PNG}])
+    monkeypatch.undo()
+    assert sorted(p.name for p in folder.iterdir()) == pages
+    assert all((folder / name).read_bytes() == b"old" for name in pages)

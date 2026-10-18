@@ -53,28 +53,28 @@ class Settings:
         for name in ("dcs_install_dir", "saved_games_dir", "language"):
             value = getattr(self, name)
             if value is not None and not isinstance(value, str):
-                raise ValueError(f"{name} must be a string or null")
+                raise ValueError(f"{name} : texte attendu")
         for name in ("dcs_install_dir", "saved_games_dir"):
             value = getattr(self, name)
             # a network path would make the app run a program from another machine
             if value and (value.startswith(("\\\\", "//")) or "://" in value):
-                raise ValueError(f"{name} must be a local folder")
+                raise ValueError(f"{name} : un dossier de ce PC est attendu, pas un chemin réseau")
         if self.language is not None and not re.fullmatch(r"[a-z]{2}", self.language):
-            raise ValueError("language must be a DCS l10n folder name, e.g. en")
+            raise ValueError("langue : un dossier l10n de DCS est attendu, par exemple en")
         if not _is_map(self.exported, lambda v: _is_map(v, lambda b: isinstance(b, bool))):
-            raise ValueError("exported must map profiles to {device: true/false}")
+            raise ValueError("exported : profil -> {périphérique: true/false} attendu")
         if not _is_map(
             self.device_order, lambda v: isinstance(v, list) and all(isinstance(d, str) for d in v)
         ):
-            raise ValueError("device_order must map profiles to lists of devices")
+            raise ValueError("device_order : profil -> liste de périphériques attendu")
         if not _is_map(self.device_templates, lambda v: isinstance(v, str)):
-            raise ValueError("device_templates must map devices to template ids")
+            raise ValueError("device_templates : périphérique -> gabarit attendu")
         if self.layer_mode not in LAYER_MODES:
-            raise ValueError(f"layer_mode must be one of {LAYER_MODES}")
+            raise ValueError(f"calques : {' ou '.join(LAYER_MODES)} attendu")
         if isinstance(self.page_height, bool) or not isinstance(self.page_height, int | float):
-            raise ValueError("page_height must be a number")
+            raise ValueError("hauteur des pages : nombre attendu")
         if not 256 <= int(self.page_height) <= 4096:
-            raise ValueError("page_height must be between 256 and 4096")
+            raise ValueError("hauteur des pages : entre 256 et 4096 pixels")
         self.page_height = int(self.page_height)
 
     def as_dict(self) -> dict:

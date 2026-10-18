@@ -44,9 +44,9 @@ def _decode(pages: list[dict]) -> list[tuple[str, bytes]]:
         try:
             data = base64.b64decode(page["png"], validate=True)
         except (KeyError, TypeError, binascii.Error) as error:
-            raise KneeboardError(f"page {page.get('title')!r}: not base64 PNG data") from error
+            raise KneeboardError(f"page {page.get('title')!r} : données PNG illisibles (base64)") from error
         if not data.startswith(PNG_SIGNATURE):
-            raise KneeboardError(f"page {page.get('title')!r}: not a PNG image")
+            raise KneeboardError(f"page {page.get('title')!r} : ce n'est pas une image PNG")
         images.append((str(page.get("title") or "page"), data))
     return images
 
@@ -54,31 +54,43 @@ def _decode(pages: list[dict]) -> list[tuple[str, bytes]]:
 def write_pages(saved_games_dir: Path, unit_type: str, profile: str, pages: list[dict]) -> dict:
     """``pages``: ``[{"title": str, "png": base64}]``, in kneeboard order.
 
-    The new pages are written under temporary names first: a failure leaves the previous pages
-    in place."""
+    All or nothing: the new pages are written under temporary names, the previous ones are moved
+    aside, then the new ones take their names. Any failure (disk full, a page open in another
+    program) puts the previous pages back and removes the temporary files."""
     if not _UNIT_TYPE.match(unit_type) or unit_type.strip(" .") == "":
-        raise KneeboardError(f"invalid unit type {unit_type!r}")
+        raise KneeboardError(f"type d'avion invalide : {unit_type!r}")
     images = _decode(pages)
     folder = Path(saved_games_dir) / "Kneeboard" / unit_type
     folder.mkdir(parents=True, exist_ok=True)
 
-    staged: list[tuple[Path, Path]] = []
+    def temporary_name() -> Path:
+        return folder / f".hotas-{uuid.uuid4().hex}.tmp"
+
+    staged: list[tuple[Path, Path]] = []  # (temporary, final)
+    aside: list[tuple[Path, Path]] = []  # (temporary, previous page)
+    placed: list[Path] = []
     try:
         for index, (title, data) in enumerate(images, start=1):
-            temporary = folder / f".hotas-{uuid.uuid4().hex}.tmp"
-            temporary.write_bytes(data)
+            temporary = temporary_name()
             staged.append((temporary, folder / page_file_name(profile, index, title)))
+            temporary.write_bytes(data)
+        for path in [p for p in folder.iterdir() if p.is_file() and is_page_of(p.name, profile)]:
+            temporary = temporary_name()
+            path.replace(temporary)
+            aside.append((temporary, path))
+        for temporary, final in staged:
+            temporary.replace(final)
+            placed.append(final)
     except OSError:
+        for final in placed:
+            final.unlink(missing_ok=True)
+        for temporary, previous in aside:
+            temporary.replace(previous)
         for temporary, _ in staged:
             temporary.unlink(missing_ok=True)
         raise
-
-    old = [p for p in folder.iterdir() if p.is_file() and is_page_of(p.name, profile)]
-    for path in old:
-        path.unlink()
-    written = []
-    for temporary, final in staged:
-        temporary.replace(final)
-        written.append(final.name)
-    removed = sorted({p.name for p in old} - set(written))
+    for temporary, _ in aside:
+        temporary.unlink(missing_ok=True)
+    written = [final.name for _, final in staged]
+    removed = sorted({previous.name for _, previous in aside} - set(written))
     return {"folder": str(folder), "written": written, "removed": removed}

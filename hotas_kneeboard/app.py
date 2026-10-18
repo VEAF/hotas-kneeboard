@@ -1,4 +1,6 @@
-"""HTTP server: reads DCS, serves the UI and the templates, writes the kneeboard pages."""
+"""HTTP server: reads DCS, serves the UI and the templates, writes the kneeboard pages.
+
+Error messages reach the user as they are: they are written in French, like the UI."""
 
 import logging
 import threading
@@ -68,7 +70,7 @@ class Bindings:
             result = load_effective_bindings(install, saved, names, lua_interpreter)
         except EffectiveBindingsError as error:
             _logger.error(f"engine failed: {error}")
-            return {"profiles": [], "error": str(error)}
+            return {"profiles": [], "error": f"Lecture des liaisons impossible : {error}"}
         translate = command_translator(install, dirs["language"])
         profiles = []
         for name in names:
@@ -113,7 +115,7 @@ def create_app(
         origin = request.headers.get("origin")
         if request.method not in ("GET", "HEAD", "OPTIONS") and origin:
             if urlsplit(origin).hostname not in LOCAL_HOSTS:
-                return JSONResponse({"detail": "cross-origin request refused"}, status_code=403)
+                return JSONResponse({"detail": "requête d'un autre site refusée"}, status_code=403)
         return await call_next(request)
 
     def current_dirs() -> dict:
@@ -157,14 +159,14 @@ def create_app(
     def get_template(template_id: str) -> dict:
         template = library.get(template_id)
         if template is None:
-            raise HTTPException(404, "no such template")
+            raise HTTPException(404, "gabarit introuvable")
         return template.data | {"id": template.id}
 
     @app.get("/api/templates/{template_id}/image")
     def get_template_image(template_id: str) -> FileResponse:
         template = library.get(template_id)
         if template is None:
-            raise HTTPException(404, "no such template")
+            raise HTTPException(404, "gabarit introuvable")
         path = template.image_path
         # a user's SVG template opened on its own must not run scripts with access to the API
         return FileResponse(
@@ -177,7 +179,7 @@ def create_app(
     def export_kneeboard(export: KneeboardExport) -> dict:
         dirs = current_dirs()
         if not dirs["saved_games_dir"]:
-            raise HTTPException(409, "Saved Games/DCS not found")
+            raise HTTPException(409, "Dossier Saved Games de DCS introuvable : indique-le dans les réglages")
         try:
             return write_pages(
                 Path(dirs["saved_games_dir"]),
@@ -188,7 +190,7 @@ def create_app(
         except KneeboardError as error:
             raise HTTPException(422, str(error)) from error
         except OSError as error:
-            raise HTTPException(500, f"cannot write the pages: {error}") from error
+            raise HTTPException(500, f"Pages impossibles à écrire : {error}") from error
 
     if WEB_DIR.is_dir():
         app.mount("/", StaticFiles(directory=WEB_DIR, html=True), name="web")

@@ -4,13 +4,15 @@ import { jsPDF } from 'jspdf'
 import latin600 from '@fontsource/barlow-condensed/files/barlow-condensed-latin-600-normal.woff2?inline'
 import latinExt600 from '@fontsource/barlow-condensed/files/barlow-condensed-latin-ext-600-normal.woff2?inline'
 import latin700 from '@fontsource/barlow-condensed/files/barlow-condensed-latin-700-normal.woff2?inline'
+import latinExt700 from '@fontsource/barlow-condensed/files/barlow-condensed-latin-ext-700-normal.woff2?inline'
 import type { Page } from './page'
 
 /** The label font, embedded: an SVG drawn as an image cannot use the page's fonts */
 export const FONT_CSS = [
   [latin600, 600, 'U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-206F,U+2190-21FF,U+20AC,U+2212'],
   [latinExt600, 600, 'U+0100-024F,U+1E00-1EFF,U+20A0-20AB,U+20AD-20CF,U+2C60-2C7F,U+A720-A7FF'],
-  [latin700, 700, 'U+0000-00FF,U+2000-206F,U+2190-21FF'],
+  [latin700, 700, 'U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-206F,U+2190-21FF,U+20AC,U+2212'],
+  [latinExt700, 700, 'U+0100-024F,U+1E00-1EFF,U+20A0-20AB,U+20AD-20CF,U+2C60-2C7F,U+A720-A7FF'],
 ]
   .map(
     ([url, weight, range]) =>

@@ -55,7 +55,7 @@ def test_settings_are_validated_and_saved(client):
 
 def test_missing_folders_are_reported(client):
     client.put("/api/settings", json={"saved_games_dir": "Z:/nowhere"})
-    assert client.get("/api/bindings").json()["error"].startswith("no Config/Input")
+    assert client.get("/api/bindings").json()["error"].startswith("Pas de Config/Input")
 
 
 def test_template_and_image(client):

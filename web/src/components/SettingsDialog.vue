@@ -13,7 +13,7 @@ const { state } = store
 
 const install = ref('')
 const savedGames = ref('')
-const pageHeight = ref(1024)
+const pageHeight = ref<number | null>(1024)
 const language = ref('auto')
 // DCS's l10n folders
 const languages = [
@@ -38,6 +38,8 @@ async function save() {
   saving.value = true
   error.value = ''
   try {
+    // an emptied number field gives null: the server would refuse it, and the export break
+    if (!pageHeight.value) throw new Error('Indique la hauteur des pages, entre 256 et 4096 pixels.')
     store.changeSettings({ page_height: pageHeight.value })
     const reading = {
       dcs_install_dir: install.value.trim() || null,
