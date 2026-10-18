@@ -44,7 +44,7 @@ class Settings:
     layer_mode: str = "merge"
     # height of the kneeboard PNG, in pixels; the width follows the page's proportions
     page_height: int = 1024
-    # a drawing much wider than tall is cut in two portrait pages (kneeboard, PDF)
+    # drawings whose template has a cut line (split_at) become several pages (kneeboard, PDF)
     split_wide: bool = True
 
     @classmethod

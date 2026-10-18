@@ -17,6 +17,8 @@ export interface Draft {
   credits: Credits
   /** numbering checked on the real device */
   checked: { by: string; date: string } | null
+  /** vertical lines where the drawing is cut into kneeboard pages */
+  split_at: number[]
 }
 
 /** Selected part: the label box (index 0 = box, 1.. = more_boxes) or the marker of an input */
@@ -49,7 +51,7 @@ export const editor = reactive({
 function snapshot(draft: Draft): Snapshot {
   const { id: _, overrides: __, ...rest } = draft
   // the picture (a long data: URL) is shared, not copied: it is never changed in place
-  return { ...rest, devices: [...draft.devices], inputs: JSON.parse(JSON.stringify(draft.inputs)) }
+  return { ...rest, devices: [...draft.devices], split_at: [...draft.split_at], inputs: JSON.parse(JSON.stringify(draft.inputs)) }
 }
 
 export function newDraft(fields: Partial<Draft> = {}): Draft {
@@ -63,6 +65,7 @@ export function newDraft(fields: Partial<Draft> = {}): Draft {
     inputs: {},
     credits: {},
     checked: null,
+    split_at: [],
     ...fields,
   }
 }
@@ -96,6 +99,7 @@ export function fromTemplate(template: Template, image: string, user: boolean, f
     credits: { ...template.credits },
     // a copy for another device is not checked on that one
     checked: copy ? null : (template.checked ?? null),
+    split_at: [...(template.split_at ?? [])],
   })
 }
 
@@ -240,6 +244,14 @@ export function toggleAnchor(): void {
   editor.selection = { key: sel.key, part: input.anchor ? 'anchor' : 'box', index: 0 }
 }
 
+/** A cut line in the middle, or none: a wide drawing (a throttle and its base) on two pages */
+export function toggleSplit(): void {
+  const draft = editor.draft
+  if (!draft) return
+  remember()
+  draft.split_at = draft.split_at.length ? [] : [round(draft.size[0] / 2)]
+}
+
 export function round(v: number): number {
   return Math.round(v * 10) / 10
 }
@@ -259,6 +271,7 @@ export function draftTemplate(draft: Draft): Template {
     image: draft.image?.name ?? 'background.png',
     user: true,
     checked: draft.checked,
+    split_at: draft.split_at,
     inputs: draft.inputs,
   }
 }

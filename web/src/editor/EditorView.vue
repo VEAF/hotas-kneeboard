@@ -25,6 +25,7 @@ import {
   removeSelected,
   renameSelected,
   toggleAnchor,
+  toggleSplit,
   undo,
 } from './state'
 import { api } from '../lib/api'
@@ -430,7 +431,7 @@ async function close() {
 
 function inField(event: KeyboardEvent): boolean {
   const target = event.target as HTMLElement | null
-  return !!target?.closest?.('input, textarea, select, [contenteditable=""], [contenteditable=true], [role=combobox], [role=listbox], .p-select-overlay, .p-dialog')
+  return !!target?.closest?.('input, textarea, select, [contenteditable=""], [contenteditable=true], [role=combobox], .p-select-overlay, .p-listbox, .p-dialog')
 }
 
 onKeyStroke((event) => {
@@ -536,6 +537,23 @@ const nextKey = computed(() => (draft.value ? inputName(nextFree(Object.keys(dra
             @update:model-value="startFrom"
           />
           <input ref="fileInput" type="file" accept=".png,.jpg,.jpeg,.svg" hidden @change="onPicked" />
+        </section>
+
+        <section class="block">
+          <span class="eyebrow">Pages kneeboard</span>
+          <div class="row-buttons">
+            <Button
+              size="small"
+              severity="secondary"
+              :icon="draft.split_at.length ? 'pi pi-times' : 'pi pi-arrows-h'"
+              :label="draft.split_at.length ? 'Ne pas découper' : 'Découper en deux pages'"
+              @click="toggleSplit"
+            />
+          </div>
+          <p class="hint">
+            <template v-if="draft.split_at.length">Glisse la ligne bleue à travers une zone blanche, entre deux parties du dessin (la base et les poignées d'un throttle).</template>
+            <template v-else>Pour un dessin trop large pour une page : une ligne de découpe, à placer entre deux parties.</template>
+          </p>
         </section>
 
         <section class="block">

@@ -91,7 +91,7 @@ function typing(event: KeyboardEvent): boolean {
   const target = event.target as HTMLElement | null
   if (!target?.closest) return false
   if (target.closest('input[type=checkbox]')) return event.key === ' '
-  return !!target.closest('input, textarea, select, [contenteditable=""], [contenteditable=true], [role=combobox], [role=listbox], .p-select-overlay')
+  return !!target.closest('input, textarea, select, [contenteditable=""], [contenteditable=true], [role=combobox], .p-select-overlay, .p-listbox')
 }
 const dialogOpen = () => settingsOpen.value || helpOpen.value
 

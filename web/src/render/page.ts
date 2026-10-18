@@ -263,33 +263,18 @@ export function creditLine(template: Template): string {
 
 const FOOTER_HEIGHT = 28
 
-/** A drawing wider than this (width / height) does not fit a kneeboard page: it is cut in two */
-export const WIDE_RATIO = 1.15
-
-/** Where to cut a wide drawing in two: near the middle, through as few boxes as possible, in the
- * middle of the widest gap between them (the drawings group their boxes around each part) */
-export function bestCut(template: Template): number {
+/** Where a template is cut into pages: its `split_at` (vertical lines, set where the drawing has
+ * room for it, e.g. between a throttle's base and its handles), kept inside the drawing */
+export function cutsOf(template: Template): number[] {
   const [width] = template.size
-  const boxes = Object.values(template.inputs).flatMap((i) => [i.box, ...(i.more_boxes ?? [])])
-  const edges = boxes.flatMap(([x, , w]) => [x, x + w])
-  let best = width / 2
-  let bestScore = -Infinity
-  // at most 600 candidates, whatever the drawing's size
-  const step = Math.max(1, (width * 0.3) / 600)
-  for (let c = width * 0.35; c <= width * 0.65; c += step) {
-    const crossed = boxes.filter(([x, , w]) => x < c && c < x + w).length
-    const clearance = edges.reduce((m, e) => Math.min(m, Math.abs(e - c)), 60)
-    const score = -crossed * 1000 + clearance - Math.abs(c - width / 2) * 0.05
-    if (score > bestScore) [best, bestScore] = [c, score]
-  }
-  return best
+  return [...new Set(template.split_at ?? [])].filter((x) => x > 0 && x < width).sort((a, b) => a - b)
 }
 
 export function diagramPage(ctx: PageContext): Page {
   return diagramPages(ctx, false)[0]
 }
 
-/** The device drawing; a wide one cut in two portrait pages when `splitWide` */
+/** The device drawing; cut into pages at the template's `split_at` when `splitWide` */
 export function diagramPages(ctx: PageContext, splitWide: boolean): Page[] {
   const template = ctx.template!
   const [width, height] = template.data.size
@@ -315,18 +300,17 @@ export function diagramPages(ctx: PageContext, splitWide: boolean): Page[] {
   }
   body += labels.filter((l) => !l.grown).map((l) => l.svg).join('')
   body += labels.filter((l) => l.grown).map((l) => l.svg).join('')
-  if (!splitWide || width / height <= WIDE_RATIO) {
+  const cuts = splitWide ? cutsOf(template.data) : []
+  if (!cuts.length) {
     const band = offTemplateBand(off, height, width, legend, ctx.measurer, showChips)
     const total = height + band.height + FOOTER_HEIGHT
     const svg = svgOpen(width, total, ctx) + body + band.svg + footer(ctx, height + band.height, width, legend) + '</svg>'
     return [{ title: pageTitle(ctx), width, height: total, svg }]
   }
-  // two pages, each showing its part of the same drawing; the bindings without box go on the last
-  const cut = bestCut(template.data)
-  const parts: [number, number][] = [
-    [0, cut],
-    [cut, width],
-  ]
+  // one page per part, each showing its part of the same drawing; the bindings without box go on
+  // the last
+  const edges = [0, ...cuts, width]
+  const parts = edges.slice(0, -1).map((from, i) => [from, edges[i + 1]] as [number, number])
   return parts.map(([from, to], index) => {
     const partWidth = to - from
     const last = index === parts.length - 1

@@ -64,6 +64,8 @@ export interface TemplateSummary {
 export interface Template extends TemplateSummary {
   image: string
   inputs: Record<string, TemplateInput>
+  /** vertical lines where the drawing is cut into kneeboard pages (a wide throttle) */
+  split_at?: number[]
 }
 
 export type LayerMode = 'merge' | 'split'
@@ -79,7 +81,7 @@ export interface Settings {
   hidden_devices: string[]
   layer_mode: LayerMode
   page_height: number
-  /** a drawing much wider than tall is cut in two portrait pages */
+  /** drawings whose template has a cut line (split_at) become several pages */
   split_wide: boolean
 }
 

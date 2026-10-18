@@ -104,7 +104,7 @@ async function save() {
       </label>
       <label class="check" for="split-wide">
         <Checkbox input-id="split-wide" :model-value="state.settings?.split_wide ?? true" binary @update:model-value="(v: boolean) => store.changeSettings({ split_wide: v })" />
-        <span>Couper en deux pages un dessin plus large que haut <small>(la coupe passe entre les cases)</small></span>
+        <span>Couper en deux pages les dessins qui ont une ligne de découpe <small>(les throttles WinWing ; l'éditeur la place)</small></span>
       </label>
       <p v-if="error" class="error">{{ error }}</p>
       <div class="actions">

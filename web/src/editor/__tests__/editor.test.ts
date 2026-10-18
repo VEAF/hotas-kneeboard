@@ -120,6 +120,16 @@ describe('editor state', () => {
     })
   })
 
+  it('adds, undoes and keeps a cut line', async () => {
+    const { toggleSplit } = await import('../state')
+    toggleSplit()
+    expect(editor.draft!.split_at).toEqual([200])
+    undo()
+    expect(editor.draft!.split_at).toEqual([])
+    redo()
+    expect(draftTemplate(editor.draft!).split_at).toEqual([200])
+  })
+
   it('gives the renderer and the server a template', () => {
     addInput('JOY_X', [50, 50])
     const t = draftTemplate(editor.draft!)

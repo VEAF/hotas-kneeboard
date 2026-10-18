@@ -300,6 +300,9 @@ def convert(source: Path, out_dir: Path, meta: dict) -> dict:
         # numbering checked on the real device (lot L3), else null: Joystick Diagrams' as drawn
         "checked": meta.get("checked"),
     }
+    if meta.get("split_at"):
+        # where the drawing is cut into kneeboard pages: through white, between its parts
+        data["split_at"] = meta["split_at"]
     (folder / "template.json").write_text(
         json.dumps(data, indent=1, ensure_ascii=False) + "\n", encoding="utf-8"
     )
