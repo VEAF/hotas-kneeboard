@@ -26,5 +26,5 @@ To check one, with the device plugged in:
 
 1. `uv run python scripts/check_templates.py` lists, for your devices, the inputs bound in DCS that have no box on their template.
 2. In the app, open the device's page, **Modifier le gabarit**, then **Vérifier** (`V`) and press every button of the device in turn: the box of each one lights up, or the editor asks you to click where it is. Move the boxes that are wrong.
-3. Type your nickname, **Marquer vérifié**, and save (`Ctrl+S`): your version goes in front of the bundled one, on your PC.
+3. Type your nickname, **Marquer vérifié**, and save (`Ctrl+S`): your version goes in front of the bundled one, on your PC, and lists your device's DCS name. (A template made for another device, by its `devices`, is not changed: the editor makes a new template for yours.)
 4. To give it to everyone: **Exporter**, unzip the file into `hotas_kneeboard/library/<id>/` (same id), and set `"maintained": true` on its entry in `scripts/jd_templates.json` so that converting again leaves it alone. A device Joystick Diagrams never drew is added the same way, with a new id.

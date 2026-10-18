@@ -42,7 +42,8 @@ const UNCHECKED_HINT =
 /** A library template whose numbering nobody checked on the real device yet */
 const unchecked = computed(() => {
   const summary = state.templates.find((t) => t.id === templateId.value)
-  return !!summary && !summary.user && !summary.checked
+  // a user's version in front of a bundled template is still unchecked unless marked so
+  return !!summary && (!summary.user || !!summary.replaces_bundled) && !summary.checked
 })
 
 const automatic = computed(() => {

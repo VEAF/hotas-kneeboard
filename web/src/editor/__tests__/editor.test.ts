@@ -106,6 +106,12 @@ describe('editor state', () => {
       name: 'VPC Stick MT-50CM3',
       devices: ['VPC Stick MT-50CM3'],
     })
+    // a template naming no device (found by choosing it by hand): fixed in place, learns the name
+    expect(fromTemplate({ ...warthog, devices: [] }, 'data:', false, 'VPC Stick MT-50CM3')).toMatchObject({
+      id: 'thrustmaster-warthog-throttle',
+      overrides: true,
+      devices: ['VPC Stick MT-50CM3'],
+    })
     // the device's own template: fixing it, in front of the bundled one
     expect(fromTemplate(warthog, 'data:', false, 'Throttle - HOTAS Warthog')).toMatchObject({
       id: 'thrustmaster-warthog-throttle',

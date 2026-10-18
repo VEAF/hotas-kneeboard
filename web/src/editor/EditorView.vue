@@ -191,6 +191,7 @@ async function identify() {
     listening.value.abort()
     return
   }
+  checking.value?.abort() // one listener at a time
   const controller = new AbortController()
   listening.value = controller
   detected.value = ''
@@ -241,7 +242,9 @@ async function check() {
       })
       const boxed = !!editor.draft && found.key in editor.draft.inputs
       checkLog.value = [{ key: found.key, boxed }, ...checkLog.value.filter((e) => e.key !== found.key)]
+      listening.value?.abort() // one listener at a time
       if (boxed) {
+        placing.value = null
         editor.selection = { key: found.key, part: 'box', index: 0 }
         detected.value = `${inputName(found.key)} : case trouvée`
       } else {
@@ -257,6 +260,16 @@ async function check() {
   }
 }
 onBeforeUnmount(() => checking.value?.abort())
+// another draft: what was listened to belongs to the previous one
+watch(
+  () => editor.session,
+  () => {
+    checking.value?.abort()
+    listening.value?.abort()
+    checkLog.value = []
+    detected.value = ''
+  },
+)
 
 const checkedCount = computed(() => new Set(checkLog.value.map((e) => e.key)).size)
 
@@ -322,9 +335,10 @@ const previewSvg = computed(() => {
 
 // --- save, share ---------------------------------------------------------------------------
 
-async function save() {
+async function save(asNew = false) {
   const d = editor.draft
   if (!d || saving.value) return
+  const session = editor.session
   if (!d.image) return toast.add({ severity: 'warn', summary: "Ajoute d'abord l'image du périphérique", life: 5000 })
   if (!d.name.trim()) return toast.add({ severity: 'warn', summary: 'Donne un nom au gabarit', life: 5000 })
   saving.value = true
@@ -334,10 +348,11 @@ async function save() {
       template: { ...template, name: d.name.trim() },
       image_name: d.image.name,
       image: d.image.dataUrl.split(',')[1],
-      id: d.id,
+      id: asNew ? null : d.id,
     })
-    // the draft now in the editor (an undo during the request replaced the object)
-    if (editor.draft) {
+    // the draft now in the editor (an undo during the request replaced the object), unless
+    // another one was opened meanwhile
+    if (editor.draft && editor.session === session) {
       editor.draft.id = summary.id
       editor.draft.overrides = false
     }
@@ -358,10 +373,7 @@ async function save() {
 
 /** The draft as a new template, whatever it was started from */
 function saveAsNew() {
-  if (!editor.draft) return
-  editor.draft.id = null
-  editor.draft.overrides = false
-  save()
+  save(true)
 }
 
 async function importFile(file: File) {
@@ -502,7 +514,7 @@ const nextKey = computed(() => (draft.value ? inputName(nextFree(Object.keys(dra
       <Button icon="pi pi-search-plus" text rounded aria-label="Zoom avant (+)" @click="zoomBy(1.2)" />
       <SelectButton v-model="mode" :options="modes" option-label="label" option-value="value" :allow-empty="false" size="small" aria-label="Édition ou aperçu" />
       <Button v-if="draft.id" size="small" severity="secondary" text label="Enregistrer comme nouveau" :disabled="saving" @click="saveAsNew" />
-      <Button icon="pi pi-save" :loading="saving" @click="save"><span class="btn-label">Enregistrer</span><kbd>Ctrl S</kbd></Button>
+      <Button icon="pi pi-save" :loading="saving" @click="save()"><span class="btn-label">Enregistrer</span><kbd>Ctrl S</kbd></Button>
     </header>
 
     <div class="ebody">
@@ -600,7 +612,7 @@ const nextKey = computed(() => (draft.value ? inputName(nextFree(Object.keys(dra
             />
           </div>
           <div v-if="checkLog.length" class="check-log">
-            <span v-for="entry in checkLog" :key="entry.key" class="pill" :class="entry.boxed ? 'ok' : 'warn'">{{ inputName(entry.key) }}</span>
+            <span v-for="entry in checkLog" :key="entry.key" class="pill" :class="entry.key in draft.inputs ? 'ok' : 'warn'">{{ inputName(entry.key) }}</span>
           </div>
           <p v-if="draft.checked" class="hint">Vérifié par {{ draft.checked.by }} le {{ draft.checked.date }}.</p>
           <div class="row-buttons">
