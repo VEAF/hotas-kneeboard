@@ -11,3 +11,4 @@ Chaque `template.json` nomme son fichier d'origine dans `credits.source`, et les
 
 Ne modifie pas à la main un dossier converti : change `scripts/jd_templates.json` ou le convertisseur, et convertis de nouveau.
 Seule exception, un gabarit corrigé dans l'éditeur et marqué `"maintained": true` dans `jd_templates.json`, que la conversion laisse tel quel.
+Les lignes de découpe (`split_at`) des gabarits convertis viennent aussi de `jd_templates.json` ; celle d'un gabarit fait ou corrigé dans l'éditeur est enregistrée avec lui.

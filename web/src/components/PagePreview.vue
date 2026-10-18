@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { useElementSize, useLocalStorage } from '@vueuse/core'
+import { StorageSerializers, useElementSize, useLocalStorage } from '@vueuse/core'
 import Select from 'primevue/select'
 import SelectButton from 'primevue/selectbutton'
 import ProgressSpinner from 'primevue/progressspinner'
@@ -25,7 +25,8 @@ const layerModes = [
 const stage = ref<HTMLElement | null>(null)
 const { width: stageWidth, height: stageHeight } = useElementSize(stage)
 type Zoom = 'fit' | 'width' | number
-const zoom = useLocalStorage<Zoom>('hotas-kneeboard-zoom', 'fit')
+// JSON: a zoom factor must come back as a number, not as the text of one
+const zoom = useLocalStorage<Zoom>('hotas-kneeboard-zoom', 'fit', { serializer: StorageSerializers.object })
 const CAPTION = 22
 const zoomModes = [
   { icon: 'pi pi-arrows-alt', value: 'fit', tip: 'Page entière' },

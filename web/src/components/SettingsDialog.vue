@@ -102,16 +102,16 @@ async function save() {
         <InputNumber id="page-height" v-model="pageHeight" :min="256" :max="4096" :step="128" show-buttons :use-grouping="false" />
         <small>La largeur suit les proportions du dessin.</small>
       </label>
-      <label class="check" for="split-wide">
-        <Checkbox input-id="split-wide" :model-value="state.settings?.split_wide ?? true" binary @update:model-value="(v: boolean) => store.changeSettings({ split_wide: v })" />
-        <span>Couper en deux pages les dessins qui ont une ligne de découpe <small>(les throttles WinWing ; l'éditeur la place)</small></span>
-      </label>
       <p v-if="error" class="error">{{ error }}</p>
       <div class="actions">
         <Button type="button" label="Annuler" severity="secondary" text @click="visible = false" />
         <Button type="submit" label="Enregistrer" :loading="saving" />
       </div>
     </form>
+    <label class="check immediate" for="split-wide">
+      <Checkbox input-id="split-wide" :model-value="state.settings?.split_wide ?? true" binary @update:model-value="(v: boolean) => store.changeSettings({ split_wide: v })" />
+      <span>Couper en deux pages les dessins qui ont une ligne de découpe <small>(les throttles WinWing ; l'éditeur la place). Appliqué tout de suite.</small></span>
+    </label>
         </TabPanel>
         <TabPanel value="devices">
           <div class="form">
@@ -156,5 +156,6 @@ async function save() {
 .tab-count { margin-left: 8px; font-size: 11px; color: var(--warn); }
 .check { display: flex; gap: 10px; align-items: center; cursor: pointer; }
 .check small { color: var(--ink-3); }
+.check.immediate { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); }
 .file { margin: 14px 0 0; font-size: 12px; color: var(--ink-3); overflow-wrap: anywhere; }
 </style>

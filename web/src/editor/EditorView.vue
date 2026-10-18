@@ -142,6 +142,7 @@ async function usePicture(file: File) {
       if (input.anchor) input.anchor = [input.anchor[0] * sx, input.anchor[1] * sy]
       input.more_boxes = input.more_boxes?.map((b) => [b[0] * sx, b[1] * sy, b[2] * sx, b[3] * sy])
     }
+    d.split_at = d.split_at.map((x) => Math.round(x * sx * 10) / 10)
   }
   d.size = [w, h]
   d.image = { dataUrl, name: `background.${extension === 'jpeg' ? 'jpg' : extension}` }

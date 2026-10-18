@@ -43,7 +43,7 @@ TEMPLATE_FILE = "template.json"
 # a shared template file: template.json and its picture, nothing else, of a reasonable size
 MAX_IMAGE_BYTES = 20 * 1024 * 1024
 MAX_JSON_BYTES = 1024 * 1024
-# coordinate system of a drawing: a shared file must not make the browser loop over billions
+# coordinate system of a drawing: a shared file must not make the browser build huge pages
 MAX_SIZE = 20000
 _ID = re.compile(r"^[a-z0-9][a-z0-9-]{0,63}$")
 
