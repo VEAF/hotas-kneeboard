@@ -26,8 +26,11 @@ class Settings:
     # None: detected (registry for the install, the Saved Games known folder for the other)
     dcs_install_dir: str | None = None
     saved_games_dir: str | None = None
-    # profile -> device name (without GUID) -> page exported or not; a device not listed is
+    # profile -> device full name (with GUID: two devices may share a name) -> page exported or
+    # not; a device not listed is exported
     exported: dict[str, dict[str, bool]] = field(default_factory=dict)
+    # profile -> device full names, in kneeboard page order; devices not listed come after
+    device_order: dict[str, list[str]] = field(default_factory=dict)
     # device name -> template id, chosen by the user over the automatic match ("" = no template)
     device_templates: dict[str, str] = field(default_factory=dict)
     # modifier layers on the same page as the base layer, or one page per layer
