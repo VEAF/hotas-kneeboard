@@ -274,9 +274,11 @@ export function bestCut(template: Template): number {
   const edges = boxes.flatMap(([x, , w]) => [x, x + w])
   let best = width / 2
   let bestScore = -Infinity
-  for (let c = Math.round(width * 0.35); c <= width * 0.65; c += 1) {
+  // at most 600 candidates, whatever the drawing's size
+  const step = Math.max(1, (width * 0.3) / 600)
+  for (let c = width * 0.35; c <= width * 0.65; c += step) {
     const crossed = boxes.filter(([x, , w]) => x < c && c < x + w).length
-    const clearance = Math.min(60, ...edges.map((e) => Math.abs(e - c)))
+    const clearance = edges.reduce((m, e) => Math.min(m, Math.abs(e - c)), 60)
     const score = -crossed * 1000 + clearance - Math.abs(c - width / 2) * 0.05
     if (score > bestScore) [best, bestScore] = [c, score]
   }

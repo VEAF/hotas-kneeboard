@@ -42,6 +42,8 @@ TEMPLATE_FILE = "template.json"
 # a shared template file: template.json and its picture, nothing else, of a reasonable size
 MAX_IMAGE_BYTES = 20 * 1024 * 1024
 MAX_JSON_BYTES = 1024 * 1024
+# coordinate system of a drawing: a shared file must not make the browser loop over billions
+MAX_SIZE = 20000
 _ID = re.compile(r"^[a-z0-9][a-z0-9-]{0,63}$")
 
 
@@ -101,8 +103,8 @@ def validate(data: dict, folder: Path) -> None:
         raise TemplateError(f"image : {', '.join(IMAGE_TYPES)} attendu")
     if not (folder / image).is_file():
         raise TemplateError(f"image {image} introuvable")
-    if not _is_numbers(data.get("size"), 2):
-        raise TemplateError("size : [largeur, hauteur] attendu")
+    if not _is_numbers(data.get("size"), 2) or not all(1 <= v <= MAX_SIZE for v in data["size"]):
+        raise TemplateError(f"size : [largeur, hauteur] attendu, entre 1 et {MAX_SIZE}")
     _validate_inputs(data.get("inputs"))
     checked = data.get("checked")
     if checked is not None and not (

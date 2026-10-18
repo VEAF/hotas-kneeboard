@@ -52,6 +52,7 @@ def test_invalid_template_is_skipped(tmp_path):
         ({"image": "x.gif"}, "image : "),
         ({"image": "missing.svg"}, "introuvable"),
         ({"size": [1]}, "size"),
+        ({"size": [1e9, 10]}, "size"),
         ({"inputs": {"JOY_BTN1": {"box": [1, 2, 3, 4], "anchor": [1]}}}, "anchor"),
     ],
 )

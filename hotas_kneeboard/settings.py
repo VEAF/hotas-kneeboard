@@ -54,7 +54,21 @@ class Settings:
         settings.validate()
         return settings
 
-    def validate(self) -> None:  # noqa: C901
+    def validate(self) -> None:
+        self._validate_reading()
+        self._validate_choices()
+        if self.layer_mode not in LAYER_MODES:
+            raise ValueError(f"calques : {' ou '.join(LAYER_MODES)} attendu")
+        if not isinstance(self.split_wide, bool):
+            raise ValueError("split_wide : true ou false attendu")
+        if isinstance(self.page_height, bool) or not isinstance(self.page_height, int | float):
+            raise ValueError("hauteur des pages : nombre attendu")
+        if not 256 <= int(self.page_height) <= 4096:
+            raise ValueError("hauteur des pages : entre 256 et 4096 pixels")
+        self.page_height = int(self.page_height)
+
+    def _validate_reading(self) -> None:
+        """What changes what is read from DCS: folders and language"""
         for name in ("dcs_install_dir", "saved_games_dir", "language"):
             value = getattr(self, name)
             if value is not None and not isinstance(value, str):
@@ -66,6 +80,9 @@ class Settings:
                 raise ValueError(f"{name} : un dossier de ce PC est attendu, pas un chemin réseau")
         if self.language is not None and not re.fullmatch(r"[a-z]{2}", self.language):
             raise ValueError("langue : un dossier l10n de DCS est attendu, par exemple en")
+
+    def _validate_choices(self) -> None:
+        """The user's choices per module and per device"""
         if not _is_map(self.exported, lambda v: _is_map(v, lambda b: isinstance(b, bool))):
             raise ValueError("exported : profil -> {périphérique: true/false} attendu")
         if not _is_map(
@@ -78,15 +95,6 @@ class Settings:
             isinstance(self.hidden_devices, list) and all(isinstance(d, str) for d in self.hidden_devices)
         ):
             raise ValueError("hidden_devices : liste de noms de périphériques attendue")
-        if self.layer_mode not in LAYER_MODES:
-            raise ValueError(f"calques : {' ou '.join(LAYER_MODES)} attendu")
-        if not isinstance(self.split_wide, bool):
-            raise ValueError("split_wide : true ou false attendu")
-        if isinstance(self.page_height, bool) or not isinstance(self.page_height, int | float):
-            raise ValueError("hauteur des pages : nombre attendu")
-        if not 256 <= int(self.page_height) <= 4096:
-            raise ValueError("hauteur des pages : entre 256 et 4096 pixels")
-        self.page_height = int(self.page_height)
 
     def as_dict(self) -> dict:
         return asdict(self)
