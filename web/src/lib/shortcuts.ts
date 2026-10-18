@@ -9,4 +9,5 @@ export const SHORTCUTS = [
   { keys: ['Ctrl', 'P'], label: 'PDF du module' },
   { keys: ['F5'], label: 'Relire les fichiers de DCS' },
   { keys: ['?'], label: 'Cette aide' },
+  { keys: ['✎'], label: "L'éditeur de gabarit a ses propres raccourcis, listés dans sa colonne" },
 ]

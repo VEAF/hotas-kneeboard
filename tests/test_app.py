@@ -20,7 +20,9 @@ def client(tmp_path):
     store = SettingsStore(tmp_path / "data" / "settings.json")
     store.save(Settings(dcs_install_dir=str(INSTALL), saved_games_dir=str(SAVED_GAMES)))
     make_template(tmp_path / "templates", "fake-stick", devices=["Fake Stick"])
-    app = create_app(store, TemplateLibrary([tmp_path / "templates"]), lua_interpreter=lua)
+    app = create_app(
+        store, TemplateLibrary([tmp_path / "templates"], user_dir=tmp_path / "user"), lua_interpreter=lua
+    )
     return TestClient(app, base_url="http://127.0.0.1:8642")
 
 
@@ -124,3 +126,36 @@ def test_invalid_settings_are_refused(client, changes):
 
 def test_template_image_cannot_run_scripts(client):
     assert client.get("/api/templates/fake-stick/image").headers["content-security-policy"] == "sandbox"
+
+
+def test_template_made_in_the_editor_is_matched_and_shared(client):
+    body = {
+        "template": {"name": "Fake Stick v2", "devices": ["Fake Stick"], "size": [10, 10], "inputs": {}},
+        "image_name": "photo.png",
+        "image": base64.b64encode(b"png").decode(),
+    }
+    saved = client.post("/api/templates", json=body).json()
+    assert saved == saved | {"id": "fake-stick-v2", "user": True}
+    devices = client.get("/api/bindings").json()["profiles"]
+    stick = next(
+        d for p in devices if p["name"] == "FakePlane" for d in p["devices"] if d["name"] == "Fake Stick"
+    )
+    assert stick["auto_template_id"] == "fake-stick-v2"  # the user's template wins
+    # a second one with the same name gets its own id; replacing by id keeps it
+    assert client.post("/api/templates", json=body).json()["id"] == "fake-stick-v2-2"
+    assert client.post("/api/templates", json=body | {"id": "fake-stick-v2"}).json()["id"] == "fake-stick-v2"
+
+    shared = client.get("/api/templates/fake-stick-v2/file")
+    assert shared.headers["content-type"] == "application/zip"
+    imported = client.post("/api/templates/import", json={"file": base64.b64encode(shared.content).decode()})
+    assert imported.json()["id"] == "fake-stick-v2-3"
+
+    client.put(
+        "/api/settings", json={"device_templates": {"Fake Stick": "fake-stick-v2", "Other": "fake-stick"}}
+    )
+    assert client.delete("/api/templates/fake-stick-v2").status_code == 200
+    # the device given the deleted template by hand goes back to the automatic match
+    assert client.get("/api/state").json()["settings"]["device_templates"] == {"Other": "fake-stick"}
+    assert client.delete("/api/templates/fake-stick").status_code == 422  # bundled
+    bad = client.post("/api/templates", json=body | {"image_name": "x.exe"})
+    assert bad.status_code == 422

@@ -25,7 +25,17 @@ Press `?` in the app for every keyboard shortcut.
 ## Templates
 
 The device pictures come from [Joystick Diagrams](https://github.com/Rexeh/joystick-diagrams) by Robert Cox (Rexeh) and its contributors (GPL v2), converted to our format (see `hotas_kneeboard/library/README.md`).
-Your own templates go in `%APPDATA%\HOTAS Kneeboard\templates\<name>\` (`template.json` + picture, format in `hotas_kneeboard/templates.py`); an on-screen editor comes next.
+### Describe a device yourself
+
+A device with no template, or a template to fix: **Créer un gabarit** / **Modifier le gabarit** on its page (or the pencil icon at the top) opens the editor.
+
+1. Drop a photo or drawing of the device on the window (PNG, JPG, SVG), or start from an existing template.
+2. Place each input: drag "＋ Entrée" onto the picture, or press `N` and click where the button is. A marker goes on the button, its label box beside it: drag either one, resize the box by its corner.
+3. Pick its DCS input (button, hat direction, axis) in the list, or press `I` then the button on the device: the browser recognises it (Gamepad API; check the number it gives, the list stays the reference).
+4. `P` previews the template with a module's real bindings; `Ctrl+S` saves it in your library (`%APPDATA%\HOTAS Kneeboard\templates\`), and the device uses it at once.
+
+Undo / redo (`Ctrl+Z` / `Ctrl+Y`), duplicate on the next button (`Ctrl+D`), nudge with the arrows, zoom with `+ − 0`.
+A saved template can be exported as one file and imported on another PC; saving a fixed library template puts your version in front of the bundled one.
 
 ## Develop
 

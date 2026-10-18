@@ -2,6 +2,8 @@
 
 Error messages reach the user as they are: they are written in French, like the UI."""
 
+import base64
+import binascii
 import logging
 import threading
 from pathlib import Path
@@ -9,7 +11,7 @@ from urllib.parse import urlsplit
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -19,7 +21,7 @@ from .engine import EffectiveBindingsError, list_user_profiles, load_effective_b
 from .kneeboard import KneeboardError, write_pages
 from .pages import build_page, split_device_name
 from .settings import Settings, SettingsStore, data_dir
-from .templates import BUNDLED_DIR, IMAGE_TYPES, TemplateLibrary
+from .templates import BUNDLED_DIR, IMAGE_TYPES, TemplateError, TemplateLibrary, slug
 
 _logger = logging.getLogger(__name__)
 
@@ -38,6 +40,25 @@ class KneeboardExport(BaseModel):
     unit_type: str
     profile: str
     pages: list[KneeboardPage]
+
+
+class TemplateSave(BaseModel):
+    template: dict
+    image_name: str
+    image: str  # base64
+    # None: a new template, its id made from its name; else the user template to replace
+    id: str | None = None
+
+
+class TemplateImport(BaseModel):
+    file: str  # base64 of the shared template file
+
+
+def _b64(data: str) -> bytes:
+    try:
+        return base64.b64decode(data, validate=True)
+    except (binascii.Error, ValueError) as error:
+        raise HTTPException(422, "données illisibles (base64)") from error
 
 
 class Bindings:
@@ -104,7 +125,7 @@ def create_app(
 ) -> FastAPI:
     """``lua_interpreter``: another Lua 5.1 than the install's ``bin/luae.exe`` (tests)."""
     store = store or SettingsStore(data_dir() / "settings.json")
-    library = library or TemplateLibrary([BUNDLED_DIR, data_dir() / "templates"])
+    library = library or TemplateLibrary([BUNDLED_DIR], user_dir=data_dir() / "templates")
     bindings = Bindings(lua_interpreter)
     settings_lock = threading.Lock()
     app = FastAPI(title="HOTAS Kneeboard", version=__version__)
@@ -153,14 +174,17 @@ def create_app(
 
     @app.get("/api/templates")
     def list_templates() -> list[dict]:
-        return [t.summary() for t in library.templates.values()]
+        bundled = library.bundled_ids()
+        return [
+            t.summary() | {"replaces_bundled": t.user and t.id in bundled} for t in library.templates.values()
+        ]
 
     @app.get("/api/templates/{template_id}")
     def get_template(template_id: str) -> dict:
         template = library.get(template_id)
         if template is None:
             raise HTTPException(404, "gabarit introuvable")
-        return template.data | {"id": template.id}
+        return template.data | {"id": template.id, "user": template.user}
 
     @app.get("/api/templates/{template_id}/image")
     def get_template_image(template_id: str) -> FileResponse:
@@ -173,6 +197,64 @@ def create_app(
             path,
             media_type=IMAGE_TYPES[path.suffix.lower()],
             headers={"Content-Security-Policy": "sandbox", "X-Content-Type-Options": "nosniff"},
+        )
+
+    def template_changed() -> None:
+        # the automatic matches of the devices may change
+        library.reload()
+        bindings.invalidate()
+
+    @app.post("/api/templates")
+    def save_template(body: TemplateSave) -> dict:
+        template_id = body.id
+        if template_id is None:
+            base, n = slug(str(body.template.get("name") or "")), 1
+            template_id = base
+            while library.get(template_id) is not None:
+                n += 1
+                template_id = f"{base[:60]}-{n}"
+        try:
+            template = library.save(template_id, body.template, body.image_name, _b64(body.image))
+        except TemplateError as error:
+            raise HTTPException(422, str(error)) from error
+        template_changed()
+        return template.summary()
+
+    @app.post("/api/templates/import")
+    def import_template(body: TemplateImport) -> dict:
+        try:
+            template = library.import_file(_b64(body.file))
+        except TemplateError as error:
+            raise HTTPException(422, str(error)) from error
+        template_changed()
+        return template.summary()
+
+    @app.delete("/api/templates/{template_id}")
+    def delete_template(template_id: str) -> dict:
+        try:
+            library.delete(template_id)
+        except TemplateError as error:
+            raise HTTPException(422, str(error)) from error
+        # devices given this template by hand go back to the automatic match
+        with settings_lock:
+            settings = store.load()
+            kept = {d: t for d, t in settings.device_templates.items() if t != template_id}
+            if kept != settings.device_templates:
+                settings.device_templates = kept
+                store.save(settings)
+        template_changed()
+        return {"deleted": template_id}
+
+    @app.get("/api/templates/{template_id}/file")
+    def export_template(template_id: str) -> Response:
+        try:
+            content = library.export_file(template_id)
+        except TemplateError as error:
+            raise HTTPException(404, str(error)) from error
+        return Response(
+            content,
+            media_type="application/zip",
+            headers={"Content-Disposition": f'attachment; filename="{template_id}.hotas-template.zip"'},
         )
 
     @app.post("/api/kneeboard")

@@ -23,6 +23,7 @@ const state = reactive({
   profileName: '' as string,
   deviceKey: '' as string, // full name, with GUID: two devices may share a name
   filter: '',
+  view: 'pages' as 'pages' | 'editor',
 })
 
 const templateCache = new Map<string, Promise<LoadedTemplate>>()
@@ -154,7 +155,9 @@ function isExported(profileName: string, d: Device): boolean {
 
 function templateIdFor(d: Device): string | null {
   const chosen = state.settings?.device_templates[d.name]
-  if (chosen !== undefined) return chosen || null
+  // a choice of a template deleted since falls back to the automatic match
+  if (chosen === '') return null
+  if (chosen !== undefined && state.templates.some((t) => t.id === chosen)) return chosen
   return d.auto_template_id
 }
 
