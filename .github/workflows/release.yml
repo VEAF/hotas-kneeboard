@@ -14,11 +14,17 @@ permissions:
 
 jobs:
   exe:
+    # a manual run from another branch must not publish its commit as a release
+    if: github.ref == 'refs/heads/main'
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      # the runner's own Python may predate tomllib (3.11)
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
       - name: Version
         id: version
         shell: pwsh

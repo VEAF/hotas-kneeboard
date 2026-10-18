@@ -14,6 +14,11 @@ PRD = issue [#1](https://github.com/VEAF/hotas-kneeboard/issues/1), un ticket pa
 - Une release = une PR de `develop` vers `main`, qui monte la version dans `pyproject.toml` et `hotas_kneeboard/__init__.py` (les deux doivent être égales). À la fusion, `.github/workflows/release.yml` construit l'exe sous Windows et publie la release `vX.Y.Z` ; une fusion sans changement de version ne publie rien.
 - La CI (`ci.yml`) tourne sur chaque PR et sur les poussées vers `develop` et `main`.
 
+## Documentation
+
+- `README.md` et `docs/` (guide d'utilisation, éditeur de gabarits, gabarits, développement) sont en français ; l'internationalisation de l'interface et de la doc viendra plus tard.
+- Un changement visible de l'utilisateur met à jour la page de `docs/` qui en parle, dans le même mouvement.
+
 ## Structure
 
 - `hotas_kneeboard/` : le serveur FastAPI.
