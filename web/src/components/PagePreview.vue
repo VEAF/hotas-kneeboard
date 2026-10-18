@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { useElementSize, useLocalStorage } from '@vueuse/core'
 import Select from 'primevue/select'
 import SelectButton from 'primevue/selectbutton'
 import ProgressSpinner from 'primevue/progressspinner'
@@ -16,9 +17,51 @@ const error = ref('')
 const rendering = ref(false)
 
 const layerModes = [
-  { label: 'Sur la même page', value: 'merge' },
-  { label: 'Une page par calque', value: 'split' },
+  { label: 'Même page', value: 'merge' },
+  { label: 'Par calque', value: 'split' },
 ]
+
+// --- zoom: the page fits the space it has, unless the user zooms -------------------------------
+const stage = ref<HTMLElement | null>(null)
+const { width: stageWidth, height: stageHeight } = useElementSize(stage)
+type Zoom = 'fit' | 'width' | number
+const zoom = useLocalStorage<Zoom>('hotas-kneeboard-zoom', 'fit')
+const STAGE_PADDING = 16
+const CAPTION = 22
+const zoomModes = [
+  { icon: 'pi pi-arrows-alt', value: 'fit', tip: 'Page entière' },
+  { icon: 'pi pi-arrows-h', value: 'width', tip: 'Toute la largeur' },
+]
+const zoomMode = computed({
+  get: () => (typeof zoom.value === 'number' ? null : zoom.value),
+  set: (value) => value && (zoom.value = value),
+})
+
+/** Width of a page on screen, in pixels */
+function sheetWidth(page: Page): number {
+  const width = Math.max(120, stageWidth.value - 2 * STAGE_PADDING)
+  const height = Math.max(120, stageHeight.value - 2 * STAGE_PADDING - (pages.value.length > 1 ? CAPTION : 0))
+  if (zoom.value === 'width') return width
+  if (zoom.value === 'fit') return Math.min(width, (height * page.width) / page.height)
+  return page.width * zoom.value
+}
+
+function zoomBy(factor: number) {
+  const first = pages.value[0]
+  if (!first) return
+  const current = sheetWidth(first) / first.width
+  zoom.value = Math.min(4, Math.max(0.2, current * factor))
+}
+
+function onWheel(event: WheelEvent) {
+  if (!event.ctrlKey) return
+  event.preventDefault()
+  zoomBy(event.deltaY < 0 ? 1.1 : 1 / 1.1)
+}
+const zoomLabel = computed(() => {
+  const first = pages.value[0]
+  return first ? `${Math.round((sheetWidth(first) / first.width) * 100)} %` : ''
+})
 
 // PrimeVue's Select shows an empty string as "nothing selected": "no template" needs a value
 const NO_TEMPLATE = '-'
@@ -100,15 +143,15 @@ watch(
         <span v-if="store.device.value?.source === 'diff'" class="pill warn" v-tooltip.bottom="'Seules les modifications enregistrées dans Saved Games sont connues : défauts du module absents.'">
           {{ store.device.value.error === 'module not installed' ? 'module non installé' : 'pas de profil de base' }}
         </span>
+        <span
+          v-if="unchecked"
+          class="pill warn"
+          v-tooltip.bottom="UNCHECKED_HINT"
+        >numérotation non vérifiée</span>
       </div>
-      <span
-        v-if="unchecked"
-        class="pill warn"
-        v-tooltip.bottom="UNCHECKED_HINT"
-      >numérotation non vérifiée</span>
       <div v-if="store.device.value" class="controls">
         <label class="ctl">
-          <span class="eyebrow">Gabarit<template v-if="automatic && templateId !== NO_TEMPLATE"> (auto)</template></span>
+          <span class="eyebrow">Gabarit<template v-if="automatic && templateId !== NO_TEMPLATE"> auto</template></span>
           <Select
             v-model="templateId"
             :options="templateOptions"
@@ -124,7 +167,8 @@ watch(
           size="small"
           severity="secondary"
           icon="pi pi-pencil"
-          :label="templateId === NO_TEMPLATE ? 'Créer un gabarit' : 'Modifier le gabarit'"
+          :label="templateId === NO_TEMPLATE ? 'Créer' : 'Modifier'"
+          v-tooltip.bottom="templateId === NO_TEMPLATE ? 'Créer un gabarit pour ce périphérique' : 'Modifier le gabarit dans l\'éditeur'"
           @click="editTemplate"
         />
         <label class="ctl">
@@ -141,30 +185,53 @@ watch(
         </label>
       </div>
     </header>
-    <div class="stage">
-      <ProgressSpinner v-if="rendering && !pages.length" style="width: 40px; height: 40px" />
-      <p v-if="error" class="stage-error">Page impossible à construire : {{ error }}</p>
-      <figure v-for="(page, i) in pages" :key="i" class="sheet">
-        <figcaption v-if="pages.length > 1">{{ page.title }}</figcaption>
-        <div class="paper" v-html="page.svg" />
-      </figure>
+    <div class="stage-wrap">
+      <div ref="stage" class="stage" :class="{ single: pages.length === 1 }" @wheel="onWheel">
+        <ProgressSpinner v-if="rendering && !pages.length" style="width: 40px; height: 40px" />
+        <p v-if="error" class="stage-error">Page impossible à construire : {{ error }}</p>
+        <figure v-for="(page, i) in pages" :key="i" class="sheet" :style="{ width: `${sheetWidth(page)}px` }">
+          <figcaption v-if="pages.length > 1">{{ page.title }}</figcaption>
+          <div class="paper" v-html="page.svg" />
+        </figure>
+      </div>
+      <div v-if="pages.length" class="zoom" role="group" aria-label="Zoom">
+        <SelectButton v-model="zoomMode" :options="zoomModes" option-value="value" data-key="value" size="small" :allow-empty="false" aria-label="Ajustement de la page">
+          <template #option="{ option }">
+            <i :class="option.icon" v-tooltip.top="option.tip" :aria-label="option.tip" />
+          </template>
+        </SelectButton>
+        <Button size="small" text icon="pi pi-minus" aria-label="Zoom arrière" v-tooltip.top="'Zoom arrière (Ctrl+molette)'" @click="zoomBy(1 / 1.2)" />
+        <span class="zoom-value">{{ zoomLabel }}</span>
+        <Button size="small" text icon="pi pi-plus" aria-label="Zoom avant" v-tooltip.top="'Zoom avant (Ctrl+molette)'" @click="zoomBy(1.2)" />
+      </div>
     </div>
   </section>
 </template>
 
 <style scoped>
 .page-col { background: var(--panel); }
-.pagehead { padding: 10px 14px; display: flex; align-items: flex-end; gap: 12px 16px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
-.title { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1 1 260px; }
+.pagehead { padding: 8px 14px; display: flex; align-items: flex-end; gap: 8px 16px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.title { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1 1 200px; align-self: center; }
 .title h2 { font-size: 22px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.controls { display: flex; gap: 14px; flex-wrap: wrap; align-items: flex-end; }
-.ctl { display: flex; flex-direction: column; gap: 4px; }
-.tpl-select { width: 260px; max-width: 100%; }
+.controls { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
+.ctl { display: flex; flex-direction: column; gap: 3px; }
+.tpl-select { width: 230px; max-width: 100%; }
+.stage-wrap { flex: 1; min-height: 0; position: relative; display: flex; }
+.stage-wrap > .stage { flex: 1; }
+/* floating over the page, bottom right: takes no height from it */
+.zoom {
+  position: absolute; right: 14px; bottom: 12px; display: flex; align-items: center; gap: 2px; padding: 4px;
+  background: color-mix(in srgb, var(--panel-2) 92%, transparent); border: 1px solid var(--line); border-radius: 8px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+}
+.zoom-value { font: 600 12px var(--f-mono); color: var(--ink-2); min-width: 44px; text-align: center; font-variant-numeric: tabular-nums; }
 .stage {
-  flex: 1; overflow: auto; padding: 18px; display: flex; flex-direction: column; align-items: center; gap: 18px;
+  min-height: 0; overflow: auto; padding: 16px; display: flex; flex-direction: column; align-items: safe center; gap: 18px;
   background: repeating-linear-gradient(45deg, transparent 0 10px, color-mix(in srgb, var(--panel-3) 35%, transparent) 10px 11px);
 }
-.sheet { margin: 0; width: 100%; max-width: 720px; display: flex; flex-direction: column; gap: 6px; }
+/* one page: centred both ways when it is smaller than the space */
+.stage.single { justify-content: safe center; }
+.sheet { margin: 0; flex: none; display: flex; flex-direction: column; gap: 6px; }
 .sheet figcaption { font-size: 12px; color: var(--ink-3); }
 .paper { background: #fff; border-radius: 3px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35); overflow: hidden; }
 .paper :deep(svg) { display: block; width: 100%; height: auto; }

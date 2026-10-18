@@ -514,7 +514,7 @@ const nextKey = computed(() => (draft.value ? inputName(nextFree(Object.keys(dra
       <Button icon="pi pi-search-plus" text rounded aria-label="Zoom avant (+)" @click="zoomBy(1.2)" />
       <SelectButton v-model="mode" :options="modes" option-label="label" option-value="value" :allow-empty="false" size="small" aria-label="Édition ou aperçu" />
       <Button v-if="draft.id" size="small" severity="secondary" text label="Enregistrer comme nouveau" :disabled="saving" @click="saveAsNew" />
-      <Button icon="pi pi-save" :loading="saving" @click="save()"><span class="btn-label">Enregistrer</span><kbd>Ctrl S</kbd></Button>
+      <Button icon="pi pi-save" label="Enregistrer" :loading="saving" v-tooltip.bottom="'Enregistrer dans ta bibliothèque (Ctrl+S)'" @click="save()" />
     </header>
 
     <div class="ebody">
@@ -660,7 +660,6 @@ const nextKey = computed(() => (draft.value ? inputName(nextFree(Object.keys(dra
 .editor { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 .ebar { display: flex; align-items: center; gap: 8px; padding: 8px 14px; border-bottom: 1px solid var(--line); background: var(--panel-2); flex-wrap: wrap; }
 .ebar .name { width: 280px; max-width: 40vw; }
-.ebar kbd { background: transparent; border-color: currentColor; color: inherit; opacity: 0.7; margin-left: 8px; }
 .ebody { flex: 1; min-height: 0; display: grid; grid-template-columns: 300px minmax(0, 1fr); }
 .side { border-right: 1px solid var(--line); overflow: auto; padding: 10px 12px; display: flex; flex-direction: column; gap: 16px; }
 .block { display: flex; flex-direction: column; gap: 8px; }
