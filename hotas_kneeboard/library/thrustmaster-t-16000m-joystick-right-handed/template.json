@@ -208,5 +208,6 @@
   "source": "https://github.com/Rexeh/joystick-diagrams/blob/master/templates/Thrustmaster/T.16000M%20Joystick%20Right%20Handed.svg",
   "license": "GPL-2.0",
   "converted_by": "scripts/convert_jd_templates.py"
- }
+ },
+ "checked": null
 }

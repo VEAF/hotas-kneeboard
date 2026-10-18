@@ -13,7 +13,8 @@
         "JOY_BTN1": {"box": [205, 666, 180, 30], "anchor": [545, 706]},  # + leader line
         "JOY_BTN5": {"box": [10, 10, 80, 20], "more_boxes": [[400, 10, 80, 20]]}  # drawn twice
       },
-      "credits": {"author": "…", "source": "…", "license": "GPL-2.0"}
+      "credits": {"author": "…", "source": "…", "license": "GPL-2.0"},
+      "checked": {"by": "David", "date": "2026-10-19"}  # numbering checked on the real device
     }
 
 The library ships with the app (``hotas_kneeboard/library``); templates in the user's data
@@ -72,6 +73,7 @@ class Template:
             "devices": self.data.get("devices", []),
             "size": self.data["size"],
             "credits": self.data.get("credits", {}),
+            "checked": self.data.get("checked"),
             "user": self.user,
         }
 
@@ -102,6 +104,11 @@ def validate(data: dict, folder: Path) -> None:
     if not _is_numbers(data.get("size"), 2):
         raise TemplateError("size : [largeur, hauteur] attendu")
     _validate_inputs(data.get("inputs"))
+    checked = data.get("checked")
+    if checked is not None and not (
+        isinstance(checked, dict) and all(isinstance(checked.get(k), str) for k in ("by", "date"))
+    ):
+        raise TemplateError('checked : {"by": "…", "date": "AAAA-MM-JJ"} attendu')
 
 
 def _validate_inputs(inputs) -> None:

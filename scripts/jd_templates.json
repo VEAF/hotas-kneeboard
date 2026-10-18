@@ -1,5 +1,5 @@
 {
- "_comment": "Joystick Diagrams template (path under its templates/) -> our template: folder id, DCS device names (without GUID), input remaps after checking the real numbering, skip reason.",
+ "_comment": "Joystick Diagrams template (path under its templates/) -> our template: folder id, DCS device names (without GUID), input remaps after checking the real numbering, checked {by, date} once checked on the real device, skip reason.",
  "templates": {
   "CH/CH Fighterstick USB.svg": {
    "id": "ch-fighterstick-usb",

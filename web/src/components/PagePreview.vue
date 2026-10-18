@@ -37,6 +37,14 @@ const layerMode = computed({
   set: (value: LayerMode) => value && store.changeSettings({ layer_mode: value }),
 })
 
+const UNCHECKED_HINT =
+  "La numérotation de ce gabarit n'a pas encore été vérifiée sur le vrai périphérique : une commande peut tomber sur la mauvaise case. Modifier le gabarit, puis « Vérifier » : appuie sur chaque bouton."
+/** A library template whose numbering nobody checked on the real device yet */
+const unchecked = computed(() => {
+  const summary = state.templates.find((t) => t.id === templateId.value)
+  return !!summary && !summary.user && !summary.checked
+})
+
 const automatic = computed(() => {
   const d = store.device.value
   return !!d && state.settings?.device_templates[d.name] === undefined
@@ -92,6 +100,11 @@ watch(
           {{ store.device.value.error === 'module not installed' ? 'module non installé' : 'pas de profil de base' }}
         </span>
       </div>
+      <span
+        v-if="unchecked"
+        class="pill warn"
+        v-tooltip.bottom="UNCHECKED_HINT"
+      >numérotation non vérifiée</span>
       <div v-if="store.device.value" class="controls">
         <label class="ctl">
           <span class="eyebrow">Gabarit<template v-if="automatic && templateId !== NO_TEMPLATE"> (auto)</template></span>

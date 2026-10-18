@@ -462,5 +462,6 @@
   "source": "https://github.com/Rexeh/joystick-diagrams/blob/master/templates/WinWing/PCR%20Panel%20of%20Combat%20Ready/PCR%20Panel%20of%20Combat%20Ready.svg",
   "license": "GPL-2.0",
   "converted_by": "scripts/convert_jd_templates.py"
- }
+ },
+ "checked": null
 }

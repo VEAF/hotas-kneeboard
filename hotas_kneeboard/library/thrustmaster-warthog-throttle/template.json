@@ -288,5 +288,6 @@
   "source": "https://github.com/Rexeh/joystick-diagrams/blob/master/templates/Thrustmaster/Thrustmaster%20Warthog%20-%20Throttle.svg",
   "license": "GPL-2.0",
   "converted_by": "scripts/convert_jd_templates.py"
- }
+ },
+ "checked": null
 }

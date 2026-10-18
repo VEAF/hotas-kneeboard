@@ -32,6 +32,7 @@ const template: Template = {
   credits: { author: 'Joystick Diagrams contributors', license: 'GPL-2.0' },
   image: 'background.svg',
   user: false,
+  checked: null,
   inputs: {
     JOY_BTN17: { box: [10, 10, 120, 24] },
     JOY_BTN2: { box: [10, 60, 120, 24], more_boxes: [[300, 60, 120, 24]] },

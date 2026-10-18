@@ -294,5 +294,6 @@
   "source": "https://github.com/Rexeh/joystick-diagrams/blob/master/templates/Virpil/Virpil%20Stick%20MT-50CM2.svg",
   "license": "GPL-2.0",
   "converted_by": "scripts/convert_jd_templates.py"
- }
+ },
+ "checked": null
 }

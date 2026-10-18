@@ -247,6 +247,7 @@ export function draftTemplate(draft: Draft): Template {
     credits: draft.credits,
     image: draft.image?.name ?? 'background.png',
     user: true,
+    checked: null,
     inputs: draft.inputs,
   }
 }

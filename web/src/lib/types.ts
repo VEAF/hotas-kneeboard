@@ -53,6 +53,8 @@ export interface TemplateSummary {
   devices: string[]
   size: [number, number]
   credits: Credits
+  /** numbering checked on the real device, else null (a converted template as drawn) */
+  checked: { by: string; date: string } | null
   /** in the user's folder: can be changed in place, deleted */
   user: boolean
   /** a user's version in front of a bundled template of the same id (list only) */

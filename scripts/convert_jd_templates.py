@@ -297,6 +297,8 @@ def convert(source: Path, out_dir: Path, meta: dict) -> dict:
             "license": "GPL-2.0",
             "converted_by": "scripts/convert_jd_templates.py",
         },
+        # numbering checked on the real device (lot L3), else null: Joystick Diagrams' as drawn
+        "checked": meta.get("checked"),
     }
     (folder / "template.json").write_text(
         json.dumps(data, indent=1, ensure_ascii=False) + "\n", encoding="utf-8"
