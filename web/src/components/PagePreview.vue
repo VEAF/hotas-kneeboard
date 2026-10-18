@@ -26,7 +26,6 @@ const stage = ref<HTMLElement | null>(null)
 const { width: stageWidth, height: stageHeight } = useElementSize(stage)
 type Zoom = 'fit' | 'width' | number
 const zoom = useLocalStorage<Zoom>('hotas-kneeboard-zoom', 'fit')
-const STAGE_PADDING = 16
 const CAPTION = 22
 const zoomModes = [
   { icon: 'pi pi-arrows-alt', value: 'fit', tip: 'Page entière' },
@@ -37,10 +36,34 @@ const zoomMode = computed({
   set: (value) => value && (zoom.value = value),
 })
 
+const GAP = 18
+// side by side only if the pages lose less than this of their size compared to one per row
+const SIDE_BY_SIDE_KEEPS = 0.85
+// "full width", two per row: from this width on
+const MIN_HALF_WIDTH = 400
+
+/** Room for the pages (useElementSize gives the stage's content box: padding already out) */
+function space(): { width: number; height: number } {
+  return {
+    width: Math.max(120, stageWidth.value),
+    height: Math.max(120, stageHeight.value - (pages.value.length > 1 ? CAPTION : 0)),
+  }
+}
+
+/** Pages side by side, two per row (the two halves of a wide drawing), when there is room for it */
+const columns = computed(() => {
+  if (pages.value.length < 2 || typeof zoom.value === 'number') return 1
+  const { width, height } = space()
+  const half = (width - GAP) / 2
+  if (zoom.value === 'width') return half >= MIN_HALF_WIDTH ? 2 : 1
+  const fit = (w: number, p: Page) => Math.min(w, (height * p.width) / p.height)
+  return pages.value.every((p) => fit(half, p) >= SIDE_BY_SIDE_KEEPS * fit(width, p)) ? 2 : 1
+})
+
 /** Width of a page on screen, in pixels */
 function sheetWidth(page: Page): number {
-  const width = Math.max(120, stageWidth.value - 2 * STAGE_PADDING)
-  const height = Math.max(120, stageHeight.value - 2 * STAGE_PADDING - (pages.value.length > 1 ? CAPTION : 0))
+  const { height } = space()
+  const width = (space().width - GAP * (columns.value - 1)) / columns.value
   if (zoom.value === 'width') return width
   if (zoom.value === 'fit') return Math.min(width, (height * page.width) / page.height)
   return page.width * zoom.value
@@ -186,7 +209,7 @@ watch(
       </div>
     </header>
     <div class="stage-wrap">
-      <div ref="stage" class="stage" :class="{ single: pages.length === 1 }" @wheel="onWheel">
+      <div ref="stage" class="stage" :class="{ single: pages.length === 1, paired: columns === 2 }" @wheel="onWheel">
         <ProgressSpinner v-if="rendering && !pages.length" style="width: 40px; height: 40px" />
         <p v-if="error" class="stage-error">Page impossible à construire : {{ error }}</p>
         <figure v-for="(page, i) in pages" :key="i" class="sheet" :style="{ width: `${sheetWidth(page)}px` }">
@@ -231,6 +254,8 @@ watch(
 }
 /* one page: centred both ways when it is smaller than the space */
 .stage.single { justify-content: safe center; }
+/* two pages per row: the halves of a wide drawing next to each other, as on paper */
+.stage.paired { flex-direction: row; flex-wrap: wrap; justify-content: center; align-content: safe center; align-items: flex-start; }
 .sheet { margin: 0; flex: none; display: flex; flex-direction: column; gap: 6px; }
 .sheet figcaption { font-size: 12px; color: var(--ink-3); }
 .paper { background: #fff; border-radius: 3px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35); overflow: hidden; }

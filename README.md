@@ -21,7 +21,7 @@ Press `?` in the app for every keyboard shortcut.
 - Bindings whose input has no box on the drawing are listed under it, so nothing is lost.
 - A device without template gets a list page. You can also pick a template by hand for a device: the choice is remembered.
 - Command names are those the game shows, in its language.
-- A drawing much wider than tall (a throttle with its base) is cut in two portrait pages, between its boxes; this can be turned off in the settings.
+- A drawing much wider than tall (a throttle with its base) is cut in two portrait pages, between its boxes; this can be turned off in the settings. On screen the two halves stand side by side when the window is wide enough.
 
 ### Settings
 
