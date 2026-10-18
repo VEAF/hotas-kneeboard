@@ -1,58 +1,53 @@
 # HOTAS Kneeboard
 
-Generate DCS World kneeboard pages and printable sheets of your HOTAS bindings, drawn on your actual devices.
+Des pages de kneeboard et des fiches à imprimer pour DCS World, qui montrent ce que fait chaque bouton de ton HOTAS, dessiné sur ton propre matériel.
 
-HOTAS Kneeboard reads what each button of each of your devices does in each DCS module — the module's defaults, your changes, removed defaults gone, community keybinds included — and draws it on a picture of the device.
-One click writes the pages into the DCS kneeboard of the aircraft; another makes a PDF to print or share.
+HOTAS Kneeboard lit la configuration de tes périphériques dans DCS, module par module, et la dessine sur l'image de chaque périphérique : manche, manette des gaz, palonnier, panneaux.
+Un clic écrit les pages dans le kneeboard de l'avion ; un autre en fait un PDF à imprimer ou à partager.
 
-## Use it
+Un projet de la [VEAF](https://www.veaf.org), sous licence GPL v2.
 
-1. Download `HOTAS-Kneeboard.exe` from the [releases](https://github.com/VEAF/hotas-kneeboard/releases) and run it. Nothing to install: a console opens (close it to quit) and the app opens in your browser.
-2. It finds DCS by itself (the install from the Windows registry, `Saved Games\DCS` from your profile). If not, set the folders in the settings (gear icon).
-3. Pick a module, then a device: the page shows what DCS will do. Untick the devices you do not want, drag them to change the page order.
-4. **Export to the kneeboard** (Ctrl+E) writes the pages into `Saved Games\DCS\Kneeboard\<aircraft>\`; they are in the kneeboard the next time you fly that aircraft. **PDF** (Ctrl+P) downloads the same pages.
+## Ce que ça fait
 
-Press `?` in the app for every keyboard shortcut.
+- **Ce que DCS fait vraiment** : les défauts du module, tes modifications, les défauts que tu as retirés, les commandes ajoutées par la communauté (injecteur de Quaggles), avec les noms tels que le jeu les affiche dans sa langue.
+  Vérifié identique à l'export « MAKE HTML » de DCS sur l'A-10C II et le F-16C.
+- **Lisible d'un coup d'œil** : un interrupteur à deux positions tient sur une seule étiquette (« LG Handle - UP / DN ») ; les calques de modificateurs (un « Paddle » par exemple) apparaissent en couleur dans la même étiquette, ou sur une page par calque.
+- **Rien ne se perd** : une commande liée à une entrée qui n'a pas de case sur le dessin est listée sous le dessin ; un périphérique sans dessin a une page en liste.
+- **Vers le kneeboard en un clic** : les pages arrivent dans `Saved Games\DCS\Kneeboard\<avion>\` et tu les retrouves en vol.
+- **PDF** de toutes les pages d'un module.
+- **45 dessins de périphériques** repris de [Joystick Diagrams](https://github.com/Rexeh/joystick-diagrams) (Thrustmaster, WinWing, Virpil, VKB, Saitek, CH…), et un **éditeur** pour dessiner ceux qui manquent ou corriger les autres.
+- **Pratique** : tout se fait au clavier, glisser-déposer pour l'ordre des pages, choix mémorisés, périphériques inutiles masqués.
 
-### What a page shows
+## Installation
 
-- A two-position switch shows both positions on one label: "LG Handle - UP / DN".
-- Modifier layers (e.g. a "Paddle" modifier) show as a coloured tag in the label, or one page per layer ("Calques" switch).
-- Bindings whose input has no box on the drawing are listed under it, so nothing is lost.
-- A device without template gets a list page. You can also pick a template by hand for a device: the choice is remembered.
-- Command names are those the game shows, in its language.
-- A drawing too wide for one page is cut in two portrait pages where its template says (`split_at`): the WinWing Orion throttles are, between the base and the handles; in the editor, "Découper en deux pages" places the line for any template. Cutting can be turned off in the settings. On screen the two halves stand side by side when the window is wide enough.
+1. Télécharge `HOTAS-Kneeboard.exe` dans les [releases](https://github.com/VEAF/hotas-kneeboard/releases).
+2. Lance-le : rien à installer, pas besoin de Python.
+   Une fenêtre de console s'ouvre (la fermer quitte l'application) et l'application s'ouvre dans ton navigateur.
+3. Elle trouve DCS toute seule : l'installation par le registre de Windows, `Saved Games\DCS` dans ton profil.
+   Sinon, indique les dossiers dans les réglages (roue dentée).
 
-### Settings
+## En deux minutes
 
-The gear icon opens the settings, saved in `%APPDATA%\HOTAS Kneeboard\settings.json`: DCS folders, language of the command names, height of the kneeboard pages, cutting of the drawings that have a cut line.
-The **Périphériques** tab lists every device seen in your modules: untick one to hide it everywhere (a vJoy, a device unplugged for good). It then leaves the lists and the exports; the eye on a device's row, or `H`, does the same, and "N cachés : Afficher" at the bottom of the list shows them again.
+1. Choisis un module à gauche, puis un périphérique : la page montre ce que DCS fera.
+2. Décoche les périphériques que tu ne veux pas dans le kneeboard, glisse-les pour changer l'ordre des pages.
+3. **Kneeboard** (Ctrl+E) écrit les pages ; elles sont dans le kneeboard au prochain vol sur cet avion.
+4. **PDF** (Ctrl+P) télécharge les mêmes pages.
 
-## Templates
+`?` affiche tous les raccourcis clavier.
 
-The device pictures come from [Joystick Diagrams](https://github.com/Rexeh/joystick-diagrams) by Robert Cox (Rexeh) and its contributors (GPL v2), converted to our format (see `hotas_kneeboard/library/README.md`).
-### Describe a device yourself
+## Documentation
 
-A device with no template, or a template to fix: **Créer un gabarit** / **Modifier le gabarit** on its page (or the pencil icon at the top) opens the editor.
+- [Guide d'utilisation](docs/guide-utilisateur.md) : l'écran, les pages, les exports, les réglages, les raccourcis, les problèmes courants.
+- [Éditeur de gabarits](docs/editeur-de-gabarits.md) : dessiner un périphérique qui n'a pas de gabarit, corriger un gabarit, le vérifier sur le vrai matériel, le partager.
+- [Gabarits](docs/gabarits.md) : le format, la bibliothèque, la conversion depuis Joystick Diagrams, comment verser un gabarit vérifié.
+- [Développement](docs/developpement.md) : l'architecture, le moteur de lecture, les commandes, les tests, les branches et les releases.
 
-1. Drop a photo or drawing of the device on the window (PNG, JPG, SVG), or start from an existing template.
-2. Place each input: drag "＋ Entrée" onto the picture, or press `N` and click where the button is. A marker goes on the button, its label box beside it: drag either one, resize the box by its corner.
-3. Pick its DCS input (button, hat direction, axis) in the list, or press `I` then the button on the device: the browser recognises it (Gamepad API; check the number it gives, the list stays the reference).
-4. `P` previews the template with a module's real bindings; `Ctrl+S` saves it in your library (`%APPDATA%\HOTAS Kneeboard\templates\`), and the device uses it at once.
+## Crédits
 
-Undo / redo (`Ctrl+Z` / `Ctrl+Y`), duplicate on the next button (`Ctrl+D`), nudge with the arrows, zoom with `+ − 0`.
-A saved template can be exported as one file and imported on another PC; saving a fixed library template puts your version in front of the bundled one.
+Les dessins des périphériques viennent de [Joystick Diagrams](https://github.com/Rexeh/joystick-diagrams), de Robert Cox (Rexeh) et de ses contributeurs, sous licence GPL v2 ; chaque gabarit garde son crédit, rappelé au bas de chaque page.
+La lecture des liaisons reproduit la logique de DCS (`Scripts/Input/Data.lua`) et s'exécute avec l'interpréteur Lua livré avec le jeu.
 
-### Check a template
+## Licence
 
-A page marked "numérotation non vérifiée" uses a library template nobody checked on the real device yet: a command may land on the wrong box.
-Open the editor on it, click **Vérifier** (`V`) and press every button of the device: each box lights up, or the editor asks where the button is.
-Then **Marquer vérifié** and save; share the file with VEAF so that everyone gets the checked version (`hotas_kneeboard/library/README.md`).
-
-## Develop
-
-See [CLAUDE.md](CLAUDE.md) for the structure and the commands (Python with `uv`, UI with `npm`).
-
-## License
-
-GNU General Public License v2, see [LICENSE](LICENSE).
+GNU General Public License v2, voir [LICENSE](LICENSE).
+L'interface est en français ; l'internationalisation viendra plus tard.
