@@ -137,3 +137,20 @@ def test_metadata_covers_every_template_once():
     ids = [m["id"] for m in metadata.values()]
     assert len(ids) == len(set(ids))
     assert len(metadata) == 46
+
+
+def test_maintained_templates_are_not_converted_again(tmp_path, monkeypatch, capsys):
+    source = tmp_path / "templates"
+    (source / "Dir").mkdir(parents=True)
+    (source / "Dir" / "T.svg").write_text(
+        svg('<rect x="1" y="1" width="9" height="9"/>' + label("Button_1", 1, 5)), encoding="utf-8"
+    )
+    metadata = tmp_path / "jd_templates.json"
+    metadata.write_text(
+        json.dumps({"templates": {"Dir/T.svg": {"id": "t", "maintained": True}}}), encoding="utf-8"
+    )
+    monkeypatch.setattr(converter, "METADATA", metadata)
+    monkeypatch.setattr(sys, "argv", ["convert", str(source), str(tmp_path / "library")])
+    assert converter.main() == 0
+    assert not (tmp_path / "library" / "t").exists()
+    assert "maintained by hand" in capsys.readouterr().out

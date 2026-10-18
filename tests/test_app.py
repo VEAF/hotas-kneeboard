@@ -46,6 +46,14 @@ def test_bindings_give_pages_with_their_template(client):
     assert stick["inputs"]["JOY_BTN4"]["JOY_BTN5"]["text"] == "Master Arm"
 
 
+def test_hidden_devices_are_saved(client):
+    response = client.put("/api/settings", json={"hidden_devices": ["vJoy Device"]})
+    assert response.status_code == 200
+    state = client.get("/api/state").json()
+    assert state["settings"]["hidden_devices"] == ["vJoy Device"]
+    assert state["settings_file"].endswith("settings.json")
+
+
 def test_settings_are_validated_and_saved(client):
     response = client.put(
         "/api/settings", json={"layer_mode": "split", "exported": {"FakePlane": {"Fake Stick": False}}}
@@ -118,6 +126,8 @@ def test_requests_from_another_site_are_refused(client):
         {"device_templates": {"Fake Stick": 3}},
         {"language": "../../x"},
         {"page_height": "big"},
+        {"hidden_devices": "vJoy Device"},
+        {"hidden_devices": [3]},
     ],
 )
 def test_invalid_settings_are_refused(client, changes):

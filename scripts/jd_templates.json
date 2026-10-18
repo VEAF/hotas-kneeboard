@@ -1,5 +1,5 @@
 {
- "_comment": "Joystick Diagrams template (path under its templates/) -> our template: folder id, DCS device names (without GUID), input remaps after checking the real numbering, skip reason.",
+ "_comment": "Joystick Diagrams template (path under its templates/) -> our template: folder id, DCS device names (without GUID), input remaps after checking the real numbering, checked {by, date} once checked on the real device, maintained: true once library/<id> was fixed in the editor (the converter then leaves it alone), split_at: x where the drawing is cut into kneeboard pages (measured white column between its parts), skip reason.",
  "templates": {
   "CH/CH Fighterstick USB.svg": {
    "id": "ch-fighterstick-usb",
@@ -167,7 +167,10 @@
   },
   "WinWing/Orion2 16EX Throttle Combo/Orion2 16EX Throttle Combo.svg": {
    "id": "winwing-orion2-16ex-throttle-combo",
-   "devices": []
+   "devices": [],
+   "split_at": [
+    568
+   ]
   },
   "WinWing/Orion2 18 Joystick Combo/Orion2 18 Joystick Combo.svg": {
    "id": "winwing-orion2-18-joystick-combo",
@@ -175,21 +178,33 @@
   },
   "WinWing/Orion2 18 Throttle Combo/Orion2 18 Throttle Combo.svg": {
    "id": "winwing-orion2-18-throttle-combo",
-   "devices": []
+   "devices": [],
+   "split_at": [
+    566
+   ]
   },
   "WinWing/Orion2 18 Throttle Combo/Orion2 18 Throttle Combo_with Axis.svg": {
    "id": "winwing-orion2-18-throttle-combo-with-axis",
-   "devices": []
+   "devices": [],
+   "split_at": [
+    566
+   ]
   },
   "WinWing/Orion2 Throttle Base+15E Metal Throttle Grip/Orion2 Throttle Base+15E Metal Throttle Grip.svg": {
    "id": "winwing-orion2-throttle-base-15e-metal-throttle-grip",
-   "devices": []
+   "devices": [],
+   "split_at": [
+    568
+   ]
   },
   "WinWing/Orion2 Throttle Base+15EX - Metal Throttle Grip/WINWING Orion Throttle Base II + F15EX HANDLE L + F15EX HANDLE R.svg": {
    "id": "winwing-orion-throttle-base-ii-f15ex-handle-l-f15ex-handle-r",
    "devices": [
     "WINCTRL Orion Throttle Base II + F15EX HANDLE L + F15 HANDLE R",
     "WINWING Orion Throttle Base II + F15EX HANDLE L + F15EX HANDLE R"
+   ],
+   "split_at": [
+    566
    ]
   },
   "WinWing/PCR Panel of Combat Ready/PCR Panel of Combat Ready.svg": {

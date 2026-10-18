@@ -342,5 +342,6 @@
   "source": "https://github.com/Rexeh/joystick-diagrams/blob/master/templates/WinWing/PTO%202%20Panel%20of%20Take%20Off/PTO%202%20Panel%20of%20Take%20Off.svg",
   "license": "GPL-2.0",
   "converted_by": "scripts/convert_jd_templates.py"
- }
+ },
+ "checked": null
 }

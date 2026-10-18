@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { compareInputs, inputName, layerTags } from '../inputs'
 import { approximateMeasurer, fitTexts, MIN_LABEL_SIZE, wrap } from '../text'
-import { devicePages, diagramPage, entriesByInput, listPages, type PageContext } from '../page'
+import { cutsOf, devicePages, diagramPage, diagramPages, entriesByInput, listPages, type PageContext } from '../page'
 import type { Device, Template } from '../../lib/types'
 
 const device: Device = {
@@ -32,6 +32,7 @@ const template: Template = {
   credits: { author: 'Joystick Diagrams contributors', license: 'GPL-2.0' },
   image: 'background.svg',
   user: false,
+  checked: null,
   inputs: {
     JOY_BTN17: { box: [10, 10, 120, 24] },
     JOY_BTN2: { box: [10, 60, 120, 24], more_boxes: [[300, 60, 120, 24]] },
@@ -122,6 +123,26 @@ describe('pages', () => {
     expect(page.svg).toContain('HORS GABARIT')
     expect(page.svg).toContain('Axe Z')
     expect(page.height).toBeGreaterThan(1000)
+  })
+
+  it('cuts a drawing into pages where its template says', () => {
+    // JOY_Z without box: the band of bindings without box has something to show
+    const { JOY_Z: _z, ...inputs } = template.inputs
+    const wide: Template = { ...template, size: [2000, 1000], inputs, split_at: [1080] }
+    const cut = 1080
+    const pages = diagramPages({ ...ctx(null), template: { data: wide, image: 'x' } }, true)
+    expect(pages.map((p) => p.title)).toEqual(['Throttle - HOTAS Warthog (1/2)', 'Throttle - HOTAS Warthog (2/2)'])
+    expect(pages[0].width).toBe(cut)
+    expect(pages[1].width).toBe(2000 - cut)
+    expect(pages[1].svg).toContain(`viewBox="${cut} 0 ${2000 - cut} 1000"`)
+    expect(pages[0].svg).not.toContain('HORS GABARIT') // the bindings without box go on the last page
+    expect(pages[1].svg).toContain('HORS GABARIT')
+    // not cut when asked so, nor when the template says nothing
+    expect(diagramPages({ ...ctx(null), template: { data: wide, image: 'x' } }, false)).toHaveLength(1)
+    expect(diagramPages(ctx(null), true)).toHaveLength(1)
+    // cuts outside the drawing are ignored, two cuts make three pages
+    expect(cutsOf({ ...wide, split_at: [-5, 2500, 1500, 500, 500] })).toEqual([500, 1500])
+    expect(diagramPages({ ...ctx(null), template: { data: { ...wide, split_at: [500, 1500] }, image: 'x' } }, true)).toHaveLength(3)
   })
 
   it('makes one page per layer in split mode', () => {

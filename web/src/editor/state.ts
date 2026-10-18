@@ -15,6 +15,10 @@ export interface Draft {
   image: { dataUrl: string; name: string } | null
   inputs: Record<string, TemplateInput>
   credits: Credits
+  /** numbering checked on the real device */
+  checked: { by: string; date: string } | null
+  /** vertical lines where the drawing is cut into kneeboard pages */
+  split_at: number[]
 }
 
 /** Selected part: the label box (index 0 = box, 1.. = more_boxes) or the marker of an input */
@@ -33,6 +37,8 @@ export const DEFAULT_BOX: [number, number] = [120, 24]
 
 export const editor = reactive({
   draft: null as Draft | null,
+  /** bumped each time another draft is opened: a request started on the previous one is stale */
+  session: 0,
   selection: null as Selection | null,
   dirty: false,
   zoom: 1,
@@ -45,7 +51,7 @@ export const editor = reactive({
 function snapshot(draft: Draft): Snapshot {
   const { id: _, overrides: __, ...rest } = draft
   // the picture (a long data: URL) is shared, not copied: it is never changed in place
-  return { ...rest, devices: [...draft.devices], inputs: JSON.parse(JSON.stringify(draft.inputs)) }
+  return { ...rest, devices: [...draft.devices], split_at: [...draft.split_at], inputs: JSON.parse(JSON.stringify(draft.inputs)) }
 }
 
 export function newDraft(fields: Partial<Draft> = {}): Draft {
@@ -58,11 +64,14 @@ export function newDraft(fields: Partial<Draft> = {}): Draft {
     image: null,
     inputs: {},
     credits: {},
+    checked: null,
+    split_at: [],
     ...fields,
   }
 }
 
 export function open(draft: Draft): void {
+  editor.session += 1
   editor.draft = draft
   editor.selection = null
   editor.dirty = false
@@ -70,21 +79,27 @@ export function open(draft: Draft): void {
   editor.redo = []
 }
 
-/** A draft from a template. For a device the template is not made for (chosen by hand, or a
- * starting point), the draft is a new template for that device: saving it must not change the
- * template of another device. */
+/** A draft from a template. For a device the template is made for another device (chosen by
+ * hand, or a starting point), the draft is a new template for that device: saving it must not
+ * change the template of another device. A template that names no device (most converted ones,
+ * found by choosing them by hand) is fixed in place, and learns the device's name. */
 export function fromTemplate(template: Template, image: string, user: boolean, forDevice?: string): Draft {
   const extension = template.image.split('.').pop() ?? 'png'
-  const copy = !!forDevice && !template.devices.some((d) => d.toLowerCase() === forDevice.toLowerCase())
+  const listed = !!forDevice && template.devices.some((d) => d.toLowerCase() === forDevice.toLowerCase())
+  const copy = !!forDevice && template.devices.length > 0 && !listed
+  const devices = copy ? [forDevice] : [...template.devices, ...(forDevice && !listed ? [forDevice] : [])]
   return newDraft({
     id: copy ? null : template.id,
     overrides: !copy && !user,
     name: copy ? forDevice : template.name,
-    devices: copy ? [forDevice] : [...template.devices],
+    devices,
     size: [...template.size],
     image: { dataUrl: image, name: `background.${extension}` },
     inputs: JSON.parse(JSON.stringify(template.inputs)),
     credits: { ...template.credits },
+    // a copy for another device is not checked on that one
+    checked: copy ? null : (template.checked ?? null),
+    split_at: [...(template.split_at ?? [])],
   })
 }
 
@@ -229,6 +244,14 @@ export function toggleAnchor(): void {
   editor.selection = { key: sel.key, part: input.anchor ? 'anchor' : 'box', index: 0 }
 }
 
+/** A cut line in the middle, or none: a wide drawing (a throttle and its base) on two pages */
+export function toggleSplit(): void {
+  const draft = editor.draft
+  if (!draft) return
+  remember()
+  draft.split_at = draft.split_at.length ? [] : [round(draft.size[0] / 2)]
+}
+
 export function round(v: number): number {
   return Math.round(v * 10) / 10
 }
@@ -247,6 +270,8 @@ export function draftTemplate(draft: Draft): Template {
     credits: draft.credits,
     image: draft.image?.name ?? 'background.png',
     user: true,
+    checked: draft.checked,
+    split_at: draft.split_at,
     inputs: draft.inputs,
   }
 }

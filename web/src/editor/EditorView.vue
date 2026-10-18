@@ -25,6 +25,7 @@ import {
   removeSelected,
   renameSelected,
   toggleAnchor,
+  toggleSplit,
   undo,
 } from './state'
 import { api } from '../lib/api'
@@ -191,6 +192,7 @@ async function identify() {
     listening.value.abort()
     return
   }
+  checking.value?.abort() // one listener at a time
   const controller = new AbortController()
   listening.value = controller
   detected.value = ''
@@ -208,6 +210,86 @@ async function identify() {
   }
 }
 onBeforeUnmount(() => listening.value?.abort())
+
+// --- check the numbering on the device ------------------------------------------------------
+
+/** Inputs pressed on the device during the check, and what was found for each */
+const checkLog = ref<{ key: string; boxed: boolean }[]>([])
+const checking = ref<AbortController | null>(null)
+const checkedBy = ref(readCheckedBy())
+
+function readCheckedBy(): string {
+  try {
+    return localStorage.getItem('hotas-kneeboard-checked-by') ?? ''
+  } catch {
+    return ''
+  }
+}
+
+/** Press every button of the device in turn: its box is selected, or it gets placed */
+async function check() {
+  if (checking.value) {
+    checking.value.abort()
+    return
+  }
+  const controller = new AbortController()
+  checking.value = controller
+  checkLog.value = []
+  detected.value = ''
+  try {
+    while (!controller.signal.aborted) {
+      const found = await detectInput(controller.signal, (device) => {
+        detected.value = `${device} vient d'apparaître : appuie encore une fois`
+      })
+      const boxed = !!editor.draft && found.key in editor.draft.inputs
+      checkLog.value = [{ key: found.key, boxed }, ...checkLog.value.filter((e) => e.key !== found.key)]
+      listening.value?.abort() // one listener at a time
+      if (boxed) {
+        placing.value = null
+        editor.selection = { key: found.key, part: 'box', index: 0 }
+        detected.value = `${inputName(found.key)} : case trouvée`
+      } else {
+        editor.selection = null
+        placing.value = found.key
+        detected.value = `${inputName(found.key)} n'a pas de case : clique sur l'image où se trouve ce bouton`
+      }
+    }
+  } catch (e) {
+    if ((e as Error).name !== 'AbortError') toast.add({ severity: 'warn', summary: (e as Error).message, life: 6000 })
+  } finally {
+    if (checking.value === controller) checking.value = null
+  }
+}
+onBeforeUnmount(() => checking.value?.abort())
+// another draft: what was listened to belongs to the previous one
+watch(
+  () => editor.session,
+  () => {
+    checking.value?.abort()
+    listening.value?.abort()
+    checkLog.value = []
+    detected.value = ''
+  },
+)
+
+const checkedCount = computed(() => new Set(checkLog.value.map((e) => e.key)).size)
+
+function markChecked() {
+  const d = editor.draft
+  const by = checkedBy.value.trim()
+  if (!d) return
+  if (!by) {
+    toast.add({ severity: 'warn', summary: 'Indique qui a vérifié (ton pseudo)', life: 4000 })
+    return
+  }
+  try {
+    localStorage.setItem('hotas-kneeboard-checked-by', by)
+  } catch {
+    // a convenience only
+  }
+  remember()
+  d.checked = { by, date: new Date().toISOString().slice(0, 10) }
+}
 
 // --- devices -------------------------------------------------------------------------------
 
@@ -254,9 +336,10 @@ const previewSvg = computed(() => {
 
 // --- save, share ---------------------------------------------------------------------------
 
-async function save() {
+async function save(asNew = false) {
   const d = editor.draft
   if (!d || saving.value) return
+  const session = editor.session
   if (!d.image) return toast.add({ severity: 'warn', summary: "Ajoute d'abord l'image du périphérique", life: 5000 })
   if (!d.name.trim()) return toast.add({ severity: 'warn', summary: 'Donne un nom au gabarit', life: 5000 })
   saving.value = true
@@ -266,10 +349,11 @@ async function save() {
       template: { ...template, name: d.name.trim() },
       image_name: d.image.name,
       image: d.image.dataUrl.split(',')[1],
-      id: d.id,
+      id: asNew ? null : d.id,
     })
-    // the draft now in the editor (an undo during the request replaced the object)
-    if (editor.draft) {
+    // the draft now in the editor (an undo during the request replaced the object), unless
+    // another one was opened meanwhile
+    if (editor.draft && editor.session === session) {
       editor.draft.id = summary.id
       editor.draft.overrides = false
     }
@@ -290,10 +374,7 @@ async function save() {
 
 /** The draft as a new template, whatever it was started from */
 function saveAsNew() {
-  if (!editor.draft) return
-  editor.draft.id = null
-  editor.draft.overrides = false
-  save()
+  save(true)
 }
 
 async function importFile(file: File) {
@@ -350,7 +431,7 @@ async function close() {
 
 function inField(event: KeyboardEvent): boolean {
   const target = event.target as HTMLElement | null
-  return !!target?.closest?.('input, textarea, select, [contenteditable=""], [contenteditable=true], [role=combobox], [role=listbox], .p-select-overlay, .p-dialog')
+  return !!target?.closest?.('input, textarea, select, [contenteditable=""], [contenteditable=true], [role=combobox], .p-select-overlay, .p-listbox, .p-dialog')
 }
 
 onKeyStroke((event) => {
@@ -378,6 +459,7 @@ onKeyStroke((event) => {
   else if (key === '0') fit()
   else if (key === 'n') placing.value = ''
   else if (key === 'i') identify()
+  else if (key === 'v') check()
   else if (key === 'p') mode.value = mode.value === 'edit' ? 'preview' : 'edit'
   else if (key === 'escape') {
     if (placing.value !== null) placing.value = null
@@ -398,6 +480,7 @@ function onPaletteDrag(event: DragEvent) {
 const SHORTCUTS = [
   ['N', 'placer une entrée (puis clic sur l\'image)'],
   ['I', 'identifier en appuyant sur le bouton'],
+  ['V', 'vérifier : appuie sur chaque bouton du périphérique'],
   ['Suppr', 'supprimer la sélection'],
   ['Ctrl D', 'dupliquer sur le bouton suivant'],
   ['← ↑ → ↓', 'déplacer (Maj : de 10)'],
@@ -432,7 +515,7 @@ const nextKey = computed(() => (draft.value ? inputName(nextFree(Object.keys(dra
       <Button icon="pi pi-search-plus" text rounded aria-label="Zoom avant (+)" @click="zoomBy(1.2)" />
       <SelectButton v-model="mode" :options="modes" option-label="label" option-value="value" :allow-empty="false" size="small" aria-label="Édition ou aperçu" />
       <Button v-if="draft.id" size="small" severity="secondary" text label="Enregistrer comme nouveau" :disabled="saving" @click="saveAsNew" />
-      <Button icon="pi pi-save" :loading="saving" @click="save"><span class="btn-label">Enregistrer</span><kbd>Ctrl S</kbd></Button>
+      <Button icon="pi pi-save" label="Enregistrer" :loading="saving" v-tooltip.bottom="'Enregistrer dans ta bibliothèque (Ctrl+S)'" @click="save()" />
     </header>
 
     <div class="ebody">
@@ -454,6 +537,23 @@ const nextKey = computed(() => (draft.value ? inputName(nextFree(Object.keys(dra
             @update:model-value="startFrom"
           />
           <input ref="fileInput" type="file" accept=".png,.jpg,.jpeg,.svg" hidden @change="onPicked" />
+        </section>
+
+        <section class="block">
+          <span class="eyebrow">Pages kneeboard</span>
+          <div class="row-buttons">
+            <Button
+              size="small"
+              severity="secondary"
+              :icon="draft.split_at.length ? 'pi pi-times' : 'pi pi-arrows-h'"
+              :label="draft.split_at.length ? 'Ne pas découper' : 'Découper en deux pages'"
+              @click="toggleSplit"
+            />
+          </div>
+          <p class="hint">
+            <template v-if="draft.split_at.length">Glisse la ligne bleue à travers une zone blanche, entre deux parties du dessin (la base et les poignées d'un throttle).</template>
+            <template v-else>Pour un dessin trop large pour une page : une ligne de découpe, à placer entre deux parties.</template>
+          </p>
         </section>
 
         <section class="block">
@@ -517,6 +617,28 @@ const nextKey = computed(() => (draft.value ? inputName(nextFree(Object.keys(dra
           </div>
         </section>
 
+        <section v-if="gamepadSupported()" class="block">
+          <span class="eyebrow">Vérifier la numérotation</span>
+          <p class="hint">Appuie sur chaque bouton du périphérique : sa case s'allume, ou l'éditeur te propose de la placer.</p>
+          <div class="row-buttons">
+            <Button
+              size="small"
+              :severity="checking ? 'warn' : 'secondary'"
+              :icon="checking ? 'pi pi-spin pi-spinner' : 'pi pi-check-square'"
+              :label="checking ? `Arrêter (${checkedCount} vus)` : 'Vérifier (V)'"
+              @click="check"
+            />
+          </div>
+          <div v-if="checkLog.length" class="check-log">
+            <span v-for="entry in checkLog" :key="entry.key" class="pill" :class="entry.key in draft.inputs ? 'ok' : 'warn'">{{ inputName(entry.key) }}</span>
+          </div>
+          <p v-if="draft.checked" class="hint">Vérifié par {{ draft.checked.by }} le {{ draft.checked.date }}.</p>
+          <div class="row-buttons">
+            <InputText v-model="checkedBy" size="small" placeholder="Ton pseudo" aria-label="Vérifié par" class="checked-by" />
+            <Button size="small" severity="secondary" label="Marquer vérifié" v-tooltip.bottom="'Tous les boutons ont été essayés et tombent sur la bonne case'" @click="markChecked" />
+          </div>
+        </section>
+
         <section class="block">
           <span class="eyebrow">Partage</span>
           <div class="row-buttons">
@@ -556,7 +678,6 @@ const nextKey = computed(() => (draft.value ? inputName(nextFree(Object.keys(dra
 .editor { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 .ebar { display: flex; align-items: center; gap: 8px; padding: 8px 14px; border-bottom: 1px solid var(--line); background: var(--panel-2); flex-wrap: wrap; }
 .ebar .name { width: 280px; max-width: 40vw; }
-.ebar kbd { background: transparent; border-color: currentColor; color: inherit; opacity: 0.7; margin-left: 8px; }
 .ebody { flex: 1; min-height: 0; display: grid; grid-template-columns: 300px minmax(0, 1fr); }
 .side { border-right: 1px solid var(--line); overflow: auto; padding: 10px 12px; display: flex; flex-direction: column; gap: 16px; }
 .block { display: flex; flex-direction: column; gap: 8px; }
@@ -573,6 +694,8 @@ const nextKey = computed(() => (draft.value ? inputName(nextFree(Object.keys(dra
 .input-row .code { font-family: var(--f-mono); font-size: 11px; color: var(--ink-3); }
 .input-row:focus-visible { outline: 2px solid var(--amber); }
 .link-button { text-decoration: none; }
+.check-log { display: flex; flex-wrap: wrap; gap: 4px; }
+.checked-by { width: 130px; }
 .keys-help { font-size: 12px; color: var(--ink-2); gap: 4px; }
 .keys-help kbd { margin-right: 6px; }
 .stage { overflow: auto; padding: 24px; display: flex; align-items: flex-start; justify-content: center; background: repeating-linear-gradient(45deg, transparent 0 10px, color-mix(in srgb, var(--panel-3) 35%, transparent) 10px 11px); }

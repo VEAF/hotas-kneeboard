@@ -438,5 +438,6 @@
   "source": "https://github.com/Rexeh/joystick-diagrams/blob/master/templates/Virpil/Virpil%20Control%20Panel%20#1.svg",
   "license": "GPL-2.0",
   "converted_by": "scripts/convert_jd_templates.py"
- }
+ },
+ "checked": null
 }

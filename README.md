@@ -21,6 +21,12 @@ Press `?` in the app for every keyboard shortcut.
 - Bindings whose input has no box on the drawing are listed under it, so nothing is lost.
 - A device without template gets a list page. You can also pick a template by hand for a device: the choice is remembered.
 - Command names are those the game shows, in its language.
+- A drawing too wide for one page is cut in two portrait pages where its template says (`split_at`): the WinWing Orion throttles are, between the base and the handles; in the editor, "Découper en deux pages" places the line for any template. Cutting can be turned off in the settings. On screen the two halves stand side by side when the window is wide enough.
+
+### Settings
+
+The gear icon opens the settings, saved in `%APPDATA%\HOTAS Kneeboard\settings.json`: DCS folders, language of the command names, height of the kneeboard pages, cutting of the drawings that have a cut line.
+The **Périphériques** tab lists every device seen in your modules: untick one to hide it everywhere (a vJoy, a device unplugged for good). It then leaves the lists and the exports; the eye on a device's row, or `H`, does the same, and "N cachés : Afficher" at the bottom of the list shows them again.
 
 ## Templates
 
@@ -36,6 +42,12 @@ A device with no template, or a template to fix: **Créer un gabarit** / **Modif
 
 Undo / redo (`Ctrl+Z` / `Ctrl+Y`), duplicate on the next button (`Ctrl+D`), nudge with the arrows, zoom with `+ − 0`.
 A saved template can be exported as one file and imported on another PC; saving a fixed library template puts your version in front of the bundled one.
+
+### Check a template
+
+A page marked "numérotation non vérifiée" uses a library template nobody checked on the real device yet: a command may land on the wrong box.
+Open the editor on it, click **Vérifier** (`V`) and press every button of the device: each box lights up, or the editor asks where the button is.
+Then **Marquer vérifié** and save; share the file with VEAF so that everyone gets the checked version (`hotas_kneeboard/library/README.md`).
 
 ## Develop
 

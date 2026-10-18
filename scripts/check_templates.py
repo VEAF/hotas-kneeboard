@@ -1,0 +1,83 @@
+"""Checks the templates against what DCS really binds on your devices.
+
+For every device configured in Saved Games/DCS/Config/Input, with the template the app gives it
+(the automatic match, or the one chosen in the app), lists the inputs that have a binding in at
+least one module but no box on the drawing. Such an input is either a numbering error of the
+template (the Orion JGRIP-F16 has no box for its trigger, button 1) or a button the drawing
+lacks; check it on the device with the editor's "Vérifier" mode.
+
+Hats bound only to DCS's generic view commands ("View Up slow"…) are left out: DCS gives them
+to every device, hat or not.
+
+Usage: uv run python scripts/check_templates.py [--install DIR] [--saved-games DIR]
+"""
+
+import argparse
+import sys
+from pathlib import Path
+
+from hotas_kneeboard.dcs import command_translator, detect_language, detect_saved_games_dir
+from hotas_kneeboard.engine import detect_dcs_install_dir, list_user_profiles, load_effective_bindings
+from hotas_kneeboard.pages import build_page
+from hotas_kneeboard.settings import SettingsStore, data_dir
+from hotas_kneeboard.templates import BUNDLED_DIR, TemplateLibrary
+
+GENERIC_VIEW = ("View ", "slow")
+
+
+def generic_view_only(commands: set[str]) -> bool:
+    return all(c.startswith(GENERIC_VIEW[0]) and c.endswith(GENERIC_VIEW[1]) for c in commands)
+
+
+def main() -> int:
+    sys.stdout.reconfigure(encoding="utf-8")
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("--install", type=Path, default=None)
+    parser.add_argument("--saved-games", type=Path, default=None)
+    args = parser.parse_args()
+    install = args.install or detect_dcs_install_dir()
+    saved = args.saved_games or detect_saved_games_dir()
+    if not install or not saved:
+        print("VERDICT: DCS install or Saved Games not found, give --install and --saved-games")
+        return 2
+    settings = SettingsStore(data_dir() / "settings.json").load()
+    library = TemplateLibrary([BUNDLED_DIR], user_dir=data_dir() / "templates")
+    translate = command_translator(install, settings.language or detect_language())
+    profiles = list_user_profiles(saved)
+    result = load_effective_bindings(install, saved, profiles)
+
+    # template id -> device name -> input -> commands, over every module
+    bound: dict[str, dict[str, dict[str, set[str]]]] = {}
+    for profile in profiles:
+        for device in result["profiles"][profile]["devices"]:
+            page = build_page(device, translate)
+            chosen = settings.device_templates.get(page.name)
+            template = library.get(chosen) if chosen else (None if chosen == "" else library.match(page.name))
+            if template is None:
+                continue
+            inputs = bound.setdefault(template.id, {}).setdefault(page.name, {})
+            for key, labels in page.inputs.items():
+                for label in labels.values():
+                    inputs.setdefault(key, set()).update(label.pressed + label.released)
+
+    problems = 0
+    for template_id in sorted(bound):
+        template = library.get(template_id)
+        boxes = set(template.data["inputs"])
+        checked = template.data.get("checked")
+        for device, inputs in sorted(bound[template_id].items()):
+            missing = {k: c for k, c in inputs.items() if k not in boxes and not generic_view_only(c)}
+            status = "OK" if not missing else "À VÉRIFIER"
+            note = f" (vérifié : {checked['by']}, {checked['date']})" if checked else ""
+            print(
+                f"{status:11} {template_id} ← {device}{note}: {len(inputs)} entrées liées, {len(missing)} sans case"
+            )
+            for key in sorted(missing, key=lambda k: (len(k), k)):
+                print(f"    {key:16} {' / '.join(sorted(missing[key]))[:110]}")
+            problems += bool(missing)
+    print(f"VERDICT: {problems} template(s) to check on the device, of {len(bound)} in use")
+    return 1 if problems else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

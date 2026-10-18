@@ -6,7 +6,13 @@ GPL v2, imposée par les gabarits repris de Joystick Diagrams.
 ## Suivi
 
 PRD = issue [#1](https://github.com/VEAF/hotas-kneeboard/issues/1), un ticket par lot (L1 #2, L2 #3, L3 #4).
-Une branche et une PR par lot, qui ferme le ticket du lot.
+
+## Branches et releases
+
+- `develop` reçoit le travail ; `main` ne reçoit que des releases.
+- Un lot = une branche `feat/<lot>` créée depuis `develop`, une PR vers `develop` qui ferme le ticket du lot.
+- Une release = une PR de `develop` vers `main`, qui monte la version dans `pyproject.toml` et `hotas_kneeboard/__init__.py` (les deux doivent être égales). À la fusion, `.github/workflows/release.yml` construit l'exe sous Windows et publie la release `vX.Y.Z` ; une fusion sans changement de version ne publie rien.
+- La CI (`ci.yml`) tourne sur chaque PR et sur les poussées vers `develop` et `main`.
 
 ## Structure
 
@@ -36,9 +42,10 @@ cd web && npm ci && npx vue-tsc -b && npx vitest run && npm run build
 ```
 
 - Lancer en développement : `uv run hotas-kneeboard` (port 8642), et `npm run dev` dans `web/` pour l'interface à chaud (proxy `/api`).
+- Vérifier les gabarits contre les liaisons réelles : `uv run python scripts/check_templates.py` (entrées liées sans case). La marche à suivre pour vérifier un gabarit sur le périphérique et le verser dans la bibliothèque est dans `hotas_kneeboard/library/README.md`.
 - Vérifier contre DCS : cliquer MAKE HTML dans les commandes du jeu, puis `uv run python scripts/compare_make_html.py "A-10C II" "F-16C_50"` ; la dernière ligne est le verdict.
 - Reconvertir les gabarits : `uv run python scripts/convert_jd_templates.py <joystick-diagrams>/templates`.
-- Construire l'exe : `pwsh packaging/build.ps1` → `dist/HOTAS-Kneeboard.exe`. Une étiquette `vX.Y.Z` le publie en release (`.github/workflows/release.yml`).
+- Construire l'exe : `pwsh packaging/build.ps1` → `dist/HOTAS-Kneeboard.exe`. La publication se fait par la fusion d'une release dans `main` (ci-dessus).
 
 ## Règles
 

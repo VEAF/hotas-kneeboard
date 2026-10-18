@@ -22,6 +22,14 @@ interface Drag {
   remembered: boolean
 }
 let drag: Drag | null = null
+let splitDrag: { index: number; start: number; from: number; remembered: boolean } | null = null
+
+function startSplitDrag(event: PointerEvent, index: number) {
+  if (event.button !== 0) return
+  event.stopPropagation()
+  splitDrag = { index, start: point(event)[0], from: draft.value.split_at[index], remembered: false }
+  ;(event.currentTarget as Element).setPointerCapture(event.pointerId)
+}
 
 function point(event: MouseEvent | DragEvent): [number, number] {
   const matrix = svg.value!.getScreenCTM()!.inverse()
@@ -51,6 +59,16 @@ function startDrag(event: PointerEvent, sel: Selection, mode: 'move' | 'resize' 
 }
 
 function onMove(event: PointerEvent) {
+  if (splitDrag) {
+    const dx = point(event)[0] - splitDrag.start
+    if (!splitDrag.remembered) {
+      if (Math.abs(dx) < 1) return
+      remember()
+      splitDrag.remembered = true
+    }
+    draft.value.split_at[splitDrag.index] = round(clamp(splitDrag.from + dx, 1, draft.value.size[0] - 1))
+    return
+  }
   if (!drag) return
   const [x, y] = point(event)
   const [dx, dy] = [x - drag.start[0], y - drag.start[1]]
@@ -73,6 +91,7 @@ function onMove(event: PointerEvent) {
 
 function endDrag() {
   drag = null
+  splitDrag = null
 }
 
 function onBackground(event: PointerEvent) {
@@ -119,6 +138,11 @@ defineExpose({ svg })
   >
     <rect x="0" y="0" :width="draft.size[0]" :height="draft.size[1]" fill="#fff" />
     <image v-if="draft.image" :href="draft.image.dataUrl" x="0" y="0" :width="draft.size[0]" :height="draft.size[1]" preserveAspectRatio="xMidYMid meet" />
+    <g v-for="(x, index) in draft.split_at" :key="`split-${index}`" class="split" @pointerdown="startSplitDrag($event, index)">
+      <rect :x="x - 8" y="0" width="16" :height="draft.size[1]" class="split-grab" />
+      <line :x1="x" y1="0" :x2="x" :y2="draft.size[1]" class="split-line" />
+      <text :x="x + 6" y="16" class="split-label">découpe des pages</text>
+    </g>
     <g v-for="key in keys" :key="key" class="input" :class="{ current: editor.selection?.key === key }">
       <template v-for="(box, index) in [draft.inputs[key].box, ...(draft.inputs[key].more_boxes ?? [])]" :key="index">
         <line
@@ -172,4 +196,8 @@ defineExpose({ svg })
 .input.current .leader { stroke: #e08e14; }
 .anchor { fill: #1b1f24; stroke: #fff; stroke-width: 2; cursor: grab; }
 .anchor.selected, .input.current .anchor { fill: #e08e14; }
+.split { cursor: ew-resize; }
+.split-grab { fill: transparent; }
+.split-line { stroke: #2f7de1; stroke-width: 2; stroke-dasharray: 10 6; }
+.split-label { font: 600 12px 'Barlow Condensed', sans-serif; fill: #2f7de1; pointer-events: none; }
 </style>

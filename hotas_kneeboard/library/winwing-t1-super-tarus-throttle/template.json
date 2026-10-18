@@ -654,5 +654,6 @@
   "source": "https://github.com/Rexeh/joystick-diagrams/blob/master/templates/WinWing/T1-SUPER%20TARUS%20THROTTLE/T1-SUPER%20TARUS%20THROTTLE.svg",
   "license": "GPL-2.0",
   "converted_by": "scripts/convert_jd_templates.py"
- }
+ },
+ "checked": null
 }

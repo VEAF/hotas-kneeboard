@@ -53,6 +53,8 @@ export interface TemplateSummary {
   devices: string[]
   size: [number, number]
   credits: Credits
+  /** numbering checked on the real device, else null (a converted template as drawn) */
+  checked: { by: string; date: string } | null
   /** in the user's folder: can be changed in place, deleted */
   user: boolean
   /** a user's version in front of a bundled template of the same id (list only) */
@@ -62,6 +64,8 @@ export interface TemplateSummary {
 export interface Template extends TemplateSummary {
   image: string
   inputs: Record<string, TemplateInput>
+  /** vertical lines where the drawing is cut into kneeboard pages (a wide throttle) */
+  split_at?: number[]
 }
 
 export type LayerMode = 'merge' | 'split'
@@ -73,8 +77,12 @@ export interface Settings {
   exported: Record<string, Record<string, boolean>>
   device_templates: Record<string, string>
   device_order: Record<string, string[]>
+  /** device names (without GUID) hidden in every module */
+  hidden_devices: string[]
   layer_mode: LayerMode
   page_height: number
+  /** drawings whose template has a cut line (split_at) become several pages */
+  split_wide: boolean
 }
 
 export interface DcsState {
@@ -88,6 +96,7 @@ export interface DcsState {
 
 export interface StateResponse {
   version: string
+  settings_file: string
   dcs: DcsState
   settings: Settings
 }

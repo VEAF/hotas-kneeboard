@@ -94,7 +94,7 @@ describe('editor state', () => {
       devices: ['Throttle - HOTAS Warthog'],
       size: [10, 10] as [number, number],
       credits: {},
-      checked: null,
+      checked: { by: 'David', date: '2026-10-19' },
       user: false,
       image: 'background.svg',
       inputs: {},
@@ -102,14 +102,32 @@ describe('editor state', () => {
     expect(fromTemplate(warthog, 'data:', false, 'VPC Stick MT-50CM3')).toMatchObject({
       id: null,
       overrides: false,
+      checked: null, // checked on another device
       name: 'VPC Stick MT-50CM3',
+      devices: ['VPC Stick MT-50CM3'],
+    })
+    // a template naming no device (found by choosing it by hand): fixed in place, learns the name
+    expect(fromTemplate({ ...warthog, devices: [] }, 'data:', false, 'VPC Stick MT-50CM3')).toMatchObject({
+      id: 'thrustmaster-warthog-throttle',
+      overrides: true,
       devices: ['VPC Stick MT-50CM3'],
     })
     // the device's own template: fixing it, in front of the bundled one
     expect(fromTemplate(warthog, 'data:', false, 'Throttle - HOTAS Warthog')).toMatchObject({
       id: 'thrustmaster-warthog-throttle',
       overrides: true,
+      checked: { by: 'David', date: '2026-10-19' },
     })
+  })
+
+  it('adds, undoes and keeps a cut line', async () => {
+    const { toggleSplit } = await import('../state')
+    toggleSplit()
+    expect(editor.draft!.split_at).toEqual([200])
+    undo()
+    expect(editor.draft!.split_at).toEqual([])
+    redo()
+    expect(draftTemplate(editor.draft!).split_at).toEqual([200])
   })
 
   it('gives the renderer and the server a template', () => {

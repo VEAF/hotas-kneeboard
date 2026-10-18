@@ -702,5 +702,9 @@
   "source": "https://github.com/Rexeh/joystick-diagrams/blob/master/templates/WinWing/Orion2%2016EX%20Throttle%20Combo/Orion2%2016EX%20Throttle%20Combo.svg",
   "license": "GPL-2.0",
   "converted_by": "scripts/convert_jd_templates.py"
- }
+ },
+ "checked": null,
+ "split_at": [
+  568
+ ]
 }

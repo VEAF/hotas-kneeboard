@@ -297,7 +297,12 @@ def convert(source: Path, out_dir: Path, meta: dict) -> dict:
             "license": "GPL-2.0",
             "converted_by": "scripts/convert_jd_templates.py",
         },
+        # numbering checked on the real device (lot L3), else null: Joystick Diagrams' as drawn
+        "checked": meta.get("checked"),
     }
+    if meta.get("split_at"):
+        # where the drawing is cut into kneeboard pages: through white, between its parts
+        data["split_at"] = meta["split_at"]
     (folder / "template.json").write_text(
         json.dumps(data, indent=1, ensure_ascii=False) + "\n", encoding="utf-8"
     )
@@ -331,6 +336,10 @@ def main() -> int:
         meta = metadata[relative] | {"source": relative}
         if meta.get("skip"):
             print(f"-- {relative}: skipped ({meta['skip']})")
+            continue
+        if meta.get("maintained"):
+            # fixed in the editor and checked on the device: library/<id> is the reference now
+            print(f"-- {relative}: {meta['id']} maintained by hand, not converted again")
             continue
         report = convert(templates_dir / relative, library, meta)
         notes = []

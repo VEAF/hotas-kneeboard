@@ -929,5 +929,9 @@
   "source": "https://github.com/Rexeh/joystick-diagrams/blob/master/templates/WinWing/Orion2%20Throttle%20Base+15EX%20-%20Metal%20Throttle%20Grip/WINWING%20Orion%20Throttle%20Base%20II%20+%20F15EX%20HANDLE%20L%20+%20F15EX%20HANDLE%20R.svg",
   "license": "GPL-2.0",
   "converted_by": "scripts/convert_jd_templates.py"
- }
+ },
+ "checked": null,
+ "split_at": [
+  566
+ ]
 }

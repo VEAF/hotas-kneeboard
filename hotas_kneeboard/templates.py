@@ -13,7 +13,9 @@
         "JOY_BTN1": {"box": [205, 666, 180, 30], "anchor": [545, 706]},  # + leader line
         "JOY_BTN5": {"box": [10, 10, 80, 20], "more_boxes": [[400, 10, 80, 20]]}  # drawn twice
       },
-      "credits": {"author": "…", "source": "…", "license": "GPL-2.0"}
+      "credits": {"author": "…", "source": "…", "license": "GPL-2.0"},
+      "checked": {"by": "David", "date": "2026-10-19"},  # numbering checked on the real device
+      "split_at": [566]                             # cut into two kneeboard pages there (optional)
     }
 
 The library ships with the app (``hotas_kneeboard/library``); templates in the user's data
@@ -41,6 +43,8 @@ TEMPLATE_FILE = "template.json"
 # a shared template file: template.json and its picture, nothing else, of a reasonable size
 MAX_IMAGE_BYTES = 20 * 1024 * 1024
 MAX_JSON_BYTES = 1024 * 1024
+# coordinate system of a drawing: a shared file must not make the browser loop over billions
+MAX_SIZE = 20000
 _ID = re.compile(r"^[a-z0-9][a-z0-9-]{0,63}$")
 
 
@@ -72,6 +76,7 @@ class Template:
             "devices": self.data.get("devices", []),
             "size": self.data["size"],
             "credits": self.data.get("credits", {}),
+            "checked": self.data.get("checked"),
             "user": self.user,
         }
 
@@ -99,9 +104,23 @@ def validate(data: dict, folder: Path) -> None:
         raise TemplateError(f"image : {', '.join(IMAGE_TYPES)} attendu")
     if not (folder / image).is_file():
         raise TemplateError(f"image {image} introuvable")
-    if not _is_numbers(data.get("size"), 2):
-        raise TemplateError("size : [largeur, hauteur] attendu")
+    if not _is_numbers(data.get("size"), 2) or not all(1 <= v <= MAX_SIZE for v in data["size"]):
+        raise TemplateError(f"size : [largeur, hauteur] attendu, entre 1 et {MAX_SIZE}")
     _validate_inputs(data.get("inputs"))
+    split_at = data.get("split_at", [])
+    if not (
+        isinstance(split_at, list)
+        and all(
+            isinstance(x, int | float) and not isinstance(x, bool) and 0 < x < data["size"][0]
+            for x in split_at
+        )
+    ):
+        raise TemplateError("split_at : liste de positions de coupe, dans la largeur du dessin")
+    checked = data.get("checked")
+    if checked is not None and not (
+        isinstance(checked, dict) and all(isinstance(checked.get(k), str) for k in ("by", "date"))
+    ):
+        raise TemplateError('checked : {"by": "…", "date": "AAAA-MM-JJ"} attendu')
 
 
 def _validate_inputs(inputs) -> None:

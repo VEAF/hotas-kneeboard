@@ -238,8 +238,8 @@ function offTemplateBand(
   return { svg, height: height + 4 }
 }
 
-function footer(ctx: PageContext, top: number, width: number, legend: Legend): string {
-  const left = [ctx.profile, ctx.device.name, ctx.layer !== null ? `calque ${layerLabel(ctx.layer)}` : null]
+function footer(ctx: PageContext, top: number, width: number, legend: Legend, part?: string): string {
+  const left = [ctx.profile, ctx.device.name, ctx.layer !== null ? `calque ${layerLabel(ctx.layer)}` : null, part]
     .filter(Boolean)
     .join(' · ')
   const showLegend = ctx.layer === null && legend.tags.size > 0
@@ -263,7 +263,19 @@ export function creditLine(template: Template): string {
 
 const FOOTER_HEIGHT = 28
 
+/** Where a template is cut into pages: its `split_at` (vertical lines, set where the drawing has
+ * room for it, e.g. between a throttle's base and its handles), kept inside the drawing */
+export function cutsOf(template: Template): number[] {
+  const [width] = template.size
+  return [...new Set(template.split_at ?? [])].filter((x) => x > 0 && x < width).sort((a, b) => a - b)
+}
+
 export function diagramPage(ctx: PageContext): Page {
+  return diagramPages(ctx, false)[0]
+}
+
+/** The device drawing; cut into pages at the template's `split_at` when `splitWide` */
+export function diagramPages(ctx: PageContext, splitWide: boolean): Page[] {
   const template = ctx.template!
   const [width, height] = template.data.size
   const legend = legendOf(ctx.device)
@@ -288,10 +300,31 @@ export function diagramPage(ctx: PageContext): Page {
   }
   body += labels.filter((l) => !l.grown).map((l) => l.svg).join('')
   body += labels.filter((l) => l.grown).map((l) => l.svg).join('')
-  const band = offTemplateBand(off, height, width, legend, ctx.measurer, showChips)
-  const total = height + band.height + FOOTER_HEIGHT
-  const svg = svgOpen(width, total, ctx) + body + band.svg + footer(ctx, height + band.height, width, legend) + '</svg>'
-  return { title: pageTitle(ctx), width, height: total, svg }
+  const cuts = splitWide ? cutsOf(template.data) : []
+  if (!cuts.length) {
+    const band = offTemplateBand(off, height, width, legend, ctx.measurer, showChips)
+    const total = height + band.height + FOOTER_HEIGHT
+    const svg = svgOpen(width, total, ctx) + body + band.svg + footer(ctx, height + band.height, width, legend) + '</svg>'
+    return [{ title: pageTitle(ctx), width, height: total, svg }]
+  }
+  // one page per part, each showing its part of the same drawing; the bindings without box go on
+  // the last
+  const edges = [0, ...cuts, width]
+  const parts = edges.slice(0, -1).map((from, i) => [from, edges[i + 1]] as [number, number])
+  return parts.map(([from, to], index) => {
+    const partWidth = to - from
+    const last = index === parts.length - 1
+    const band = last ? offTemplateBand(off, height, partWidth, legend, ctx.measurer, showChips) : { svg: '', height: 0 }
+    const total = height + band.height + FOOTER_HEIGHT
+    const part = `${index + 1}/${parts.length}`
+    const svg =
+      svgOpen(partWidth, total, ctx) +
+      `<svg x="0" y="0" width="${partWidth}" height="${height}" viewBox="${from} 0 ${partWidth} ${height}">${body}</svg>` +
+      band.svg +
+      footer(ctx, height + band.height, partWidth, legend, part) +
+      '</svg>'
+    return { title: `${pageTitle(ctx)} (${part})`, width: partWidth, height: total, svg }
+  })
 }
 
 /** List pages of a device without template, as many as the rows need */
@@ -359,10 +392,10 @@ export function listPages(ctx: PageContext): Page[] {
   return pages
 }
 
-export function devicePages(ctx: Omit<PageContext, 'layer'>, mode: 'merge' | 'split'): Page[] {
+export function devicePages(ctx: Omit<PageContext, 'layer'>, mode: 'merge' | 'split', splitWide = true): Page[] {
   return pageLayers(ctx.device, mode).flatMap((layer) => {
     const page = { ...ctx, layer }
-    return page.template ? [diagramPage(page)] : listPages(page)
+    return page.template ? diagramPages(page, splitWide) : listPages(page)
   })
 }
 

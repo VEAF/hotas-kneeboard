@@ -52,6 +52,9 @@ def test_invalid_template_is_skipped(tmp_path):
         ({"image": "x.gif"}, "image : "),
         ({"image": "missing.svg"}, "introuvable"),
         ({"size": [1]}, "size"),
+        ({"size": [1e9, 10]}, "size"),
+        ({"split_at": [500]}, "split_at"),  # outside the 100-wide drawing
+        ({"split_at": "50"}, "split_at"),
         ({"inputs": {"JOY_BTN1": {"box": [1, 2, 3, 4], "anchor": [1]}}}, "anchor"),
     ],
 )
@@ -160,3 +163,13 @@ def test_import_refuses_a_huge_template_json(tmp_path):
         archive.writestr("template.json", " " * (2 * 1024 * 1024))
     with pytest.raises(TemplateError, match="trop grand"):
         TemplateLibrary([], user_dir=tmp_path / "user").import_file(buffer.getvalue())
+
+
+def test_checked_is_optional_and_shaped(tmp_path):
+    path = make_template(tmp_path, "t")
+    data = json.loads((path / "template.json").read_text())
+    validate(data | {"checked": None}, path)
+    validate(data | {"checked": {"by": "David", "date": "2026-10-19"}}, path)
+    with pytest.raises(TemplateError, match="checked"):
+        validate(data | {"checked": "yes"}, path)
+    assert TemplateLibrary([tmp_path]).get("t").summary()["checked"] is None
