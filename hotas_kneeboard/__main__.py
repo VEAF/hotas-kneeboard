@@ -1,10 +1,12 @@
 """Starts the server on 127.0.0.1 and opens the browser on it."""
 
 import argparse
+import json
 import logging
 import socket
 import sys
 import threading
+import urllib.request
 import webbrowser
 
 import uvicorn
@@ -27,6 +29,15 @@ def free_port(preferred: int) -> int:
     raise RuntimeError("no free port")
 
 
+def already_running(port: int) -> bool:
+    """An instance answers on this port: open the browser on it rather than start another one."""
+    try:
+        with urllib.request.urlopen(f"http://127.0.0.1:{port}/api/state", timeout=1) as response:
+            return response.status == 200 and "version" in json.load(response)
+    except (OSError, ValueError):
+        return False
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(prog="hotas-kneeboard")
     parser.add_argument("--port", type=int, default=DEFAULT_PORT)
@@ -43,9 +54,16 @@ def main() -> None:
         level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s", handlers=handlers
     )
 
+    if already_running(args.port):
+        print(f"HOTAS Kneeboard tourne déjà : http://127.0.0.1:{args.port}/")
+        if not args.no_browser:
+            webbrowser.open(f"http://127.0.0.1:{args.port}/")
+        return
     port = free_port(args.port)
     url = f"http://127.0.0.1:{port}/"
     logging.getLogger(__name__).info(f"HOTAS Kneeboard on {url}")
+    if sys.stdout is not None:
+        print(f"\n  HOTAS Kneeboard : {url}\n  Fermer cette fenêtre pour quitter.\n", flush=True)
     if not args.no_browser:
         threading.Timer(1.0, webbrowser.open, args=(url,)).start()
     uvicorn.run(create_app(), host="127.0.0.1", port=port, log_config=None)
