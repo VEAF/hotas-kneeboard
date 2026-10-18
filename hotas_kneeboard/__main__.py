@@ -47,7 +47,7 @@ def main() -> None:
     log_dir = data_dir()
     log_dir.mkdir(parents=True, exist_ok=True)
     handlers: list[logging.Handler] = [logging.FileHandler(log_dir / "hotas-kneeboard.log", encoding="utf-8")]
-    # the windowed .exe has no console: sys.stderr is None there
+    # no console (e.g. pythonw): sys.stderr is None there
     if sys.stderr is not None:
         handlers.append(logging.StreamHandler())
     logging.basicConfig(

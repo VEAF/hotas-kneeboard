@@ -9,7 +9,7 @@
 -- Must run with Lua 5.1, the interpreter DCS ships as bin/luae.exe: command hashes go through
 -- tostring() and must produce the same text as in the game.
 --
--- Input, on stdin (UTF-8, one tab-separated record per line), written by effective_bindings.py:
+-- Input, on stdin (UTF-8, one tab-separated record per line), written by engine.py:
 --   install <DCS install>        saved <Saved Games/DCS>      casefold <1 if paths ignore case>
 --   profile <unit name>          (one line per profile to compute)
 --   dir <directory>              followed by one "entry <name>" line per directory entry
@@ -66,7 +66,7 @@ local function loadChunk(path)
 	return loadstring(src, '@' .. path)
 end
 
--- Entries of a directory listed by effective_bindings.py; none for a directory it did not list
+-- Entries of a directory listed by engine.py; none for a directory it did not list
 local function listDir(path)
 	return listings[dirKey(path)] or {}
 end

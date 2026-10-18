@@ -109,9 +109,23 @@ function chipWidth(entry: Entry, size: number, legend: Legend): number {
   return Math.max(size * 1.15, tag.length * size * 0.62 + size * 0.5) + size * 0.25
 }
 
-/** A label box with the entries of one input, the text shrunk to fit, the box grown if needed */
-function labelBox(box: Box, entries: Entry[], legend: Legend, measurer: Measurer, showChips: boolean): string {
-  const [x, y, width, height] = box
+interface DrawnLabel {
+  svg: string
+  /** grown past its box: drawn last, so that the next boxes do not hide its text */
+  grown: boolean
+}
+
+/** A label box with the entries of one input, the text shrunk to fit, the box grown if needed
+ * (downwards, or upwards when it would leave the drawing) */
+function labelBox(
+  box: Box,
+  entries: Entry[],
+  legend: Legend,
+  measurer: Measurer,
+  showChips: boolean,
+  drawingHeight: number,
+): DrawnLabel {
+  const [x, top, width, height] = box
   const pad = 2.5
   const fit = fitTexts(
     entries,
@@ -122,6 +136,7 @@ function labelBox(box: Box, entries: Entry[], legend: Legend, measurer: Measurer
     measurer,
   )
   const boxHeight = Math.max(height, fit.height + 2 * pad)
+  const y = top + boxHeight > drawingHeight ? Math.max(0, drawingHeight - boxHeight) : top
   let out =
     `<rect x="${x}" y="${y}" width="${width}" height="${boxHeight}" rx="3" fill="${PAPER}" ` +
     `fill-opacity="0.94" stroke="${INK}" stroke-width="1"/>`
@@ -141,7 +156,20 @@ function labelBox(box: Box, entries: Entry[], legend: Legend, measurer: Measurer
       baseline += fit.lineHeight
     })
   }
-  return out
+  return { svg: out, grown: boxHeight > height }
+}
+
+/** Leader line from the box to the input on the picture (templates made by hand; the converted
+ * ones have theirs in the picture) */
+function leader(box: Box, anchor: [number, number]): string {
+  const [x, y, width, height] = box
+  const [ax, ay] = anchor
+  const sx = Math.min(Math.max(ax, x), x + width)
+  const sy = Math.min(Math.max(ay, y), y + height)
+  return (
+    `<line x1="${sx}" y1="${sy}" x2="${ax}" y2="${ay}" stroke="${INK}" stroke-width="1.2"/>` +
+    `<circle cx="${ax}" cy="${ay}" r="2.2" fill="${INK}"/>`
+  )
 }
 
 function emptyBox(box: Box): string {
@@ -246,16 +274,20 @@ export function diagramPage(ctx: PageContext): Page {
   for (const [key, input] of Object.entries(template.data.inputs)) {
     if (!entries.has(key)) for (const box of [input.box, ...(input.more_boxes ?? [])]) body += emptyBox(box)
   }
+  const labels: DrawnLabel[] = []
   for (const [key, list] of entries) {
     const input = template.data.inputs[key]
     if (!input) {
       off.push([key, list])
       continue
     }
+    if (input.anchor) body += leader(input.box, input.anchor)
     for (const box of [input.box, ...(input.more_boxes ?? [])]) {
-      body += labelBox(box, list, legend, ctx.measurer, showChips)
+      labels.push(labelBox(box, list, legend, ctx.measurer, showChips, height))
     }
   }
+  body += labels.filter((l) => !l.grown).map((l) => l.svg).join('')
+  body += labels.filter((l) => l.grown).map((l) => l.svg).join('')
   const band = offTemplateBand(off, height, width, legend, ctx.measurer, showChips)
   const total = height + band.height + FOOTER_HEIGHT
   const svg = svgOpen(width, total, ctx) + body + band.svg + footer(ctx, height + band.height, width, legend) + '</svg>'

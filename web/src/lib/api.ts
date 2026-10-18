@@ -44,6 +44,6 @@ export const api = {
   templates: () => request<TemplateSummary[]>('/api/templates'),
   template: (id: string) => request<Template>(`/api/templates/${encodeURIComponent(id)}`),
   templateImageUrl: (id: string) => `/api/templates/${encodeURIComponent(id)}/image`,
-  writeKneeboard: (unitType: string, pages: { title: string; png: string }[]) =>
-    request<KneeboardResult>('/api/kneeboard', json('POST', { unit_type: unitType, pages })),
+  writeKneeboard: (unitType: string, profile: string, pages: { title: string; png: string }[]) =>
+    request<KneeboardResult>('/api/kneeboard', json('POST', { unit_type: unitType, profile, pages })),
 }

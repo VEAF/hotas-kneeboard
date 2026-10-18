@@ -36,6 +36,7 @@ const template: Template = {
     JOY_BTN2: { box: [10, 60, 120, 24], more_boxes: [[300, 60, 120, 24]] },
     JOY_BTN9: { box: [10, 120, 120, 24] },
     JOY_BTN30: { box: [10, 200, 120, 24] },
+    JOY_Z: { box: [600, 992, 40, 6], anchor: [700, 500] },
   },
 }
 
@@ -99,11 +100,27 @@ describe('pages', () => {
     expect(page.svg.match(/>IFF IN</g)).toHaveLength(2) // box and more_boxes
     expect(page.svg).toContain('>IFF OUT<')
     expect(page.svg).toContain('stroke-dasharray') // JOY_BTN30, not bound
-    expect(page.svg).toContain('HORS GABARIT')
-    expect(page.svg).toContain('Throttle &lt;Right&gt;') // escaped
+    expect(page.svg).not.toContain('HORS GABARIT') // every bound input has a box
+    expect(page.svg).toContain('&lt;Right&gt;') // escaped
+    expect(page.svg).toContain('x2="700" y2="500"') // leader line to the anchor
     expect(page.svg).toContain('P = Paddle')
-    expect(page.height).toBeGreaterThan(1000)
     expect(page.title).toBe('Throttle - HOTAS Warthog')
+  })
+
+  it('keeps a grown box on the drawing and draws it last', () => {
+    const svg = diagramPage(ctx(null)).svg
+    // JOY_Z's box (40 x 6 at y 992) grows: it moves up to end at the drawing's bottom (1000)
+    const rect = svg.match(/<rect x="600" y="([\d.]+)" width="40" height="([\d.]+)"/)!
+    expect(Number(rect[1]) + Number(rect[2])).toBeCloseTo(1000)
+    expect(svg.lastIndexOf('x="600"')).toBeGreaterThan(svg.lastIndexOf('IFF OUT'))
+  })
+
+  it('lists the bound inputs without a box under the drawing', () => {
+    const { JOY_Z: _, ...inputs } = template.inputs
+    const page = diagramPage({ ...ctx(null), template: { data: { ...template, inputs }, image: 'x' } })
+    expect(page.svg).toContain('HORS GABARIT')
+    expect(page.svg).toContain('Axe Z')
+    expect(page.height).toBeGreaterThan(1000)
   })
 
   it('makes one page per layer in split mode', () => {

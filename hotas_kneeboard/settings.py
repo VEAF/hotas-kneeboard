@@ -3,7 +3,9 @@
 import json
 import logging
 import os
+import re
 import sys
+import uuid
 from dataclasses import asdict, dataclass, field, fields
 from pathlib import Path
 
@@ -47,15 +49,40 @@ class Settings:
         settings.validate()
         return settings
 
-    def validate(self) -> None:
+    def validate(self) -> None:  # noqa: C901
+        for name in ("dcs_install_dir", "saved_games_dir", "language"):
+            value = getattr(self, name)
+            if value is not None and not isinstance(value, str):
+                raise ValueError(f"{name} must be a string or null")
+        for name in ("dcs_install_dir", "saved_games_dir"):
+            value = getattr(self, name)
+            # a network path would make the app run a program from another machine
+            if value and (value.startswith(("\\\\", "//")) or "://" in value):
+                raise ValueError(f"{name} must be a local folder")
+        if self.language is not None and not re.fullmatch(r"[a-z]{2}", self.language):
+            raise ValueError("language must be a DCS l10n folder name, e.g. en")
+        if not _is_map(self.exported, lambda v: _is_map(v, lambda b: isinstance(b, bool))):
+            raise ValueError("exported must map profiles to {device: true/false}")
+        if not _is_map(
+            self.device_order, lambda v: isinstance(v, list) and all(isinstance(d, str) for d in v)
+        ):
+            raise ValueError("device_order must map profiles to lists of devices")
+        if not _is_map(self.device_templates, lambda v: isinstance(v, str)):
+            raise ValueError("device_templates must map devices to template ids")
         if self.layer_mode not in LAYER_MODES:
             raise ValueError(f"layer_mode must be one of {LAYER_MODES}")
+        if isinstance(self.page_height, bool) or not isinstance(self.page_height, int | float):
+            raise ValueError("page_height must be a number")
         if not 256 <= int(self.page_height) <= 4096:
             raise ValueError("page_height must be between 256 and 4096")
         self.page_height = int(self.page_height)
 
     def as_dict(self) -> dict:
         return asdict(self)
+
+
+def _is_map(value, valid_value) -> bool:
+    return isinstance(value, dict) and all(isinstance(k, str) and valid_value(v) for k, v in value.items())
 
 
 class SettingsStore:
@@ -78,6 +105,6 @@ class SettingsStore:
 
     def save(self, settings: Settings) -> None:
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        tmp = self.path.with_suffix(".tmp")
+        tmp = self.path.with_name(f"{self.path.stem}.{uuid.uuid4().hex}.tmp")
         tmp.write_text(json.dumps(settings.as_dict(), indent=2, ensure_ascii=False), encoding="utf-8")
         tmp.replace(self.path)

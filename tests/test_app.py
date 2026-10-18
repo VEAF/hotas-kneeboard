@@ -21,7 +21,7 @@ def client(tmp_path):
     store.save(Settings(dcs_install_dir=str(INSTALL), saved_games_dir=str(SAVED_GAMES)))
     make_template(tmp_path / "templates", "fake-stick", devices=["Fake Stick"])
     app = create_app(store, TemplateLibrary([tmp_path / "templates"]), lua_interpreter=lua)
-    return TestClient(app)
+    return TestClient(app, base_url="http://127.0.0.1:8642")
 
 
 def test_state_reports_the_folders(client):
@@ -72,11 +72,16 @@ def test_kneeboard_export(client, tmp_path):
     client.put("/api/settings", json={"saved_games_dir": str(saved)})
     png = base64.b64encode(PNG_SIGNATURE + b"x").decode()
     response = client.post(
-        "/api/kneeboard", json={"unit_type": "FakePlane", "pages": [{"title": "Fake Stick", "png": png}]}
+        "/api/kneeboard",
+        json={
+            "unit_type": "FakePlane",
+            "profile": "FakePlane",
+            "pages": [{"title": "Fake Stick", "png": png}],
+        },
     )
     assert response.status_code == 200, response.text
-    assert (saved / "Kneeboard" / "FakePlane" / "HOTAS - 01 Fake Stick.png").is_file()
-    bad = client.post("/api/kneeboard", json={"unit_type": "../x", "pages": []})
+    assert (saved / "Kneeboard" / "FakePlane" / "HOTAS - FakePlane - 01 Fake Stick.png").is_file()
+    bad = client.post("/api/kneeboard", json={"unit_type": "../x", "profile": "FakePlane", "pages": []})
     assert bad.status_code == 422
 
 
@@ -85,3 +90,37 @@ def test_broken_settings_file_falls_back_to_defaults(tmp_path):
     path.write_text("{not json", encoding="utf-8")
     assert SettingsStore(path).load() == Settings()
     assert (tmp_path / "settings.broken.json").read_text(encoding="utf-8") == "{not json"
+
+
+def test_requests_from_another_site_are_refused(client):
+    # a domain name pointed at 127.0.0.1 (DNS rebinding)
+    assert client.get("/api/state", headers={"host": "evil.example"}).status_code == 400
+    refused = client.put(
+        "/api/settings", json={"layer_mode": "split"}, headers={"origin": "http://evil.example"}
+    )
+    assert refused.status_code == 403
+    allowed = client.put(
+        "/api/settings", json={"layer_mode": "split"}, headers={"origin": "http://localhost:5173"}
+    )
+    assert allowed.status_code == 200
+
+
+@pytest.mark.parametrize(
+    "changes",
+    [
+        {"dcs_install_dir": r"\\attacker\share"},
+        {"saved_games_dir": "//attacker/share"},
+        {"exported": None},
+        {"exported": {"FakePlane": {"Fake Stick": "yes"}}},
+        {"device_order": {"FakePlane": "Fake Stick"}},
+        {"device_templates": {"Fake Stick": 3}},
+        {"language": "../../x"},
+        {"page_height": "big"},
+    ],
+)
+def test_invalid_settings_are_refused(client, changes):
+    assert client.put("/api/settings", json=changes).status_code == 422
+
+
+def test_template_image_cannot_run_scripts(client):
+    assert client.get("/api/templates/fake-stick/image").headers["content-security-policy"] == "sandbox"

@@ -149,7 +149,7 @@ def load_effective_bindings(
             capture_output=True,
             timeout=TIMEOUT_SECONDS,
             check=False,
-            # the .exe has no console: none for luae.exe either
+            # never a console window of its own for luae.exe
             creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
         )
     except (OSError, subprocess.TimeoutExpired) as error:

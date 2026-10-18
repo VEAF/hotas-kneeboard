@@ -3,9 +3,11 @@
 import logging
 import threading
 from pathlib import Path
+from urllib.parse import urlsplit
 
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -20,6 +22,9 @@ from .templates import BUNDLED_DIR, IMAGE_TYPES, TemplateLibrary
 _logger = logging.getLogger(__name__)
 
 WEB_DIR = Path(__file__).parent / "web"
+# the server listens on 127.0.0.1 only; checking the Host and the Origin also stops a web page from
+# reaching it through a domain name pointed at 127.0.0.1 (DNS rebinding)
+LOCAL_HOSTS = ["127.0.0.1", "localhost"]
 
 
 class KneeboardPage(BaseModel):
@@ -29,6 +34,7 @@ class KneeboardPage(BaseModel):
 
 class KneeboardExport(BaseModel):
     unit_type: str
+    profile: str
     pages: list[KneeboardPage]
 
 
@@ -98,7 +104,17 @@ def create_app(
     store = store or SettingsStore(data_dir() / "settings.json")
     library = library or TemplateLibrary([BUNDLED_DIR, data_dir() / "templates"])
     bindings = Bindings(lua_interpreter)
+    settings_lock = threading.Lock()
     app = FastAPI(title="HOTAS Kneeboard", version=__version__)
+    app.add_middleware(TrustedHostMiddleware, allowed_hosts=LOCAL_HOSTS)
+
+    @app.middleware("http")
+    async def same_origin_writes(request: Request, call_next):
+        origin = request.headers.get("origin")
+        if request.method not in ("GET", "HEAD", "OPTIONS") and origin:
+            if urlsplit(origin).hostname not in LOCAL_HOSTS:
+                return JSONResponse({"detail": "cross-origin request refused"}, status_code=403)
+        return await call_next(request)
 
     def current_dirs() -> dict:
         settings = store.load()
@@ -115,12 +131,13 @@ def create_app(
 
     @app.put("/api/settings")
     def put_settings(changes: dict) -> dict:
-        old = store.load()
-        try:
-            new = Settings.from_dict(old.as_dict() | changes)
-        except (TypeError, ValueError) as error:
-            raise HTTPException(422, str(error)) from error
-        store.save(new)
+        with settings_lock:  # read, merge, write: two requests must not interleave
+            old = store.load()
+            try:
+                new = Settings.from_dict(old.as_dict() | changes)
+            except (TypeError, ValueError) as error:
+                raise HTTPException(422, str(error)) from error
+            store.save(new)
         read = ("dcs_install_dir", "saved_games_dir", "language")
         if any(getattr(new, field) != getattr(old, field) for field in read):
             bindings.invalidate()
@@ -149,7 +166,12 @@ def create_app(
         if template is None:
             raise HTTPException(404, "no such template")
         path = template.image_path
-        return FileResponse(path, media_type=IMAGE_TYPES[path.suffix.lower()])
+        # a user's SVG template opened on its own must not run scripts with access to the API
+        return FileResponse(
+            path,
+            media_type=IMAGE_TYPES[path.suffix.lower()],
+            headers={"Content-Security-Policy": "sandbox", "X-Content-Type-Options": "nosniff"},
+        )
 
     @app.post("/api/kneeboard")
     def export_kneeboard(export: KneeboardExport) -> dict:
@@ -160,6 +182,7 @@ def create_app(
             return write_pages(
                 Path(dirs["saved_games_dir"]),
                 export.unit_type,
+                export.profile,
                 [p.model_dump() for p in export.pages],
             )
         except KneeboardError as error:

@@ -43,7 +43,7 @@ async function exportKneeboard() {
     const pages = await store.modulePages(p)
     const payload = []
     for (const page of pages) payload.push({ title: page.title, png: await pagePngBase64(page, state.settings.page_height) })
-    const result = await api.writeKneeboard(p.unit_type, payload)
+    const result = await api.writeKneeboard(p.unit_type, p.name, payload)
     toast.add({
       severity: 'success',
       summary: `${result.written.length} pages dans le kneeboard ${p.unit_type}`,
@@ -79,9 +79,12 @@ async function refresh() {
 
 // --- keyboard ------------------------------------------------------------------------------
 
+/** Focus in a field or a drop-down list: its keys are its own. A checkbox keeps only Space. */
 function typing(event: KeyboardEvent): boolean {
   const target = event.target as HTMLElement | null
-  return !!target && (['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName) || target.isContentEditable)
+  if (!target?.closest) return false
+  if (target.closest('input[type=checkbox]')) return event.key === ' '
+  return !!target.closest('input, textarea, select, [contenteditable=""], [contenteditable=true], [role=combobox], [role=listbox], .p-select-overlay')
 }
 const dialogOpen = () => settingsOpen.value || helpOpen.value
 
@@ -116,7 +119,7 @@ onKeyStroke((event) => {
   } else if (key === 'F5') {
     event.preventDefault()
     refresh()
-  } else if (typing(event) || ctrl) {
+  } else if (typing(event) || ctrl || event.target instanceof HTMLElement && event.target.closest('.p-dialog')) {
     return
   } else if (key === 'ArrowDown' || key === 'ArrowUp') {
     event.preventDefault()
