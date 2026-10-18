@@ -15,6 +15,8 @@ export interface Draft {
   image: { dataUrl: string; name: string } | null
   inputs: Record<string, TemplateInput>
   credits: Credits
+  /** numbering checked on the real device */
+  checked: { by: string; date: string } | null
 }
 
 /** Selected part: the label box (index 0 = box, 1.. = more_boxes) or the marker of an input */
@@ -58,6 +60,7 @@ export function newDraft(fields: Partial<Draft> = {}): Draft {
     image: null,
     inputs: {},
     credits: {},
+    checked: null,
     ...fields,
   }
 }
@@ -85,6 +88,8 @@ export function fromTemplate(template: Template, image: string, user: boolean, f
     image: { dataUrl: image, name: `background.${extension}` },
     inputs: JSON.parse(JSON.stringify(template.inputs)),
     credits: { ...template.credits },
+    // a copy for another device is not checked on that one
+    checked: copy ? null : (template.checked ?? null),
   })
 }
 
@@ -247,7 +252,7 @@ export function draftTemplate(draft: Draft): Template {
     credits: draft.credits,
     image: draft.image?.name ?? 'background.png',
     user: true,
-    checked: null,
+    checked: draft.checked,
     inputs: draft.inputs,
   }
 }

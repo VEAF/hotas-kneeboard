@@ -94,7 +94,7 @@ describe('editor state', () => {
       devices: ['Throttle - HOTAS Warthog'],
       size: [10, 10] as [number, number],
       credits: {},
-      checked: null,
+      checked: { by: 'David', date: '2026-10-19' },
       user: false,
       image: 'background.svg',
       inputs: {},
@@ -102,6 +102,7 @@ describe('editor state', () => {
     expect(fromTemplate(warthog, 'data:', false, 'VPC Stick MT-50CM3')).toMatchObject({
       id: null,
       overrides: false,
+      checked: null, // checked on another device
       name: 'VPC Stick MT-50CM3',
       devices: ['VPC Stick MT-50CM3'],
     })
@@ -109,6 +110,7 @@ describe('editor state', () => {
     expect(fromTemplate(warthog, 'data:', false, 'Throttle - HOTAS Warthog')).toMatchObject({
       id: 'thrustmaster-warthog-throttle',
       overrides: true,
+      checked: { by: 'David', date: '2026-10-19' },
     })
   })
 

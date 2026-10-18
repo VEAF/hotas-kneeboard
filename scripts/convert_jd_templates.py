@@ -334,6 +334,10 @@ def main() -> int:
         if meta.get("skip"):
             print(f"-- {relative}: skipped ({meta['skip']})")
             continue
+        if meta.get("maintained"):
+            # fixed in the editor and checked on the device: library/<id> is the reference now
+            print(f"-- {relative}: {meta['id']} maintained by hand, not converted again")
+            continue
         report = convert(templates_dir / relative, library, meta)
         notes = []
         if report["unknown"]:

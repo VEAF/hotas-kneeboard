@@ -37,6 +37,12 @@ A device with no template, or a template to fix: **Créer un gabarit** / **Modif
 Undo / redo (`Ctrl+Z` / `Ctrl+Y`), duplicate on the next button (`Ctrl+D`), nudge with the arrows, zoom with `+ − 0`.
 A saved template can be exported as one file and imported on another PC; saving a fixed library template puts your version in front of the bundled one.
 
+### Check a template
+
+A page marked "numérotation non vérifiée" uses a library template nobody checked on the real device yet: a command may land on the wrong box.
+Open the editor on it, click **Vérifier** (`V`) and press every button of the device: each box lights up, or the editor asks where the button is.
+Then **Marquer vérifié** and save; share the file with VEAF so that everyone gets the checked version (`hotas_kneeboard/library/README.md`).
+
 ## Develop
 
 See [CLAUDE.md](CLAUDE.md) for the structure and the commands (Python with `uv`, UI with `npm`).

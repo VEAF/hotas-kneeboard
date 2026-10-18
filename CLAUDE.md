@@ -36,6 +36,7 @@ cd web && npm ci && npx vue-tsc -b && npx vitest run && npm run build
 ```
 
 - Lancer en développement : `uv run hotas-kneeboard` (port 8642), et `npm run dev` dans `web/` pour l'interface à chaud (proxy `/api`).
+- Vérifier les gabarits contre les liaisons réelles : `uv run python scripts/check_templates.py` (entrées liées sans case). La marche à suivre pour vérifier un gabarit sur le périphérique et le verser dans la bibliothèque est dans `hotas_kneeboard/library/README.md`.
 - Vérifier contre DCS : cliquer MAKE HTML dans les commandes du jeu, puis `uv run python scripts/compare_make_html.py "A-10C II" "F-16C_50"` ; la dernière ligne est le verdict.
 - Reconvertir les gabarits : `uv run python scripts/convert_jd_templates.py <joystick-diagrams>/templates`.
 - Construire l'exe : `pwsh packaging/build.ps1` → `dist/HOTAS-Kneeboard.exe`. Une étiquette `vX.Y.Z` le publie en release (`.github/workflows/release.yml`).
