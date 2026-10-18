@@ -44,6 +44,11 @@ export const api = {
   templates: () => request<TemplateSummary[]>('/api/templates'),
   template: (id: string) => request<Template>(`/api/templates/${encodeURIComponent(id)}`),
   templateImageUrl: (id: string) => `/api/templates/${encodeURIComponent(id)}/image`,
+  saveTemplate: (body: { template: Omit<Template, 'id' | 'image' | 'user'>; image_name: string; image: string; id: string | null }) =>
+    request<TemplateSummary>('/api/templates', json('POST', body)),
+  importTemplate: (file: string) => request<TemplateSummary>('/api/templates/import', json('POST', { file })),
+  deleteTemplate: (id: string) => request<{ deleted: string }>(`/api/templates/${encodeURIComponent(id)}`, { method: 'DELETE' }),
+  templateFileUrl: (id: string) => `/api/templates/${encodeURIComponent(id)}/file`,
   writeKneeboard: (unitType: string, profile: string, pages: { title: string; png: string }[]) =>
     request<KneeboardResult>('/api/kneeboard', json('POST', { unit_type: unitType, profile, pages })),
 }

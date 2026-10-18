@@ -9,6 +9,8 @@ import DeviceList from './components/DeviceList.vue'
 import PagePreview from './components/PagePreview.vue'
 import SettingsDialog from './components/SettingsDialog.vue'
 import ShortcutsDialog from './components/ShortcutsDialog.vue'
+import EditorView from './editor/EditorView.vue'
+import { editor } from './editor/state'
 import { api } from './lib/api'
 import { useStore } from './lib/store'
 import { pagePngBase64, pagesPdf } from './render/export'
@@ -106,8 +108,15 @@ function stepModule(delta: number) {
   state.deviceKey = store.orderedDevices(next)[0]?.full_name ?? ''
 }
 
+function openEditor() {
+  editor.forDevice = null
+  editor.draft = null
+  state.view = 'editor'
+}
+
 onKeyStroke((event) => {
-  if (event.defaultPrevented || dialogOpen()) return
+  // the editor has its own keys
+  if (event.defaultPrevented || dialogOpen() || state.view !== 'pages') return
   const ctrl = event.ctrlKey || event.metaKey
   const key = event.key
   if (ctrl && key.toLowerCase() === 'e') {
@@ -158,11 +167,13 @@ onKeyStroke((event) => {
         </template>
       </span>
       <span class="spacer" />
+      <Button v-if="state.view === 'pages'" icon="pi pi-pencil" text rounded aria-label="Éditeur de gabarit" v-tooltip.bottom="'Éditeur de gabarit'" @click="openEditor" />
       <Button icon="pi pi-refresh" text rounded aria-label="Relire les fichiers de DCS (F5)" v-tooltip.bottom="'Relire les fichiers de DCS (F5)'" :loading="state.loading" @click="refresh" />
       <Button icon="pi pi-cog" text rounded aria-label="Réglages" v-tooltip.bottom="'Réglages'" @click="settingsOpen = true" />
       <Button :icon="theme === 'dark' ? 'pi pi-sun' : 'pi pi-moon'" text rounded aria-label="Thème clair ou sombre" v-tooltip.bottom="'Thème clair / sombre'" @click="theme = theme === 'dark' ? 'light' : 'dark'" />
       <Button icon="pi pi-question-circle" text rounded aria-label="Raccourcis clavier (?)" v-tooltip.bottom="'Raccourcis clavier (?)'" @click="helpOpen = true" />
       <Button
+        v-if="state.view === 'pages'"
         severity="secondary"
         :disabled="!store.profile.value || exportedCount === 0 || !!busy"
         :loading="busy === 'pdf'"
@@ -172,6 +183,7 @@ onKeyStroke((event) => {
         <span class="btn-label">PDF du module</span><kbd>Ctrl P</kbd>
       </Button>
       <Button
+        v-if="state.view === 'pages'"
         :disabled="!canKneeboard"
         :loading="busy === 'kneeboard'"
         icon="pi pi-upload"
@@ -194,13 +206,14 @@ onKeyStroke((event) => {
       <Button label="Réglages" size="small" text @click="settingsOpen = true" />
     </div>
 
-    <main class="cols">
+    <EditorView v-if="state.view === 'editor'" />
+    <main v-else class="cols">
       <ModuleList ref="modules" />
       <DeviceList />
       <PagePreview />
     </main>
 
-    <footer class="status">
+    <footer v-if="state.view === 'pages'" class="status">
       <span><kbd>↑</kbd><kbd>↓</kbd> périphérique</span>
       <span><kbd>PgUp</kbd><kbd>PgDn</kbd> module</span>
       <span><kbd>Espace</kbd> inclure dans l'export</span>

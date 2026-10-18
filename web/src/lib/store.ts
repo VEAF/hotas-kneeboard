@@ -23,6 +23,7 @@ const state = reactive({
   profileName: '' as string,
   deviceKey: '' as string, // full name, with GUID: two devices may share a name
   filter: '',
+  view: 'pages' as 'pages' | 'editor',
 })
 
 const templateCache = new Map<string, Promise<LoadedTemplate>>()

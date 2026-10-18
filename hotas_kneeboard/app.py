@@ -181,7 +181,7 @@ def create_app(
         template = library.get(template_id)
         if template is None:
             raise HTTPException(404, "gabarit introuvable")
-        return template.data | {"id": template.id}
+        return template.data | {"id": template.id, "user": template.user}
 
     @app.get("/api/templates/{template_id}/image")
     def get_template_image(template_id: str) -> FileResponse:

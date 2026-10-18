@@ -85,35 +85,35 @@ def _is_numbers(value, count: int) -> bool:
 
 def validate(data: dict, folder: Path) -> None:
     if data.get("format") != FORMAT:
-        raise TemplateError(f"format must be {FORMAT}")
+        raise TemplateError(f"format {FORMAT} attendu")
     if not isinstance(data.get("name"), str):
-        raise TemplateError("no name")
+        raise TemplateError("le gabarit n'a pas de nom")
     devices = data.get("devices", [])
     if not (isinstance(devices, list) and all(isinstance(d, str) for d in devices)):
-        raise TemplateError("devices must be a list of names")
+        raise TemplateError("devices : liste de noms de périphériques attendue")
     image = data.get("image")
     if not isinstance(image, str) or Path(image).name != image:
-        raise TemplateError("image must be a file name in the template's folder")
+        raise TemplateError("image : nom d'un fichier du dossier du gabarit attendu")
     if Path(image).suffix.lower() not in IMAGE_TYPES:
-        raise TemplateError(f"image must be one of {', '.join(IMAGE_TYPES)}")
+        raise TemplateError(f"image : {', '.join(IMAGE_TYPES)} attendu")
     if not (folder / image).is_file():
-        raise TemplateError(f"image {image} not found")
+        raise TemplateError(f"image {image} introuvable")
     if not _is_numbers(data.get("size"), 2):
-        raise TemplateError("size must be [width, height]")
+        raise TemplateError("size : [largeur, hauteur] attendu")
     _validate_inputs(data.get("inputs"))
 
 
 def _validate_inputs(inputs) -> None:
     if not isinstance(inputs, dict):
-        raise TemplateError("inputs must be an object")
+        raise TemplateError("inputs : objet attendu")
     for key, entry in inputs.items():
         if not (isinstance(entry, dict) and _is_numbers(entry.get("box"), 4)):
-            raise TemplateError(f"{key}: box must be [x, y, width, height]")
+            raise TemplateError(f"{key} : box [x, y, largeur, hauteur] attendue")
         if entry.get("anchor") is not None and not _is_numbers(entry["anchor"], 2):
-            raise TemplateError(f"{key}: anchor must be [x, y]")
+            raise TemplateError(f"{key} : anchor [x, y] attendu")
         more = entry.get("more_boxes", [])
         if not (isinstance(more, list) and all(_is_numbers(b, 4) for b in more)):
-            raise TemplateError(f"{key}: more_boxes must be a list of [x, y, width, height]")
+            raise TemplateError(f"{key} : more_boxes, liste de [x, y, largeur, hauteur] attendue")
 
 
 class TemplateLibrary:
@@ -163,7 +163,7 @@ class TemplateLibrary:
 
     def _user_folder(self, template_id: str) -> Path:
         if self.user_dir is None:
-            raise TemplateError("no folder for the user's templates")
+            raise TemplateError("pas de dossier pour tes gabarits")
         if not _ID.match(template_id):
             raise TemplateError(f"identifiant de gabarit invalide : {template_id!r}")
         return self.user_dir / template_id

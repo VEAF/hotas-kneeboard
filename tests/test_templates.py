@@ -45,9 +45,9 @@ def test_invalid_template_is_skipped(tmp_path):
     ("overrides", "message"),
     [
         ({"format": 2}, "format"),
-        ({"image": "../x.svg"}, "file name"),
-        ({"image": "x.gif"}, "image must be one of"),
-        ({"image": "missing.svg"}, "not found"),
+        ({"image": "../x.svg"}, "nom d'un fichier"),
+        ({"image": "x.gif"}, "image : "),
+        ({"image": "missing.svg"}, "introuvable"),
         ({"size": [1]}, "size"),
         ({"inputs": {"JOY_BTN1": {"box": [1, 2, 3, 4], "anchor": [1]}}}, "anchor"),
     ],

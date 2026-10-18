@@ -53,6 +53,8 @@ export interface TemplateSummary {
   devices: string[]
   size: [number, number]
   credits: Credits
+  /** in the user's folder: can be changed in place, deleted */
+  user: boolean
 }
 
 export interface Template extends TemplateSummary {

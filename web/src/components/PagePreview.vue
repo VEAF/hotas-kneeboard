@@ -3,7 +3,9 @@ import { computed, ref, watch } from 'vue'
 import Select from 'primevue/select'
 import SelectButton from 'primevue/selectbutton'
 import ProgressSpinner from 'primevue/progressspinner'
-import { useStore } from '../lib/store'
+import Button from 'primevue/button'
+import { loadTemplate, useStore } from '../lib/store'
+import { editor, fromTemplate, newDraft, open } from '../editor/state'
 import type { Page } from '../render/page'
 import type { LayerMode } from '../lib/types'
 
@@ -39,6 +41,24 @@ const automatic = computed(() => {
   const d = store.device.value
   return !!d && state.settings?.device_templates[d.name] === undefined
 })
+
+/** The editor, on this device's template (or a new one for it) */
+async function editTemplate() {
+  const d = store.device.value
+  const p = store.profile.value
+  if (!d || !p) return
+  editor.forDevice = { profile: p.name, deviceKey: d.full_name, name: d.name }
+  const id = store.templateIdFor(d)
+  if (id) {
+    const loaded = await loadTemplate(id)
+    const user = !!state.templates.find((t) => t.id === id)?.user
+    open(fromTemplate(loaded.data, loaded.image, user))
+    if (!editor.draft!.devices.includes(d.name)) editor.draft!.devices.push(d.name)
+  } else {
+    open(newDraft({ name: d.name, devices: [d.name] }))
+  }
+  state.view = 'editor'
+}
 
 let generation = 0
 watch(
@@ -87,6 +107,13 @@ watch(
             aria-label="Gabarit du périphérique"
           />
         </label>
+        <Button
+          size="small"
+          severity="secondary"
+          icon="pi pi-pencil"
+          :label="templateId === NO_TEMPLATE ? 'Créer un gabarit' : 'Modifier le gabarit'"
+          @click="editTemplate"
+        />
         <label class="ctl">
           <span class="eyebrow">Calques</span>
           <SelectButton
