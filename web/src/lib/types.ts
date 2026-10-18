@@ -75,8 +75,12 @@ export interface Settings {
   exported: Record<string, Record<string, boolean>>
   device_templates: Record<string, string>
   device_order: Record<string, string[]>
+  /** device names (without GUID) hidden in every module */
+  hidden_devices: string[]
   layer_mode: LayerMode
   page_height: number
+  /** a drawing much wider than tall is cut in two portrait pages */
+  split_wide: boolean
 }
 
 export interface DcsState {
@@ -90,6 +94,7 @@ export interface DcsState {
 
 export interface StateResponse {
   version: string
+  settings_file: string
   dcs: DcsState
   settings: Settings
 }

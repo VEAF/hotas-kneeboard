@@ -238,8 +238,8 @@ function offTemplateBand(
   return { svg, height: height + 4 }
 }
 
-function footer(ctx: PageContext, top: number, width: number, legend: Legend): string {
-  const left = [ctx.profile, ctx.device.name, ctx.layer !== null ? `calque ${layerLabel(ctx.layer)}` : null]
+function footer(ctx: PageContext, top: number, width: number, legend: Legend, part?: string): string {
+  const left = [ctx.profile, ctx.device.name, ctx.layer !== null ? `calque ${layerLabel(ctx.layer)}` : null, part]
     .filter(Boolean)
     .join(' · ')
   const showLegend = ctx.layer === null && legend.tags.size > 0
@@ -263,7 +263,32 @@ export function creditLine(template: Template): string {
 
 const FOOTER_HEIGHT = 28
 
+/** A drawing wider than this (width / height) does not fit a kneeboard page: it is cut in two */
+export const WIDE_RATIO = 1.15
+
+/** Where to cut a wide drawing in two: near the middle, through as few boxes as possible, in the
+ * middle of the widest gap between them (the drawings group their boxes around each part) */
+export function bestCut(template: Template): number {
+  const [width] = template.size
+  const boxes = Object.values(template.inputs).flatMap((i) => [i.box, ...(i.more_boxes ?? [])])
+  const edges = boxes.flatMap(([x, , w]) => [x, x + w])
+  let best = width / 2
+  let bestScore = -Infinity
+  for (let c = Math.round(width * 0.35); c <= width * 0.65; c += 1) {
+    const crossed = boxes.filter(([x, , w]) => x < c && c < x + w).length
+    const clearance = Math.min(60, ...edges.map((e) => Math.abs(e - c)))
+    const score = -crossed * 1000 + clearance - Math.abs(c - width / 2) * 0.05
+    if (score > bestScore) [best, bestScore] = [c, score]
+  }
+  return best
+}
+
 export function diagramPage(ctx: PageContext): Page {
+  return diagramPages(ctx, false)[0]
+}
+
+/** The device drawing; a wide one cut in two portrait pages when `splitWide` */
+export function diagramPages(ctx: PageContext, splitWide: boolean): Page[] {
   const template = ctx.template!
   const [width, height] = template.data.size
   const legend = legendOf(ctx.device)
@@ -288,10 +313,32 @@ export function diagramPage(ctx: PageContext): Page {
   }
   body += labels.filter((l) => !l.grown).map((l) => l.svg).join('')
   body += labels.filter((l) => l.grown).map((l) => l.svg).join('')
-  const band = offTemplateBand(off, height, width, legend, ctx.measurer, showChips)
-  const total = height + band.height + FOOTER_HEIGHT
-  const svg = svgOpen(width, total, ctx) + body + band.svg + footer(ctx, height + band.height, width, legend) + '</svg>'
-  return { title: pageTitle(ctx), width, height: total, svg }
+  if (!splitWide || width / height <= WIDE_RATIO) {
+    const band = offTemplateBand(off, height, width, legend, ctx.measurer, showChips)
+    const total = height + band.height + FOOTER_HEIGHT
+    const svg = svgOpen(width, total, ctx) + body + band.svg + footer(ctx, height + band.height, width, legend) + '</svg>'
+    return [{ title: pageTitle(ctx), width, height: total, svg }]
+  }
+  // two pages, each showing its part of the same drawing; the bindings without box go on the last
+  const cut = bestCut(template.data)
+  const parts: [number, number][] = [
+    [0, cut],
+    [cut, width],
+  ]
+  return parts.map(([from, to], index) => {
+    const partWidth = to - from
+    const last = index === parts.length - 1
+    const band = last ? offTemplateBand(off, height, partWidth, legend, ctx.measurer, showChips) : { svg: '', height: 0 }
+    const total = height + band.height + FOOTER_HEIGHT
+    const part = `${index + 1}/${parts.length}`
+    const svg =
+      svgOpen(partWidth, total, ctx) +
+      `<svg x="0" y="0" width="${partWidth}" height="${height}" viewBox="${from} 0 ${partWidth} ${height}">${body}</svg>` +
+      band.svg +
+      footer(ctx, height + band.height, partWidth, legend, part) +
+      '</svg>'
+    return { title: `${pageTitle(ctx)} (${part})`, width: partWidth, height: total, svg }
+  })
 }
 
 /** List pages of a device without template, as many as the rows need */
@@ -359,10 +406,10 @@ export function listPages(ctx: PageContext): Page[] {
   return pages
 }
 
-export function devicePages(ctx: Omit<PageContext, 'layer'>, mode: 'merge' | 'split'): Page[] {
+export function devicePages(ctx: Omit<PageContext, 'layer'>, mode: 'merge' | 'split', splitWide = true): Page[] {
   return pageLayers(ctx.device, mode).flatMap((layer) => {
     const page = { ...ctx, layer }
-    return page.template ? [diagramPage(page)] : listPages(page)
+    return page.template ? diagramPages(page, splitWide) : listPages(page)
   })
 }
 

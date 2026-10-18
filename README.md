@@ -21,6 +21,12 @@ Press `?` in the app for every keyboard shortcut.
 - Bindings whose input has no box on the drawing are listed under it, so nothing is lost.
 - A device without template gets a list page. You can also pick a template by hand for a device: the choice is remembered.
 - Command names are those the game shows, in its language.
+- A drawing much wider than tall (a throttle with its base) is cut in two portrait pages, between its boxes; this can be turned off in the settings.
+
+### Settings
+
+The gear icon opens the settings, saved in `%APPDATA%\HOTAS Kneeboard\settings.json`: DCS folders, language of the command names, height of the kneeboard pages, cutting of wide drawings.
+The **Périphériques** tab lists every device seen in your modules: untick one to hide it everywhere (a vJoy, a device unplugged for good). It then leaves the lists and the exports; the eye on a device's row, or `H`, does the same, and "N cachés : Afficher" at the bottom of the list shows them again.
 
 ## Templates
 

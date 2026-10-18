@@ -1,10 +1,16 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
 import InputNumber from 'primevue/inputnumber'
 import InputText from 'primevue/inputtext'
 import Select from 'primevue/select'
+import Checkbox from 'primevue/checkbox'
+import Tabs from 'primevue/tabs'
+import TabList from 'primevue/tablist'
+import Tab from 'primevue/tab'
+import TabPanels from 'primevue/tabpanels'
+import TabPanel from 'primevue/tabpanel'
 import { useStore } from '../lib/store'
 
 const visible = defineModel<boolean>('visible', { required: true })
@@ -22,6 +28,13 @@ const languages = [
     ([value, label]) => ({ label, value }),
   ),
 ]
+const tab = ref('general')
+const deviceFilter = ref('')
+const shownDevices = computed(() => {
+  const q = deviceFilter.value.trim().toLowerCase()
+  return store.allDevices.value.filter((d) => !q || d.name.toLowerCase().includes(q))
+})
+const hiddenTotal = computed(() => store.allDevices.value.filter((d) => store.isHidden(d.name)).length)
 const saving = ref(false)
 const error = ref('')
 
@@ -60,7 +73,14 @@ async function save() {
 </script>
 
 <template>
-  <Dialog v-model:visible="visible" modal header="Réglages" :style="{ width: 'min(620px, 94vw)' }">
+  <Dialog v-model:visible="visible" modal header="Réglages" :style="{ width: 'min(640px, 94vw)' }">
+    <Tabs v-model:value="tab">
+      <TabList>
+        <Tab value="general">Général</Tab>
+        <Tab value="devices">Périphériques<span v-if="hiddenTotal" class="tab-count">{{ hiddenTotal }} caché{{ hiddenTotal > 1 ? 's' : '' }}</span></Tab>
+      </TabList>
+      <TabPanels>
+        <TabPanel value="general">
     <form class="form" @submit.prevent="save">
       <label class="field" for="install-dir">
         <span class="eyebrow">Dossier d'installation de DCS</span>
@@ -82,12 +102,40 @@ async function save() {
         <InputNumber id="page-height" v-model="pageHeight" :min="256" :max="4096" :step="128" show-buttons :use-grouping="false" />
         <small>La largeur suit les proportions du dessin.</small>
       </label>
+      <label class="check" for="split-wide">
+        <Checkbox input-id="split-wide" :model-value="state.settings?.split_wide ?? true" binary @update:model-value="(v: boolean) => store.changeSettings({ split_wide: v })" />
+        <span>Couper en deux pages un dessin plus large que haut <small>(la coupe passe entre les cases)</small></span>
+      </label>
       <p v-if="error" class="error">{{ error }}</p>
       <div class="actions">
         <Button type="button" label="Annuler" severity="secondary" text @click="visible = false" />
         <Button type="submit" label="Enregistrer" :loading="saving" />
       </div>
     </form>
+        </TabPanel>
+        <TabPanel value="devices">
+          <div class="form">
+            <p class="intro">
+              Coche les périphériques à montrer. Un périphérique caché disparaît des listes et des exports de tous les modules : un vJoy, un appareil débranché pour de bon.
+              Appliqué tout de suite.
+            </p>
+            <InputText v-model="deviceFilter" size="small" placeholder="Filtrer…" aria-label="Filtrer les périphériques" />
+            <div class="device-list">
+              <label v-for="d in shownDevices" :key="d.name" class="device-row" :for="`show-${d.name}`">
+                <Checkbox :input-id="`show-${d.name}`" :model-value="!store.isHidden(d.name)" binary @update:model-value="(v: boolean) => store.setHidden(d.name, !v)" />
+                <span class="device-name">{{ d.name }}</span>
+                <span class="device-modules">{{ d.modules }} module{{ d.modules > 1 ? 's' : '' }}</span>
+              </label>
+              <p v-if="!shownDevices.length" class="intro">Aucun périphérique.</p>
+            </div>
+            <div class="actions">
+              <Button type="button" size="small" text label="Tout montrer" :disabled="!hiddenTotal" @click="store.changeSettings({ hidden_devices: [] })" />
+            </div>
+          </div>
+        </TabPanel>
+      </TabPanels>
+    </Tabs>
+    <p class="file">Réglages enregistrés dans <code>{{ state.settingsFile }}</code></p>
   </Dialog>
 </template>
 
@@ -97,4 +145,16 @@ async function save() {
 .field small { color: var(--ink-3); }
 .actions { display: flex; justify-content: flex-end; gap: 8px; }
 .error { color: var(--bad); margin: 0; }
+.form { padding-top: 14px; }
+.intro { margin: 0; color: var(--ink-2); font-size: 13px; }
+.device-list { display: flex; flex-direction: column; max-height: 340px; overflow: auto; border: 1px solid var(--line); border-radius: 6px; }
+.device-row { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 7px 10px; cursor: pointer; border-bottom: 1px solid var(--line); }
+.device-row:last-child { border-bottom: 0; }
+.device-row:hover { background: var(--panel-3); }
+.device-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.device-modules { font-size: 12px; color: var(--ink-3); }
+.tab-count { margin-left: 8px; font-size: 11px; color: var(--warn); }
+.check { display: flex; gap: 10px; align-items: center; cursor: pointer; }
+.check small { color: var(--ink-3); }
+.file { margin: 14px 0 0; font-size: 12px; color: var(--ink-3); overflow-wrap: anywhere; }
 </style>

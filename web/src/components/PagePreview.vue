@@ -113,7 +113,7 @@ async function editTemplate() {
 
 let generation = 0
 watch(
-  () => [store.device.value, store.profile.value?.name, templateId.value, layerMode.value] as const,
+  () => [store.device.value, store.profile.value?.name, templateId.value, layerMode.value, state.settings?.split_wide] as const,
   async ([d, profileName]) => {
     const current = ++generation
     error.value = ''

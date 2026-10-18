@@ -17,7 +17,7 @@ const shown = computed(() => {
 function exportedCount(name: string): [number, number] {
   const p = store.profiles.value.find((x) => x.name === name)
   if (!p) return [0, 0]
-  return [p.devices.filter((d) => store.isExported(p.name, d)).length, p.devices.length]
+  return [p.devices.filter((d) => store.isExported(p.name, d)).length, p.devices.filter((d) => !store.isHidden(d.name)).length]
 }
 
 function select(name: string) {

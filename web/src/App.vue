@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watchEffect } from 'vue'
 import { onKeyStroke, useLocalStorage } from '@vueuse/core'
 import Button from 'primevue/button'
 import Toast from 'primevue/toast'
@@ -22,6 +22,11 @@ const modules = ref<InstanceType<typeof ModuleList> | null>(null)
 const settingsOpen = ref(false)
 const helpOpen = ref(false)
 const theme = useLocalStorage<'dark' | 'light'>('hotas-kneeboard-theme', 'dark')
+// on <html>, not on the app: PrimeVue puts dialogs, menus and tooltips at the end of <body>
+watchEffect(() => {
+  document.documentElement.classList.toggle('app-dark', theme.value === 'dark')
+  document.documentElement.classList.toggle('app-light', theme.value === 'light')
+})
 
 const exportedCount = computed(() => {
   const p = store.profile.value
@@ -139,6 +144,8 @@ onKeyStroke((event) => {
   } else if (key === ' ') {
     event.preventDefault()
     if (store.device.value && store.profile.value) store.toggleExported(store.profile.value.name, store.device.value)
+  } else if (key.toLowerCase() === 'h' && !event.altKey) {
+    if (store.device.value) store.setHidden(store.device.value.name, !store.isHidden(store.device.value.name))
   } else if (key.toLowerCase() === 'l' && !event.altKey) {
     store.changeSettings({ layer_mode: state.settings?.layer_mode === 'split' ? 'merge' : 'split' })
   } else if (key === '/') {
@@ -151,7 +158,7 @@ onKeyStroke((event) => {
 </script>
 
 <template>
-  <div class="app" :class="theme === 'dark' ? 'app-dark' : 'app-light'">
+  <div class="app">
     <header class="bar">
       <span class="brand"><i aria-hidden="true" />HOTAS Kneeboard</span>
       <span class="dcs" v-if="state.dcs">

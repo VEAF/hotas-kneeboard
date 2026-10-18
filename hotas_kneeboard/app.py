@@ -150,7 +150,12 @@ def create_app(
 
     @app.get("/api/state")
     def state() -> dict:
-        return {"version": __version__, "dcs": current_dirs(), "settings": store.load().as_dict()}
+        return {
+            "version": __version__,
+            "dcs": current_dirs(),
+            "settings": store.load().as_dict(),
+            "settings_file": str(store.path),
+        }
 
     @app.put("/api/settings")
     def put_settings(changes: dict) -> dict:

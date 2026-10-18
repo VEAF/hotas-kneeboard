@@ -24,6 +24,9 @@ const state = reactive({
   deviceKey: '' as string, // full name, with GUID: two devices may share a name
   filter: '',
   view: 'pages' as 'pages' | 'editor',
+  /** list the hidden devices too (greyed), to show them again */
+  showHidden: false,
+  settingsFile: '',
 })
 
 const templateCache = new Map<string, Promise<LoadedTemplate>>()
@@ -76,6 +79,7 @@ async function load(refresh = false): Promise<void> {
   try {
     const current = await api.state()
     state.version = current.version
+    state.settingsFile = current.settings_file
     state.dcs = current.dcs
     state.settings = current.settings
     const [bindings, templates] = await Promise.all([api.bindings(refresh), api.templates()])
@@ -146,10 +150,32 @@ function orderedDevices(p: Profile | null): Device[] {
   return [...p.devices].sort((a, b) => rank(a) - rank(b) || a.name.localeCompare(b.name))
 }
 
-const devices = computed(() => orderedDevices(profile.value))
+/** Hidden in every module, by name: a vJoy, a device unplugged for good */
+function isHidden(name: string): boolean {
+  const wanted = name.toLowerCase()
+  return !!state.settings?.hidden_devices.some((d) => d.toLowerCase() === wanted)
+}
+
+/** Devices listed for the current module: the hidden ones only when asked */
+const devices = computed(() => orderedDevices(profile.value).filter((d) => state.showHidden || !isHidden(d.name)))
+const hiddenCount = computed(() => (profile.value?.devices ?? []).filter((d) => isHidden(d.name)).length)
+
+/** Every device name seen in the modules, with the number of modules it is configured in */
+const allDevices = computed(() => {
+  const count = new Map<string, number>()
+  for (const p of profiles.value) for (const name of new Set(p.devices.map((d) => d.name))) count.set(name, (count.get(name) ?? 0) + 1)
+  return [...count].map(([name, modules]) => ({ name, modules })).sort((a, b) => a.name.localeCompare(b.name))
+})
+
+function setHidden(name: string, hidden: boolean): void {
+  if (!state.settings) return
+  const others = state.settings.hidden_devices.filter((d) => d.toLowerCase() !== name.toLowerCase())
+  changeSettings({ hidden_devices: hidden ? [...others, name] : others })
+}
 const device = computed<Device | null>(() => devices.value.find((d) => d.full_name === state.deviceKey) ?? null)
 
 function isExported(profileName: string, d: Device): boolean {
+  if (isHidden(d.name)) return false
   return state.settings?.exported[profileName]?.[d.full_name] ?? true
 }
 
@@ -194,6 +220,7 @@ async function pagesOf(profileName: string, d: Device): Promise<Page[]> {
   return devicePages(
     { profile: profileName, device: d, template, measurer: m, fontCss: FONT_CSS },
     state.settings?.layer_mode ?? 'merge',
+    state.settings?.split_wide ?? true,
   )
 }
 
@@ -216,6 +243,10 @@ export function useStore() {
     profile,
     devices,
     device,
+    hiddenCount,
+    allDevices,
+    isHidden,
+    setHidden,
     load,
     changeSettings,
     saveReading,

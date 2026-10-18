@@ -37,10 +37,15 @@ class Settings:
     device_order: dict[str, list[str]] = field(default_factory=dict)
     # device name -> template id, chosen by the user over the automatic match ("" = no template)
     device_templates: dict[str, str] = field(default_factory=dict)
+    # device names (without GUID) hidden in every module: not listed, not exported (a vJoy, a
+    # device unplugged for good)
+    hidden_devices: list[str] = field(default_factory=list)
     # modifier layers on the same page as the base layer, or one page per layer
     layer_mode: str = "merge"
     # height of the kneeboard PNG, in pixels; the width follows the page's proportions
     page_height: int = 1024
+    # a drawing much wider than tall is cut in two portrait pages (kneeboard, PDF)
+    split_wide: bool = True
 
     @classmethod
     def from_dict(cls, data: dict) -> "Settings":
@@ -69,8 +74,14 @@ class Settings:
             raise ValueError("device_order : profil -> liste de périphériques attendu")
         if not _is_map(self.device_templates, lambda v: isinstance(v, str)):
             raise ValueError("device_templates : périphérique -> gabarit attendu")
+        if not (
+            isinstance(self.hidden_devices, list) and all(isinstance(d, str) for d in self.hidden_devices)
+        ):
+            raise ValueError("hidden_devices : liste de noms de périphériques attendue")
         if self.layer_mode not in LAYER_MODES:
             raise ValueError(f"calques : {' ou '.join(LAYER_MODES)} attendu")
+        if not isinstance(self.split_wide, bool):
+            raise ValueError("split_wide : true ou false attendu")
         if isinstance(self.page_height, bool) or not isinstance(self.page_height, int | float):
             raise ValueError("hauteur des pages : nombre attendu")
         if not 256 <= int(self.page_height) <= 4096:

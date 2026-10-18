@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { compareInputs, inputName, layerTags } from '../inputs'
 import { approximateMeasurer, fitTexts, MIN_LABEL_SIZE, wrap } from '../text'
-import { devicePages, diagramPage, entriesByInput, listPages, type PageContext } from '../page'
+import { bestCut, devicePages, diagramPage, diagramPages, entriesByInput, listPages, type PageContext } from '../page'
 import type { Device, Template } from '../../lib/types'
 
 const device: Device = {
@@ -123,6 +123,32 @@ describe('pages', () => {
     expect(page.svg).toContain('HORS GABARIT')
     expect(page.svg).toContain('Axe Z')
     expect(page.height).toBeGreaterThan(1000)
+  })
+
+  it('cuts a wide drawing in two pages through the gap between its boxes', () => {
+    const wide: Template = {
+      ...template,
+      size: [2000, 1000],
+      inputs: {
+        JOY_BTN2: { box: [100, 60, 300, 24] },
+        JOY_BTN9: { box: [700, 120, 300, 24] }, // ends at 1000
+        JOY_BTN17: { box: [1100, 10, 300, 24] }, // starts at 1100: the gap is 1000-1100
+        JOY_BTN30: { box: [950, 600, 120, 24] }, // crosses the middle lower down
+      },
+    }
+    const cut = bestCut(wide)
+    expect(cut).toBeGreaterThanOrEqual(1070)
+    expect(cut).toBeLessThan(1100)
+    const pages = diagramPages({ ...ctx(null), template: { data: wide, image: 'x' } }, true)
+    expect(pages.map((p) => p.title)).toEqual(['Throttle - HOTAS Warthog (1/2)', 'Throttle - HOTAS Warthog (2/2)'])
+    expect(pages[0].width).toBe(cut)
+    expect(pages[1].width).toBe(2000 - cut)
+    expect(pages[1].svg).toContain(`viewBox="${cut} 0 ${2000 - cut} 1000"`)
+    expect(pages[0].svg).not.toContain('HORS GABARIT') // the bindings without box go on the last page
+    expect(pages[1].svg).toContain('HORS GABARIT')
+    // not cut when asked so, nor when not wide
+    expect(diagramPages({ ...ctx(null), template: { data: wide, image: 'x' } }, false)).toHaveLength(1)
+    expect(diagramPages(ctx(null), true)).toHaveLength(1)
   })
 
   it('makes one page per layer in split mode', () => {
