@@ -1,0 +1,204 @@
+{
+ "format": 1,
+ "name": "Thrustmaster Warthog - Joystick",
+ "devices": [
+  "Joystick - HOTAS Warthog"
+ ],
+ "image": "background.svg",
+ "size": [
+  817.0,
+  1159.0
+ ],
+ "inputs": {
+  "JOY_BTN1": {
+   "box": [
+    205.0,
+    666.0,
+    180.0,
+    30.0
+   ]
+  },
+  "JOY_BTN2": {
+   "box": [
+    165.0,
+    66.0,
+    180.0,
+    30.0
+   ]
+  },
+  "JOY_BTN3": {
+   "box": [
+    343.0,
+    1001.2,
+    180.0,
+    30.0
+   ]
+  },
+  "JOY_BTN4": {
+   "box": [
+    265.0,
+    936.0,
+    180.0,
+    30.0
+   ]
+  },
+  "JOY_BTN5": {
+   "box": [
+    625.0,
+    306.0,
+    180.0,
+    30.0
+   ]
+  },
+  "JOY_BTN6": {
+   "box": [
+    205.0,
+    696.0,
+    180.0,
+    30.0
+   ]
+  },
+  "JOY_BTN7": {
+   "box": [
+    105.0,
+    326.0,
+    180.0,
+    30.0
+   ]
+  },
+  "JOY_BTN8": {
+   "box": [
+    195.0,
+    356.0,
+    180.0,
+    30.0
+   ]
+  },
+  "JOY_BTN9": {
+   "box": [
+    105.0,
+    386.0,
+    180.0,
+    30.0
+   ]
+  },
+  "JOY_BTN10": {
+   "box": [
+    15.0,
+    356.0,
+    180.0,
+    30.0
+   ]
+  },
+  "JOY_BTN11": {
+   "box": [
+    535.0,
+    416.0,
+    180.0,
+    30.0
+   ]
+  },
+  "JOY_BTN12": {
+   "box": [
+    625.0,
+    446.0,
+    180.0,
+    30.0
+   ]
+  },
+  "JOY_BTN13": {
+   "box": [
+    535.0,
+    476.0,
+    180.0,
+    30.0
+   ]
+  },
+  "JOY_BTN14": {
+   "box": [
+    445.0,
+    446.0,
+    180.0,
+    30.0
+   ]
+  },
+  "JOY_BTN15": {
+   "box": [
+    205.0,
+    756.0,
+    180.0,
+    30.0
+   ]
+  },
+  "JOY_BTN16": {
+   "box": [
+    385.0,
+    786.0,
+    180.0,
+    30.0
+   ]
+  },
+  "JOY_BTN17": {
+   "box": [
+    205.0,
+    816.0,
+    180.0,
+    30.0
+   ]
+  },
+  "JOY_BTN18": {
+   "box": [
+    25.0,
+    786.0,
+    180.0,
+    30.0
+   ]
+  },
+  "JOY_BTN19": {
+   "box": [
+    205.0,
+    786.0,
+    180.0,
+    30.0
+   ]
+  },
+  "JOY_BTN_POV1_D": {
+   "box": [
+    535.0,
+    96.0,
+    180.0,
+    30.0
+   ]
+  },
+  "JOY_BTN_POV1_L": {
+   "box": [
+    445.0,
+    66.0,
+    180.0,
+    30.0
+   ]
+  },
+  "JOY_BTN_POV1_R": {
+   "box": [
+    625.0,
+    66.0,
+    180.0,
+    30.0
+   ]
+  },
+  "JOY_BTN_POV1_U": {
+   "box": [
+    535.0,
+    36.0,
+    180.0,
+    30.0
+   ]
+  }
+ },
+ "credits": {
+  "author": "Joystick Diagrams contributors",
+  "source": "https://github.com/Rexeh/joystick-diagrams/blob/master/templates/Thrustmaster/Thrustmaster%20Warthog%20-%20Joystick.svg",
+  "license": "GPL-2.0",
+  "converted_by": "scripts/convert_jd_templates.py"
+ }
+}

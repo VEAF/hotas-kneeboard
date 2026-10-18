@@ -10,7 +10,8 @@
       "size": [827, 1168],                          # the picture's coordinate system
       "inputs": {                                   # DCS input names
         "JOY_BTN16": {"box": [330, 28, 90, 30]},    # label box: x, y, width, height
-        "JOY_BTN1": {"box": [205, 666, 180, 30], "anchor": [545, 706]}  # + leader line
+        "JOY_BTN1": {"box": [205, 666, 180, 30], "anchor": [545, 706]},  # + leader line
+        "JOY_BTN5": {"box": [10, 10, 80, 20], "more_boxes": [[400, 10, 80, 20]]}  # drawn twice
       },
       "credits": {"author": "…", "source": "…", "license": "GPL-2.0"}
     }
@@ -80,7 +81,10 @@ def validate(data: dict, folder: Path) -> None:
         raise TemplateError(f"image {image} not found")
     if not _is_numbers(data.get("size"), 2):
         raise TemplateError("size must be [width, height]")
-    inputs = data.get("inputs")
+    _validate_inputs(data.get("inputs"))
+
+
+def _validate_inputs(inputs) -> None:
     if not isinstance(inputs, dict):
         raise TemplateError("inputs must be an object")
     for key, entry in inputs.items():
@@ -88,6 +92,9 @@ def validate(data: dict, folder: Path) -> None:
             raise TemplateError(f"{key}: box must be [x, y, width, height]")
         if entry.get("anchor") is not None and not _is_numbers(entry["anchor"], 2):
             raise TemplateError(f"{key}: anchor must be [x, y]")
+        more = entry.get("more_boxes", [])
+        if not (isinstance(more, list) and all(_is_numbers(b, 4) for b in more)):
+            raise TemplateError(f"{key}: more_boxes must be a list of [x, y, width, height]")
 
 
 class TemplateLibrary:
