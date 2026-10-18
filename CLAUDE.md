@@ -14,10 +14,10 @@ Une branche et une PR par lot, qui ferme le ticket du lot.
   - `engine.py` + `lua/effective_bindings.lua` : le moteur, repris de VEAF/joystick-diagrams-dcs-world-plugin. Il exécute le Lua avec l'interpréteur de DCS (`bin/luae.exe`) : défauts du module + diff de l'utilisateur, comme `Scripts/Input/Data.lua`.
   - `pages.py` : regroupement par entrée et par calque de modificateurs, appariement des positions relâchées `_OFF`.
   - `dcs.py` : détection de l'install, de Saved Games et de la langue ; traduction des noms de commande par `l10n/<langue>/LC_MESSAGES/input.mo`, comme le jeu.
-  - `templates.py` : format des gabarits (docstring) et bibliothèque ; `library/` : les 45 gabarits convertis, à ne pas éditer à la main.
+  - `templates.py` : format des gabarits (docstring) et bibliothèque : gabarits livrés (`library/`, les 45 convertis, à ne pas éditer à la main) puis ceux de l'utilisateur (`%APPDATA%/HOTAS Kneeboard/templates/`), qui passent devant ; enregistrement, suppression, export et import en un fichier zip.
   - `kneeboard.py` : écriture des PNG dans `Saved Games/DCS/Kneeboard/<type d'unité>/`, fichiers `HOTAS - <profil> - <nn> <titre>.png` ; un export ne remplace que les pages du même profil (deux postes d'un avion partagent le dossier).
   - `app.py` : n'accepte que les hôtes `127.0.0.1`/`localhost` et refuse les écritures d'une autre origine (DNS rebinding).
-- `web/` : l'interface Vue 3 + TypeScript + Vite + PrimeVue + VueUse. `src/render/` construit les pages en SVG (affichage, PNG et PDF partent du même SVG). `npm run build` écrit dans `hotas_kneeboard/web/` (ignoré par git).
+- `web/` : l'interface Vue 3 + TypeScript + Vite + PrimeVue + VueUse. `src/render/` construit les pages en SVG (affichage, PNG et PDF partent du même SVG). `src/editor/` : l'éditeur de gabarit (état et historique annuler/rétablir dans `state.ts`, écoute des manettes dans `gamepad.ts`). `npm run build` écrit dans `hotas_kneeboard/web/` (ignoré par git).
 - `scripts/convert_jd_templates.py` + `jd_templates.json` : conversion des SVG draw.io de Joystick Diagrams. `scripts/compare_make_html.py` : comparaison des pages avec l'export MAKE HTML de DCS.
 - `packaging/` : `.exe` PyInstaller (`build.ps1`).
 
