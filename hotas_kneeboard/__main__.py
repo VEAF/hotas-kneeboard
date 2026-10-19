@@ -12,6 +12,7 @@ import webbrowser
 import uvicorn
 
 from .app import create_app
+from .i18n import t
 from .settings import data_dir
 
 DEFAULT_PORT = 8642
@@ -55,7 +56,7 @@ def main() -> None:
     )
 
     if already_running(args.port):
-        print(f"HOTAS Kneeboard tourne déjà : http://127.0.0.1:{args.port}/")
+        print(t("main.already_running", url=f"http://127.0.0.1:{args.port}/"))
         if not args.no_browser:
             webbrowser.open(f"http://127.0.0.1:{args.port}/")
         return
@@ -63,7 +64,7 @@ def main() -> None:
     url = f"http://127.0.0.1:{port}/"
     logging.getLogger(__name__).info(f"HOTAS Kneeboard on {url}")
     if sys.stdout is not None:
-        print(f"\n  HOTAS Kneeboard : {url}\n  Fermer cette fenêtre pour quitter.\n", flush=True)
+        print(t("main.running", url=url), flush=True)
     if not args.no_browser:
         threading.Timer(1.0, webbrowser.open, args=(url,)).start()
     uvicorn.run(create_app(), host="127.0.0.1", port=port, log_config=None)

@@ -32,6 +32,8 @@ import zipfile
 from dataclasses import dataclass
 from pathlib import Path
 
+from .i18n import t
+
 _logger = logging.getLogger(__name__)
 
 FORMAT = 1
@@ -91,21 +93,21 @@ def _is_numbers(value, count: int) -> bool:
 
 def validate(data: dict, folder: Path) -> None:
     if data.get("format") != FORMAT:
-        raise TemplateError(f"format {FORMAT} attendu")
+        raise TemplateError(t("template.format", format=FORMAT))
     if not isinstance(data.get("name"), str):
-        raise TemplateError("le gabarit n'a pas de nom")
+        raise TemplateError(t("template.no_name"))
     devices = data.get("devices", [])
     if not (isinstance(devices, list) and all(isinstance(d, str) for d in devices)):
-        raise TemplateError("devices : liste de noms de périphériques attendue")
+        raise TemplateError(t("template.devices"))
     image = data.get("image")
     if not isinstance(image, str) or Path(image).name != image:
-        raise TemplateError("image : nom d'un fichier du dossier du gabarit attendu")
+        raise TemplateError(t("template.image_name"))
     if Path(image).suffix.lower() not in IMAGE_TYPES:
-        raise TemplateError(f"image : {', '.join(IMAGE_TYPES)} attendu")
+        raise TemplateError(t("template.image_type", types=", ".join(IMAGE_TYPES)))
     if not (folder / image).is_file():
-        raise TemplateError(f"image {image} introuvable")
+        raise TemplateError(t("template.image_missing", image=image))
     if not _is_numbers(data.get("size"), 2) or not all(1 <= v <= MAX_SIZE for v in data["size"]):
-        raise TemplateError(f"size : [largeur, hauteur] attendu, entre 1 et {MAX_SIZE}")
+        raise TemplateError(t("template.size", max=MAX_SIZE))
     _validate_inputs(data.get("inputs"))
     split_at = data.get("split_at", [])
     if not (
@@ -115,25 +117,25 @@ def validate(data: dict, folder: Path) -> None:
             for x in split_at
         )
     ):
-        raise TemplateError("split_at : liste de positions de coupe, dans la largeur du dessin")
+        raise TemplateError(t("template.split_at"))
     checked = data.get("checked")
     if checked is not None and not (
         isinstance(checked, dict) and all(isinstance(checked.get(k), str) for k in ("by", "date"))
     ):
-        raise TemplateError('checked : {"by": "…", "date": "AAAA-MM-JJ"} attendu')
+        raise TemplateError(t("template.checked"))
 
 
 def _validate_inputs(inputs) -> None:
     if not isinstance(inputs, dict):
-        raise TemplateError("inputs : objet attendu")
+        raise TemplateError(t("template.inputs"))
     for key, entry in inputs.items():
         if not (isinstance(entry, dict) and _is_numbers(entry.get("box"), 4)):
-            raise TemplateError(f"{key} : box [x, y, largeur, hauteur] attendue")
+            raise TemplateError(t("template.box", key=key))
         if entry.get("anchor") is not None and not _is_numbers(entry["anchor"], 2):
-            raise TemplateError(f"{key} : anchor [x, y] attendu")
+            raise TemplateError(t("template.anchor", key=key))
         more = entry.get("more_boxes", [])
         if not (isinstance(more, list) and all(_is_numbers(b, 4) for b in more)):
-            raise TemplateError(f"{key} : more_boxes, liste de [x, y, largeur, hauteur] attendue")
+            raise TemplateError(t("template.more_boxes", key=key))
 
 
 class TemplateLibrary:
@@ -184,9 +186,9 @@ class TemplateLibrary:
 
     def _user_folder(self, template_id: str) -> Path:
         if self.user_dir is None:
-            raise TemplateError("pas de dossier pour tes gabarits")
+            raise TemplateError(t("template.no_user_dir"))
         if not _ID.match(template_id):
-            raise TemplateError(f"identifiant de gabarit invalide : {template_id!r}")
+            raise TemplateError(t("template.bad_id", id=repr(template_id)))
         return self.user_dir / template_id
 
     def save(self, template_id: str, data: dict, image_name: str, image: bytes) -> Template:
@@ -196,9 +198,9 @@ class TemplateLibrary:
         folder = self._user_folder(template_id)
         suffix = Path(image_name).suffix.lower()
         if suffix not in IMAGE_TYPES:
-            raise TemplateError(f"image : {', '.join(IMAGE_TYPES)} attendu")
+            raise TemplateError(t("template.image_type", types=", ".join(IMAGE_TYPES)))
         if not image or len(image) > MAX_IMAGE_BYTES:
-            raise TemplateError("image vide ou trop grande (20 Mo au plus)")
+            raise TemplateError(t("template.image_size"))
         data = {k: v for k, v in data.items() if k != "id"} | {
             "format": FORMAT,
             "image": f"background{suffix}",
@@ -213,7 +215,7 @@ class TemplateLibrary:
             )
             self._swap(folder, staging)
         except OSError as error:
-            raise TemplateError(f"gabarit impossible à écrire : {error}") from error
+            raise TemplateError(t("template.write_failed", error=error)) from error
         finally:
             if staging.exists():
                 shutil.rmtree(staging, ignore_errors=True)
@@ -238,11 +240,11 @@ class TemplateLibrary:
     def delete(self, template_id: str) -> None:
         template = self.get(template_id)
         if template is None or not template.user:
-            raise TemplateError("seuls tes propres gabarits peuvent être supprimés")
+            raise TemplateError(t("template.not_yours"))
         try:
             shutil.rmtree(template.folder)
         except OSError as error:
-            raise TemplateError(f"gabarit impossible à supprimer : {error}") from error
+            raise TemplateError(t("template.delete_failed", error=error)) from error
         self.reload()
 
     def bundled_ids(self) -> set[str]:
@@ -259,7 +261,7 @@ class TemplateLibrary:
         """The template as one file to share: a zip of template.json and its picture."""
         template = self.get(template_id)
         if template is None:
-            raise TemplateError("gabarit introuvable")
+            raise TemplateError(t("template.missing"))
         buffer = io.BytesIO()
         with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as archive:
             archive.writestr(TEMPLATE_FILE, json.dumps(template.data, indent=1, ensure_ascii=False))
@@ -271,17 +273,17 @@ class TemplateLibrary:
         try:
             with zipfile.ZipFile(io.BytesIO(content)) as archive:
                 if archive.getinfo(TEMPLATE_FILE).file_size > MAX_JSON_BYTES:
-                    raise TemplateError("fichier de gabarit invalide : template.json trop grand")
+                    raise TemplateError(t("template.file_invalid", error=t("template.json_too_big")))
                 data = json.loads(archive.read(TEMPLATE_FILE).decode("utf-8"))
                 image_name = data.get("image") if isinstance(data, dict) else None
                 if not isinstance(image_name, str) or Path(image_name).name != image_name:
-                    raise TemplateError("fichier de gabarit invalide : pas d'image")
+                    raise TemplateError(t("template.file_invalid", error=t("template.no_image")))
                 info = archive.getinfo(image_name)
                 if info.file_size > MAX_IMAGE_BYTES:
                     raise TemplateError("image trop grande (20 Mo au plus)")
                 image = archive.read(info)
         except (zipfile.BadZipFile, KeyError, UnicodeDecodeError, json.JSONDecodeError) as error:
-            raise TemplateError(f"fichier de gabarit invalide : {error}") from error
+            raise TemplateError(t("template.file_invalid", error=error)) from error
         base = slug(str(data.get("name") or "template"))
         template_id, n = base, 2
         while self.get(template_id) is not None:

@@ -27,6 +27,7 @@ from .dcs_config import (
     seen_devices,
 )
 from .engine import PATH_TOO_LONG, EffectiveBindingsError, load_effective_bindings
+from .i18n import t
 
 # key -> command hash of the 8 views in common_joystick_binding.lua (pressed = iCommandView…Slow,
 # up = iCommandViewStop)
@@ -94,7 +95,7 @@ def plan(
             all_installed=all_modules,
         )
     except EffectiveBindingsError as error:
-        raise DcsConfigError(f"Lecture des liaisons impossible : {error}") from error
+        raise DcsConfigError(t("bindings.read_failed", error=error)) from error
     spelling = {name.lower(): name for name in extra}
     devices: dict[str, dict] = {}
     for profile, entry in sorted(result["profiles"].items()):
@@ -124,7 +125,7 @@ def plan(
                         "file": d["name"],
                         "views": sorted(views),
                         "new_file": bool(d.get("extra")),
-                        "error": "chemin trop long pour DCS" if d.get("error") == PATH_TOO_LONG else None,
+                        "error": t("bindings.path_too_long") if d.get("error") == PATH_TOO_LONG else None,
                     }
                 )
     out = []
@@ -173,10 +174,10 @@ def remove_hat_views(
     ]
     removals = removals_of(chosen)
     if not removals:
-        raise DcsConfigError("Aucune vue du chapeau à retirer pour ces périphériques : rien n'a été modifié")
+        raise DcsConfigError(t("hat.nothing"))
     expected = {(m["profile"], m["file"].lower()): m for d in chosen for m in d["modules"] if not m["error"]}
     count = len(chosen)
-    reason = f"avant le retrait des vues du chapeau ({count} périphérique{'s' if count > 1 else ''})"
+    reason = t("hat.reason.one" if count == 1 else "hat.reason.other", n=count)
     existing = {(r["profile"], r["device"]): _diff_path(saved_games_dir, r).is_file() for r in removals}
     backup, rewrites = remove_bindings(
         install_dir,
@@ -207,21 +208,27 @@ def remove_hat_views(
         )
         if r["removed"] != want:
             differences.append(
-                f"{r['device']} ({r['profile']}) : {r['removed']} vue(s) retirée(s), {want} prévue(s)"
+                t(
+                    "hat.other_count",
+                    device=r["device"],
+                    profile=r["profile"],
+                    removed=r["removed"],
+                    want=want,
+                )
             )
 
     # read again: none of the views removed may still be there
     try:
         after = plan(install_dir, saved_games_dir, all_modules=all_modules, lua_interpreter=lua_interpreter)
     except DcsConfigError as error:
-        differences.append(f"Relecture impossible : {error}")
+        differences.append(t("bindings.read_again_failed", error=error))
         after = []
     for device in after:
         for m in device["modules"]:
             planned = expected.get((m["profile"], m["file"].lower()))
             if left := sorted(set(m["views"]) & set(planned["views"] if planned else [])):
                 differences.append(
-                    f"{m['file']} ({m['profile']}) : encore {', '.join(left)} après l'écriture"
+                    t("bindings.left_after", file=m["file"], profile=m["profile"], left=", ".join(left))
                 )
     return {"backup": backup.as_dict(), "written": written, "differences": differences}
 

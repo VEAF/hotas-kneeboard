@@ -13,6 +13,7 @@ import uuid
 from pathlib import Path
 
 from .engine import DCS_INTERPRETER
+from .i18n import t
 
 LUA_SCRIPT = Path(__file__).parent / "lua" / "lua_tables.lua"
 TIMEOUT_SECONDS = 30
@@ -34,7 +35,7 @@ def to_lua(value) -> str:
         return str(value)
     if isinstance(value, float):
         if not math.isfinite(value):
-            raise LuaTableError(f"nombre non représentable : {value}")
+            raise LuaTableError(t("lua.bad_number", value=value))
         return repr(value)
     if isinstance(value, str):
         out = []
@@ -46,9 +47,9 @@ def to_lua(value) -> str:
         return "{" + ",".join(to_lua(v) for v in value) + "}"
     if isinstance(value, dict):
         if not all(isinstance(k, str) for k in value):
-            raise LuaTableError("clés de table : texte attendu")
+            raise LuaTableError(t("lua.bad_key"))
         return "{" + ",".join(f"[{to_lua(k)}]={to_lua(v)}" for k, v in value.items()) + "}"
-    raise LuaTableError(f"valeur non représentable en Lua : {type(value).__name__}")
+    raise LuaTableError(t("lua.bad_value", type=type(value).__name__))
 
 
 def _run(install_dir: Path, records: str, lua_interpreter: Path | str | None) -> bytes:
@@ -66,10 +67,10 @@ def _run(install_dir: Path, records: str, lua_interpreter: Path | str | None) ->
             creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
         )
     except (OSError, subprocess.TimeoutExpired) as error:
-        raise LuaTableError(f"Interpréteur Lua de DCS impossible à lancer : {error}") from error
+        raise LuaTableError(t("lua.no_interpreter", error=error)) from error
     if completed.returncode != 0:
         detail = completed.stderr.decode("utf-8", errors="replace").strip()
-        raise LuaTableError(f"Fichier Lua illisible ou impossible à écrire : {detail}")
+        raise LuaTableError(t("lua.failed", detail=detail))
     return completed.stdout
 
 
@@ -79,7 +80,7 @@ def read_table(install_dir: Path, path: Path, lua_interpreter: Path | str | None
     try:
         return json.loads(out.decode("utf-8"))
     except ValueError as error:  # UnicodeDecodeError included
-        raise LuaTableError(f"{Path(path).name} : contenu illisible ({error})") from error
+        raise LuaTableError(t("lua.unreadable", file=Path(path).name, error=error)) from error
 
 
 def write_table(

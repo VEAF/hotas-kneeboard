@@ -27,7 +27,7 @@ async function request<T>(url: string, init?: RequestInit): Promise<T> {
   let response: Response
   try {
     // the server answers in the interface's language
-    response = await fetch(url, { ...init, headers: { ...init?.headers, 'Accept-Language': lang.value } })
+    response = await fetch(url, { ...init, headers: { 'Accept-Language': lang.value, ...init?.headers } })
   } catch {
     throw new ApiError(t('api.no_server'))
   }
@@ -55,7 +55,8 @@ export const api = {
   saveSettings: (changes: Partial<Settings>) =>
     request<{ dcs: DcsState; settings: Settings }>('/api/settings', json('PUT', changes)),
   bindings: (refresh = false) => request<BindingsResponse>(`/api/bindings${refresh ? '?refresh=true' : ''}`),
-  programs: () => request<ProgramsResponse>('/api/programs'),
+  /** in `language`: their actions are drawn on the pages, which speak the commands' language */
+  programs: (language: string) => request<ProgramsResponse>('/api/programs', { headers: { 'Accept-Language': language } }),
   templates: () => request<TemplateSummary[]>('/api/templates'),
   template: (id: string) => request<Template>(`/api/templates/${encodeURIComponent(id)}`),
   templateImageUrl: (id: string) => `/api/templates/${encodeURIComponent(id)}/image`,

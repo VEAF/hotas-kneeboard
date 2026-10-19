@@ -13,6 +13,7 @@ a = Analysis(
     datas=[
         (str(PACKAGE / "lua"), "hotas_kneeboard/lua"),
         (str(PACKAGE / "library"), "hotas_kneeboard/library"),
+        (str(PACKAGE / "locales"), "hotas_kneeboard/locales"),
         (str(PACKAGE / "web"), "hotas_kneeboard/web"),
     ],
     hiddenimports=["uvicorn.logging", "uvicorn.loops.auto", "uvicorn.protocols.http.auto", "uvicorn.lifespan.on"],

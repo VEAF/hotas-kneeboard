@@ -1,7 +1,8 @@
 """HTTP server: reads DCS, serves the UI and the templates, writes the kneeboard pages, and changes
 DCS's own input files (with a backup first, see dcs_config.py).
 
-Error messages reach the user as they are: they are written in French, like the UI."""
+Error messages reach the user as they are: they are written in the language of the interface
+that asked (``i18n.LanguageMiddleware``)."""
 
 import base64
 import binascii
@@ -44,6 +45,7 @@ from .generic_buttons import is_generic_base, removable, remove_generic_buttons
 from .generic_buttons import plan as generic_buttons_plan
 from .hat_views import plan as hat_views_plan
 from .hat_views import remove_hat_views
+from .i18n import LanguageMiddleware, current_language, t
 from .kneeboard import KneeboardError, write_pages
 from .pages import build_page, split_device_name
 from .programs import read_programs
@@ -124,7 +126,7 @@ def _b64(data: str) -> bytes:
     try:
         return base64.b64decode(data, validate=True)
     except (binascii.Error, ValueError) as error:
-        raise HTTPException(422, "données illisibles (base64)") from error
+        raise HTTPException(422, t("api.bad_base64")) from error
 
 
 class Bindings:
@@ -134,6 +136,7 @@ class Bindings:
         self.lua_interpreter = lua_interpreter
         self._lock = threading.Lock()
         self._cache: dict | None = None
+        self._language = ""
 
     def invalidate(self) -> None:
         with self._lock:
@@ -141,8 +144,12 @@ class Bindings:
 
     def get(self, dirs: dict, library: TemplateLibrary, refresh: bool = False) -> dict:
         with self._lock:
-            if self._cache is None or refresh:
+            # an error is a message, in the language of the request that computed it: computed again
+            # for a request in another language (the pages themselves speak DCS's language)
+            stale = self._cache is not None and self._cache["error"] and self._language != current_language()
+            if self._cache is None or refresh or stale:
                 self._cache = self._compute(dirs, library, self.lua_interpreter)
+                self._language = current_language()
             return self._cache
 
     @staticmethod
@@ -157,7 +164,7 @@ class Bindings:
             result = load_effective_bindings(install, saved, names, lua_interpreter)
         except EffectiveBindingsError as error:
             _logger.error(f"engine failed: {error}")
-            return {"profiles": [], "error": f"Lecture des liaisons impossible : {error}"}
+            return {"profiles": [], "error": t("bindings.read_failed", error=error)}
         translate = command_translator(install, dirs["language"])
         try:
             disabled = {name.lower() for name in disabled_devices(install, saved, lua_interpreter)}
@@ -244,7 +251,7 @@ def create_app(
 
     @app.middleware("http")
     async def same_origin_writes(request: Request, call_next):
-        refused = JSONResponse({"detail": "requête d'un autre site refusée"}, status_code=403)
+        refused = JSONResponse({"detail": t("api.other_site")}, status_code=403)
         origin = request.headers.get("origin")
         if request.method not in ("GET", "HEAD", "OPTIONS") and origin:
             if urlsplit(origin).hostname not in LOCAL_HOSTS:
@@ -253,6 +260,9 @@ def create_app(
         if request.url.path.startswith("/api/") and request.headers.get("sec-fetch-site") == "cross-site":
             return refused
         return await call_next(request)
+
+    # added last, so it runs first: every answer, a refusal above included, in the request's language
+    app.add_middleware(LanguageMiddleware)
 
     def current_dirs() -> dict:
         settings = store.load()
@@ -312,14 +322,14 @@ def create_app(
     def get_template(template_id: str) -> dict:
         template = library.get(template_id)
         if template is None:
-            raise HTTPException(404, "gabarit introuvable")
+            raise HTTPException(404, t("template.missing"))
         return template.data | {"id": template.id, "user": template.user}
 
     @app.get("/api/templates/{template_id}/image")
     def get_template_image(template_id: str) -> FileResponse:
         template = library.get(template_id)
         if template is None:
-            raise HTTPException(404, "gabarit introuvable")
+            raise HTTPException(404, t("template.missing"))
         path = template.image_path
         # a user's SVG template opened on its own must not run scripts with access to the API
         return FileResponse(
@@ -390,7 +400,7 @@ def create_app(
     def export_kneeboard(export: KneeboardExport) -> dict:
         dirs = current_dirs()
         if not dirs["saved_games_dir"]:
-            raise HTTPException(409, "Dossier Saved Games de DCS introuvable : indique-le dans les réglages")
+            raise HTTPException(409, t("dcs.saved_games_missing"))
         try:
             return write_pages(
                 Path(dirs["saved_games_dir"]),
@@ -401,12 +411,12 @@ def create_app(
         except KneeboardError as error:
             raise HTTPException(422, str(error)) from error
         except OSError as error:
-            raise HTTPException(500, f"Pages impossibles à écrire : {error}") from error
+            raise HTTPException(500, t("kneeboard.write_failed", error=error)) from error
 
     def saved_games_or_409() -> Path:
         saved = current_dirs()["saved_games_dir"]
         if not saved:
-            raise HTTPException(409, "Dossier Saved Games de DCS introuvable : indique-le dans les réglages")
+            raise HTTPException(409, t("dcs.saved_games_missing"))
         return Path(saved)
 
     def dcs_state() -> bool | None:
@@ -426,7 +436,7 @@ def create_app(
     @app.post("/api/dcs-config/backups")
     def create_backup() -> dict:
         try:
-            return backups.create(saved_games_or_409() / "Config" / "Input", "sauvegarde à la main").as_dict()
+            return backups.create(saved_games_or_409() / "Config" / "Input", t("backup.by_hand")).as_dict()
         except DcsConfigError as error:
             raise HTTPException(422, str(error)) from error
 
@@ -567,15 +577,15 @@ def create_app(
         install, saved = install_and_saved()
         # only a module the user configured: the name goes to the engine
         if profile not in list_user_profiles(saved):
-            raise HTTPException(404, f"Module inconnu : {profile!r}")
+            raise HTTPException(404, t("api.unknown_module", module=repr(profile)))
         try:
             result = load_effective_bindings(install, saved, [profile], lua_interpreter)
         except EffectiveBindingsError as error:
-            raise HTTPException(422, f"Lecture des liaisons impossible : {error}") from error
+            raise HTTPException(422, t("bindings.read_failed", error=error)) from error
         entry = result["profiles"].get(profile) or {}
         found = next((d for d in entry.get("devices", []) if d["name"].lower() == device.lower()), None)
         if found is None:
-            raise HTTPException(404, f"{device} n'est pas configuré dans {profile}")
+            raise HTTPException(404, t("api.device_not_configured", device=device, module=profile))
         translate = command_translator(install, current_dirs()["language"])
         generic_base = is_generic_base(found.get("base_file"))
         return {
@@ -603,9 +613,9 @@ def create_app(
     def post_remove_bindings(body: BindingsRemoval) -> dict:
         install, saved = install_and_saved()
         if not body.bindings:
-            raise HTTPException(422, "Aucune liaison à retirer")
+            raise HTTPException(422, t("api.no_binding"))
         if body.profile not in list_user_profiles(saved):
-            raise HTTPException(404, f"Module inconnu : {body.profile!r}")
+            raise HTTPException(404, t("api.unknown_module", module=repr(body.profile)))
         removals = [{"profile": body.profile, "device": body.device, **b.model_dump()} for b in body.bindings]
         count = len(body.bindings)
         try:
@@ -614,7 +624,12 @@ def create_app(
                 saved,
                 backups,
                 removals,
-                f"retrait de {count} liaison{'s' if count > 1 else ''} : {body.device} ({body.profile})",
+                t(
+                    "bindings.reason.one" if count == 1 else "bindings.reason.other",
+                    n=count,
+                    device=body.device,
+                    module=body.profile,
+                ),
                 is_running=is_dcs_running,
                 lua_interpreter=lua_interpreter,
             )

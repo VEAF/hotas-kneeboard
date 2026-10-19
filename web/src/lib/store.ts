@@ -103,7 +103,11 @@ async function load(refresh = false): Promise<void> {
     state.dcs = current.dcs
     state.settings = current.settings
     setLanguage(current.settings.ui_language)
-    const [bindings, templates, programs] = await Promise.all([api.bindings(refresh), api.templates(), api.programs()])
+    const [bindings, templates, programs] = await Promise.all([
+      api.bindings(refresh),
+      api.templates(),
+      api.programs(pageLanguage(current.dcs.language)),
+    ])
     state.bindings = bindings
     state.templates = templates
     state.programs = programs
@@ -316,7 +320,7 @@ async function saveSrsDir(srs_dir: string | null): Promise<void> {
   await flushSettings()
   const saved = await api.saveSettings({ srs_dir })
   state.settings = saved.settings
-  state.programs = await api.programs()
+  state.programs = await api.programs(pageLanguage(state.dcs?.language))
 }
 
 /** The name a module shows (DCS's), its folder name staying the key of everything */
