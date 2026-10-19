@@ -20,6 +20,10 @@
       
       
         
+          <link rel="alternate" href="./" hreflang="fr">
+        
+          <link rel="alternate" href="../en/guide-utilisateur/" hreflang="en">
+        
       
       
       <link rel="icon" href="../assets/images/favicon.png">
@@ -154,6 +158,32 @@
     
       <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
     
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="Sélectionner la langue">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="fr" class="md-select__link">
+              Français
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="../en/guide-utilisateur/" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
     
     
       
@@ -903,6 +933,7 @@ Si quelque chose manque, un bandeau le dit, avec un accès direct aux réglages.
 Sinon, elle écrit seulement les pages du kneeboard, et ses propres réglages dans <code>%APPDATA%\HOTAS Kneeboard\</code>.</p>
 <h2 id="lécran">L'écran<a class="headerlink" href="#lécran" title="Permanent link">&para;</a></h2>
 <p>Trois colonnes, de gauche à droite.</p>
+<p><img alt="L'écran principal : les modules, les périphériques de l'A-10C II, la page du manche" src="../images/ecran-principal.png" /></p>
 <p><strong>Modules.</strong>
 Chaque profil de commandes que tu as configuré dans DCS (un avion, un hélicoptère, la couche d'interface…), sous le nom que lui donne l'écran des commandes du jeu (« AH-64D Pilot », « F/A-18C »), dans l'ordre alphabétique.
 Sous le nom, le dossier du profil dans <code>Saved Games\DCS\Config\Input</code> quand il est différent (<code>AH-64D_BLK_II_PLT</code>), et le dossier kneeboard de l'avion ; à droite, le nombre de périphériques exportés sur le nombre de périphériques montrés.
@@ -921,8 +952,9 @@ Un choix à la main vaut pour ce périphérique dans tous les modules ; la premi
 Quand le gabarit choisi à la main n'est pas celui-là (le manche dessiné avec l'image de la manette des gaz), la pastille <strong>choix manuel</strong> le signale : son infobulle nomme le gabarit reconnu, un clic y revient.
 En bas à droite, le zoom : page entière, toute la largeur, plus ou moins (ou Ctrl+molette).</p>
 <p>La ligne entre deux colonnes se glisse pour élargir ou rétrécir la colonne des modules ou celle des périphériques ; l'application s'en souvient, et un double-clic sur la ligne remet la largeur par défaut.</p>
-<p>Dans la barre du haut, le livre ouvre cette documentation, celle de ta version de l'application, dans un nouvel onglet ; la fenêtre des raccourcis (<code>?</code>) y mène aussi.</p>
+<p>Dans la barre du haut, le livre ouvre cette documentation, celle de ta version de l'application et dans la langue de l'interface, dans un nouvel onglet ; la fenêtre des raccourcis (<code>?</code>) y mène aussi.</p>
 <h2 id="lire-une-page">Lire une page<a class="headerlink" href="#lire-une-page" title="Permanent link">&para;</a></h2>
+<p><img alt="Le haut d'une page : une étiquette par bouton, les cases libres en pointillés, le calque Paddle en orange" src="../images/page-detail.png" /></p>
 <ul>
 <li><strong>Une étiquette par bouton lié</strong>, posée sur la case du dessin.
   Le texte rapetisse pour tenir ; s'il ne tient vraiment pas, la case s'allonge.</li>
@@ -956,6 +988,7 @@ Ils sont sur toutes les pages, même avec « Par calque » : ces logiciels ignor
 <li><strong>Un autre logiciel</strong> se saisit à la main, depuis <strong>Autres logiciels</strong> : le nom du logiciel, le bouton (dans la liste, ou en appuyant dessus avec <strong>Identifier</strong>) et ce qu'il fait.
   Les entrées se modifient et se suppriment au même endroit.</li>
 </ul>
+<p><img alt="La fenêtre Autres logiciels" src="../images/autres-logiciels.png" /></p>
 <p>Dans les réglages, l'onglet <strong>Autres logiciels</strong> indique le dossier de SRS (trouvé dans le registre Windows, à indiquer s'il ne l'est pas), ce qui a été lu, et permet de cacher un logiciel des pages ou de changer sa couleur.</p>
 <h2 id="exporter">Exporter<a class="headerlink" href="#exporter" title="Permanent link">&para;</a></h2>
 <h3 id="vers-le-kneeboard">Vers le kneeboard<a class="headerlink" href="#vers-le-kneeboard" title="Permanent link">&para;</a></h3>
@@ -974,12 +1007,14 @@ Chaque avion de la liste qui a au moins un périphérique coché reçoit ses pag
 Une fenêtre montre où en est l'export (« Module 7 sur 20 », le nom du module, une barre) ; il faut compter une dizaine de secondes pour une vingtaine de modules.
 <strong>Arrêter</strong> s'arrête à la fin du module en cours : les modules déjà écrits le restent, et le message de fin dit combien ne l'ont pas été.
 Si un module échoue, les autres continuent, et le message de fin dit lequel et pourquoi.</p>
+<p><img alt="La flèche à côté de Kneeboard : ce module, ou tous les modules" src="../images/export-menu.png" /></p>
 <h3 id="en-pdf">En PDF<a class="headerlink" href="#en-pdf" title="Permanent link">&para;</a></h3>
 <p><strong>PDF</strong> (ou Ctrl+P) télécharge un PDF des mêmes pages, une page A4 par page, à environ 200 points par pouce.
 La flèche à côté, <strong>Tous les modules</strong> (ou Maj+P), en fait un seul PDF, <code>HOTAS - tous les modules.pdf</code>, module après module dans l'ordre de la liste, avec les mêmes avions que pour le kneeboard ; chaque page porte le nom de son module en en-tête.
 La même fenêtre montre la progression ; <strong>Arrêter</strong> n'écrit alors aucun PDF, un PDF d'une partie des modules passerait pour le tout.</p>
 <h2 id="commandes-dcs">Commandes DCS<a class="headerlink" href="#commandes-dcs" title="Permanent link">&para;</a></h2>
 <p>Le bouton à curseurs, en haut, ouvre la fenêtre <strong>Commandes DCS</strong> : ce que l'application peut changer dans tes commandes, et les sauvegardes qu'elle fait avant.</p>
+<p><img alt="La fenêtre Commandes DCS : périphériques désactivés, périphériques absents" src="../images/commandes-dcs.png" /></p>
 <ul>
 <li><strong>DCS doit être fermé.</strong>
   Le jeu réécrit ses fichiers de commandes quand tu enregistres dans son écran des commandes : l'application refuse toute modification tant que DCS (ou un serveur dédié) tourne.</li>
@@ -1019,6 +1054,7 @@ Les liaisons qui s'en servent restent affichées, dans le jeu comme ici, mais ne
 <h3 id="retirer-les-vues-du-chapeau">Retirer les vues du chapeau<a class="headerlink" href="#retirer-les-vues-du-chapeau" title="Permanent link">&para;</a></h3>
 <p>Tous les modules mettent les 8 vues lentes (« View Up slow », « View Down Left slow »…) sur le premier chapeau de <strong>chaque</strong> périphérique : le palonnier, l'ICP, les MFD en ont aussi, même si l'écran des commandes du jeu ne les montre pas toujours.
 Avec TrackIR ou la VR, elles ne servent à rien et encombrent les pages ; la section <strong>Vues du chapeau</strong> les retire en une fois.</p>
+<p><img alt="La section Vues du chapeau" src="../images/commandes-dcs-vues-du-chapeau.png" /></p>
 <ul>
 <li><strong>Chercher</strong> calcule l'aperçu (quelques secondes) : chaque périphérique concerné, le nombre de vues, les modules (dépliables) et les fichiers qui seront créés.</li>
 <li><strong>Par défaut</strong>, ne sont cochés que les périphériques sur le chapeau desquels tu n'as rien mis toi-même, dans aucun module : le palonnier, l'ICP, les MFD, une manette dont le chapeau ne sert pas.
@@ -1041,6 +1077,7 @@ DCS n'écrit nulle part combien de boutons a un périphérique : c'est toi qui l
 <li><strong>Chercher</strong> : l'aperçu donne, par périphérique et par module, les boutons génériques qui partiraient.</li>
 <li><strong>Retirer…</strong> puis <strong>Retirer</strong> : une seule sauvegarde avant, les commandes relues après l'écriture et comparées à l'aperçu ; <strong>Annuler ce retrait</strong> restaure la sauvegarde.</li>
 </ol>
+<p><img alt="La section Périphériques sans boutons, le palonnier coché" src="../images/commandes-dcs-sans-boutons.png" /></p>
 <p>Seules partent les liaisons de bouton et de chapeau qui viennent de ce profil générique : ce que tu as mis toi-même sur le périphérique, ce que le module prévoit pour ce matériel précis, et tous les axes restent.
 Une liaison dont l'application ne connaît pas le numéro de commande de DCS (le tir secondaire et la tourelle de Combined Arms) ne peut pas être retirée d'ici : l'aperçu la montre à part, retire-la dans l'écran des commandes du jeu.
 Par défaut, seuls les modules où le périphérique est configuré sont touchés ; l'option « Tous les modules installés » crée un fichier dans chacun, pour qu'un nouvel avion soit déjà propre.</p>
@@ -1049,6 +1086,7 @@ Par défaut, seuls les modules où le périphérique est configuré sont touché
 - « ta config » : tu l'as posée dans l'écran des commandes de DCS ;
 - « défaut pour ce périphérique » : le module la prévoit pour ce périphérique précis (le Warthog dans l'A-10C, par exemple), y compris dans le fichier qu'il livre et que DCS recopie dans le tien ;
 - « défaut générique » : le module n'a rien prévu pour ce périphérique, et DCS lui donne ce qu'il donne à n'importe quel joystick.</p>
+<p><img alt="La fenêtre Liaisons du manche, dans l'A-10C II" src="../images/liaisons.png" /></p>
 <p>Les défauts génériques sont souvent à retirer : c'est là qu'on voit un bouton qui fait deux choses sans le savoir, un « Engine Stop Right » à toi et le « Gun Trigger » que l'A-10C met sur le bouton 1 de tout joystick, ou les gaz sur l'axe Z d'un manche.</p>
 <ol>
 <li>Coche les liaisons à retirer (boutons, chapeaux ou axes) ; le filtre cherche dans l'entrée et la commande.</li>
@@ -1060,10 +1098,14 @@ Le retrait ne vaut que pour ce module : la même commande reste dans les autres.
 <h2 id="réglages">Réglages<a class="headerlink" href="#réglages" title="Permanent link">&para;</a></h2>
 <p>La roue dentée, en haut, ouvre les réglages.
 Ils sont enregistrés dans <code>%APPDATA%\HOTAS Kneeboard\settings.json</code> ; le chemin exact est rappelé au bas de la fenêtre.</p>
+<p><img alt="Les réglages, onglet Général" src="../images/reglages.png" /></p>
 <p><strong>Général.</strong></p>
 <ul>
+<li>La langue de l'interface : celle du navigateur par défaut (le français si ton navigateur est en français, l'anglais sinon), ou le français ou l'anglais au choix.
+  Elle s'applique tout de suite, aux menus comme aux messages de l'application, et à la documentation qu'ouvre le livre.</li>
 <li>Les dossiers de DCS : vides, ils sont trouvés automatiquement.</li>
-<li>La langue des commandes : celle du jeu par défaut, ou une autre langue livrée avec DCS.</li>
+<li>La langue des commandes : celle du jeu par défaut, ou une autre langue livrée avec DCS.
+  Les mots que l'application écrit elle-même sur les pages (« relâché : », la ligne de crédit du gabarit, l'en-tête d'une page en liste) suivent cette langue : en français quand les commandes sont en français, en anglais sinon, pour qu'une page ne mélange pas deux langues.</li>
 <li>La hauteur des pages kneeboard.</li>
 <li>La découpe en deux pages des dessins qui ont une ligne de découpe.</li>
 </ul>

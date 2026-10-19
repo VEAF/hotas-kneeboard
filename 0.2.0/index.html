@@ -18,6 +18,10 @@
       
       
         
+          <link rel="alternate" href="/hotas-kneeboard/0.2.0/" hreflang="fr">
+        
+          <link rel="alternate" href="/hotas-kneeboard/0.2.0/en/" hreflang="en">
+        
       
       
       <link rel="icon" href="assets/images/favicon.png">
@@ -152,6 +156,32 @@
     
       <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
     
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="Sélectionner la langue">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="/hotas-kneeboard/0.2.0/" hreflang="fr" class="md-select__link">
+              Français
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="/hotas-kneeboard/0.2.0/en/" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
     
     
       
@@ -613,6 +643,9 @@
                   
 
 
+  
+  
+
 
 <h1 id="hotas-kneeboard">HOTAS Kneeboard<a class="headerlink" href="#hotas-kneeboard" title="Permanent link">&para;</a></h1>
 <p>Des pages de kneeboard et des fiches à imprimer pour DCS World, qui montrent ce que fait chaque bouton de ton HOTAS, dessiné sur ton propre matériel.</p>
@@ -631,6 +664,7 @@ Un clic écrit les pages dans le kneeboard de l'avion ; un autre en fait un PDF 
 <li><strong>45 dessins de périphériques</strong> repris de <a href="https://github.com/Rexeh/joystick-diagrams">Joystick Diagrams</a> (Thrustmaster, WinWing, Virpil, VKB, Saitek, CH…), et un <strong>éditeur</strong> pour dessiner ceux qui manquent ou corriger les autres.</li>
 <li><strong>Le ménage dans les commandes de DCS</strong> (DCS fermé, sauvegarde avant chaque modification, annulable) : retirer une liaison d'un périphérique, avec son origine (la tienne, celle prévue pour ce matériel, ou celle que DCS donne à « n'importe quel joystick »), retirer d'un coup les vues du chapeau ou les boutons d'un palonnier dans tous les modules, désactiver ou oublier un périphérique, réparer les modificateurs d'un périphérique renommé.</li>
 <li><strong>Pratique</strong> : tout se fait au clavier, glisser-déposer pour l'ordre des pages, choix mémorisés, périphériques inutiles masqués.</li>
+<li><strong>En français ou en anglais</strong> : l'interface suit la langue de ton navigateur, ou celle que tu choisis dans les réglages.</li>
 </ul>
 <h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h2>
 <ol>
@@ -661,8 +695,7 @@ Un clic écrit les pages dans le kneeboard de l'avion ; un autre en fait un PDF 
 <p>Les dessins des périphériques viennent de <a href="https://github.com/Rexeh/joystick-diagrams">Joystick Diagrams</a>, de Robert Cox (Rexeh) et de ses contributeurs, sous licence GPL v2 ; chaque gabarit garde son crédit, rappelé au bas de chaque page.
 La lecture des liaisons reproduit la logique de DCS (<code>Scripts/Input/Data.lua</code>) et s'exécute avec l'interpréteur Lua livré avec le jeu.</p>
 <h2 id="licence">Licence<a class="headerlink" href="#licence" title="Permanent link">&para;</a></h2>
-<p>GNU General Public License v2, voir <a href="https://github.com/VEAF/hotas-kneeboard/blob/develop/LICENSE">LICENSE</a>.
-L'interface est en français ; l'internationalisation viendra plus tard.</p>
+<p>GNU General Public License v2, voir <a href="https://github.com/VEAF/hotas-kneeboard/blob/develop/LICENSE">LICENSE</a>.</p>
 
 
 

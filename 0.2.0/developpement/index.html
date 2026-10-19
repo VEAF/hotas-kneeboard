@@ -18,6 +18,10 @@
       
       
         
+          <link rel="alternate" href="./" hreflang="fr">
+        
+          <link rel="alternate" href="../en/developpement/" hreflang="en">
+        
       
       
       <link rel="icon" href="../assets/images/favicon.png">
@@ -152,6 +156,32 @@
     
       <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
     
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="Sélectionner la langue">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="fr" class="md-select__link">
+              Français
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="../en/developpement/" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
     
     
       
@@ -454,6 +484,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#les-langues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Les langues
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#commandes" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -472,6 +513,23 @@
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Le site de documentation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#les-captures-décran" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Les captures d'écran
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -554,6 +612,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#les-langues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Les langues
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#commandes" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -572,6 +641,23 @@
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Le site de documentation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#les-captures-décran" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Les captures d'écran
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -631,11 +717,13 @@
   generic_buttons.py      retrait en une fois des boutons génériques des périphériques sans boutons (même schéma)
   lua_tables.py + lua/    lecture et écriture des fichiers Lua de DCS, avec le sérialiseur du jeu
   settings.py             réglages (%APPDATA%/HOTAS Kneeboard/settings.json)
+  i18n.py + locales/      messages du serveur en français et en anglais
   app.py                  routes HTTP
   library/                les gabarits livrés
 web/                      interface Vue 3 + TypeScript + Vite + PrimeVue + VueUse
   src/render/             construction des pages en SVG (écran, PNG et PDF partent du même SVG)
   src/editor/             éditeur de gabarits
+  src/locales/            textes de l'interface en français et en anglais (src/lib/i18n.ts)
 scripts/                  conversion des gabarits, comparaison avec DCS, vérification des gabarits
 packaging/                construction de l'exe (PyInstaller)
 </code></pre></div>
@@ -687,6 +775,25 @@ Le recalcul le prendrait pour un diff absent ; <code>dcs_config.new_diffs</code>
 <div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>scripts/compare_make_html.py<span class="w"> </span><span class="s2">"A-10C II"</span><span class="w"> </span><span class="s2">"F-16C_50"</span>
 </code></pre></div>
 <p>La dernière ligne est le verdict ; l'export ne couvre que les périphériques branchés au moment où il a été fait.</p>
+<h2 id="les-langues">Les langues<a class="headerlink" href="#les-langues" title="Permanent link">&para;</a></h2>
+<p>L'interface, les messages du serveur et la documentation existent en français et en anglais, de la même façon que dans VEAF-Mission-Creation-Tools.
+Les noms de commande, eux, viennent des fichiers <code>l10n</code> de DCS (réglage « Langue des commandes ») et ne passent pas par là.</p>
+<ul>
+<li><strong>Les textes</strong> sont dans des catalogues JSON plats, un par langue : <code>web/src/locales/&lt;langue&gt;.json</code> pour l'interface, <code>hotas_kneeboard/locales/&lt;langue&gt;.json</code> pour le serveur.
+  Une clé pointée (<code>settings.title</code>), des paramètres entre accolades (<code>{device}</code>) ; un pluriel est une paire <code>&lt;clé&gt;.one</code> / <code>&lt;clé&gt;.other</code> (en français, zéro est au singulier).
+  L'anglais est la référence : une clé absente d'un autre catalogue retombe sur l'anglais, puis sur la clé elle-même.</li>
+<li><strong>Dans l'interface</strong>, <code>t('clé', { paramètres })</code> et <code>tn('clé', nombre)</code> (<code>web/src/lib/i18n.ts</code>) ; un texte qui contient du balisage (un <code>&lt;code&gt;</code>, un lien) passe par le composant <code>Tr</code>, qui place chaque emplacement nommé là où la traduction met <code>{nom}</code>.
+  <code>lang</code> est réactif : ce qui le lit se redessine quand la langue change.</li>
+<li><strong>La langue de l'interface</strong> est un réglage (<code>ui_language</code> : <code>fr</code>, <code>en</code>, ou <code>null</code> pour celle du navigateur), appliqué tout de suite ; une copie dans le <code>localStorage</code> évite d'afficher l'autre langue le temps de lire les réglages.</li>
+<li><strong>Le serveur</strong> répond dans la langue de la requête : l'interface envoie la sienne dans <code>Accept-Language</code>, et <code>i18n.LanguageMiddleware</code> la pose pour la durée de la requête (un <code>ContextVar</code>, vu aussi des routes synchrones).
+  Hors requête (la console de l'exe), c'est <code>HOTAS_KNEEBOARD_LANG</code>, sinon la langue d'affichage de Windows, sinon l'anglais.
+  <code>t("clé", nom=valeur)</code> dans <code>hotas_kneeboard/i18n.py</code>.</li>
+<li><strong>Les pages du kneeboard</strong> parlent la langue des commandes, pas celle de l'interface (<code>pageLanguage</code>) : en français quand DCS est en français, en anglais sinon, pour qu'une page ne mélange pas deux langues.
+  C'est vrai aussi des actions de SRS et de VectorXR qui y sont dessinées : l'interface demande <code>/api/programs</code> dans cette langue.</li>
+<li><strong>Les tests</strong> vérifient que les deux catalogues ont les mêmes clés et les mêmes paramètres, et que chaque clé que le code demande existe (<code>web/src/lib/__tests__/i18n.test.ts</code>, <code>tests/test_i18n.py</code>).
+  Les tests Python lisent les messages en français (<code>tests/conftest.py</code>), <code>test_i18n.py</code> vérifie l'anglais.</li>
+</ul>
+<p>Un texte nouveau va dans les deux catalogues, dans le même mouvement que le code ; un texte en dur dans un composant ou un message d'erreur est un oubli.</p>
 <h2 id="commandes">Commandes<a class="headerlink" href="#commandes" title="Permanent link">&para;</a></h2>
 <p>Python (avec <a href="https://docs.astral.sh/uv/">uv</a>) :</p>
 <div class="highlight"><pre><span></span><code>uv<span class="w"> </span>sync
@@ -712,18 +819,48 @@ npm<span class="w"> </span>run<span class="w"> </span>build
 <p>Il produit <code>dist/HOTAS-Kneeboard.exe</code>.</p>
 <h2 id="le-site-de-documentation">Le site de documentation<a class="headerlink" href="#le-site-de-documentation" title="Permanent link">&para;</a></h2>
 <p>La documentation est publiée sur <a href="https://veaf.github.io/hotas-kneeboard/">https://veaf.github.io/hotas-kneeboard/</a> (GitHub Pages du dépôt, branche <code>gh-pages</code>) avec MkDocs Material et mike, comme celle de VEAF-Mission-Creation-Tools.
-La page d'accueil est le <code>README.md</code>, repris tel quel au moment du build (<code>scripts/mkdocs_hooks.py</code>) ; les pages sont celles de <code>docs/</code>, sauf <code>docs/agents/</code>, qui s'adresse aux sessions Claude.</p>
+Les pages sont celles de <code>docs/</code>, sauf <code>docs/agents/</code>, qui s'adresse aux sessions Claude.</p>
+<p>Elle est en français et en anglais, avec le plugin mkdocs-static-i18n, comme VMCT :</p>
+<ul>
+<li><code>page.md</code> est la page française (la langue par défaut, à la racine du site), <code>page.en.md</code> la page anglaise (sous <code>en/</code>) ; une page nouvelle s'écrit dans les deux langues et va dans le <code>nav</code> de <code>mkdocs.yml</code>, écrit en anglais, avec sa traduction dans <code>nav_translations</code>.</li>
+<li>Une image <code>nom.en.png</code> remplace <code>nom.png</code> sur le site anglais ; sans elle, le site anglais montre l'image française.</li>
+<li>Le <code>README.md</code> contient l'anglais puis le français, à partir de <code>&lt;a id="fr"&gt;&lt;/a&gt;</code> ; au moment du build, <code>scripts/mkdocs_hooks.py</code> en fait les deux pages d'accueil, <code>docs/index.en.md</code> et <code>docs/index.md</code> (ignorées par git).</li>
+<li>Les liens d'une page anglaise visent les pages anglaises (<code>guide-utilisateur.en.md</code>) : ils marchent ainsi sur GitHub comme sur le site.</li>
+</ul>
+<p>La publication :</p>
 <ul>
 <li>Une poussée vers <code>develop</code> publie la version « dev » ; tant qu'aucune release n'est sortie, l'adresse du site ouvre celle-là.</li>
 <li>Une release (poussée vers <code>main</code>) publie la version de <code>pyproject.toml</code> et la marque « latest », que l'adresse du site ouvre ensuite.
   C'est la poussée vers <code>main</code> qui déclenche, pas le tag <code>vX.Y.Z</code> : <code>release.yml</code> crée le tag avec le jeton de GitHub Actions, et un événement fait avec ce jeton ne lance aucun autre workflow.</li>
 <li>Chaque PR construit le site avec <code>--strict</code> : un lien vers une page absente ou une ancre qui n'existe pas fait échouer la CI.
   Les ancres sont celles de GitHub, accents compris (<code>#vérifier-la-numérotation-sur-le-périphérique</code>) : un lien marche sur les deux.
+  Chaque langue a les siennes, tirées de ses titres (<code>#check-the-numbering-on-the-device</code> en anglais) ; <code>--strict</code> attrape un lien qu'un titre retouché a cassé.
   Un lien vers un fichier hors du site (<code>CHANGELOG.md</code>, <code>docs/agents/</code>) s'écrit en adresse GitHub complète.</li>
 </ul>
 <p>Voir le site en local, rechargé à chaque modification :</p>
 <div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>--group<span class="w"> </span>docs<span class="w"> </span>mkdocs<span class="w"> </span>serve
 </code></pre></div>
+<h3 id="les-captures-décran">Les captures d'écran<a class="headerlink" href="#les-captures-décran" title="Permanent link">&para;</a></h3>
+<p>Les images de <code>docs/images/</code> sont prises dans l'application elle-même par <code>scripts/doc_screenshots.py</code>, qui pilote l'Edge installé avec Playwright.
+Le script ne fait que regarder : il ouvre les écrans et les fenêtres, lance les aperçus (« Chercher »), et ne clique sur rien qui écrive dans DCS.
+Il règle la langue de l'interface et des commandes, et coche le palonnier dans « Périphériques sans boutons », ce qui écrit les réglages de l'application : on le lance donc sur une application démarrée avec un <code>HOTAS_KNEEBOARD_DATA</code> jetable, dans un premier terminal :</p>
+<div class="highlight"><pre><span></span><code><span class="nv">$env:HOTAS_KNEEBOARD_DATA</span> <span class="p">=</span> <span class="s2">"$env:TEMP\hk-shots"</span><span class="p">;</span> <span class="n">uv</span> <span class="n">run</span> <span class="n">hotas-kneeboard</span> <span class="p">-</span><span class="n">-port</span> <span class="n">8654</span> <span class="p">-</span><span class="n">-no-browser</span>
+</code></pre></div>
+<p>puis, dans un second terminal, les captures françaises, puis les anglaises :</p>
+<div class="highlight"><pre><span></span><code><span class="nv">$env:HOTAS_KNEEBOARD_DATA</span> <span class="p">=</span> <span class="s2">"$env:TEMP\hk-shots"</span><span class="p">;</span> <span class="n">uv</span> <span class="n">run</span> <span class="p">-</span><span class="n">-with</span> <span class="n">playwright</span> <span class="n">python</span> <span class="n">scripts</span><span class="p">/</span><span class="n">doc_screenshots</span><span class="p">.</span><span class="n">py</span>
+<span class="nv">$env:HOTAS_KNEEBOARD_DATA</span> <span class="p">=</span> <span class="s2">"$env:TEMP\hk-shots"</span><span class="p">;</span> <span class="n">uv</span> <span class="n">run</span> <span class="p">-</span><span class="n">-with</span> <span class="n">playwright</span> <span class="n">python</span> <span class="n">scripts</span><span class="p">/</span><span class="n">doc_screenshots</span><span class="p">.</span><span class="n">py</span> <span class="p">-</span><span class="n">-lang</span> <span class="n">en</span>
+</code></pre></div>
+<ul>
+<li>
+<p><code>--lang en</code> écrit <code>nom.en.png</code> à côté de chaque <code>nom.png</code>, l'interface et les commandes en anglais ; le script trouve les boutons par leur texte dans le catalogue de l'interface, qu'un libellé retouché ne casse donc pas.</p>
+</li>
+<li>
+<p>Les images montrent les périphériques du PC qui les prend : le script choisit l'A-10C II, le manche WinWing Orion et le palonnier T-Pendular ; ailleurs, changer <code>MODULE</code>, <code>STICK</code> et <code>RUDDER</code> en tête du script.</p>
+</li>
+<li>Le nom de l'utilisateur Windows et le dossier jetable sont remplacés à l'écran par ceux d'un pilote ordinaire (<code>C:\Users\Pilote</code>, <code>%APPDATA%\HOTAS Kneeboard</code>).</li>
+<li>Des noms d'écran en argument (<code>ecran</code>, <code>editeur</code>…) ne reprennent que ceux-là.</li>
+<li>Les captures se refont quand l'interface change, au plus tard dans la PR de release : relire chaque image avant de la committer.</li>
+</ul>
 <h2 id="lots-tickets-branches-et-releases">Lots, tickets, branches et releases<a class="headerlink" href="#lots-tickets-branches-et-releases" title="Permanent link">&para;</a></h2>
 <p>Le suivi suit l'organisation de VEAF-Mission-Creation-Tools, avec des tickets GitHub à la place des fichiers de <code>.backlog/</code> ; le détail est dans <a href="https://github.com/VEAF/hotas-kneeboard/blob/develop/docs/agents/issue-tracker.md"><code>docs/agents/issue-tracker.md</code></a>.</p>
 <ul>
@@ -735,12 +872,13 @@ La page d'accueil est le <code>README.md</code>, repris tel quel au moment du bu
   Chaque lot ajoute ses entrées à la fin de <code>[Unreleased]</code> dans <a href="https://github.com/VEAF/hotas-kneeboard/blob/develop/CHANGELOG.md"><code>CHANGELOG.md</code></a>, sans toucher à la version.</li>
 <li>Une release, c'est une PR de <code>develop</code> vers <code>main</code> qui monte la version dans <code>pyproject.toml</code> et <code>hotas_kneeboard/__init__.py</code> (les deux doivent être égales) et passe <code>[Unreleased]</code> sous ce numéro.
   À la fusion, la CI construit l'exe sous Windows et publie la release <code>vX.Y.Z</code> ; une fusion sans changement de version ne publie rien.
+  Si l'interface a changé depuis la release précédente, la PR refait aussi les <a href="#les-captures-décran">captures d'écran</a>.
   Ses notes sont <a href="https://github.com/VEAF/hotas-kneeboard/blob/develop/RELEASE_NOTES.md"><code>RELEASE_NOTES.md</code></a>, réécrit à chaque release comme pour VMCT : en français, pour les pilotes (ce qui change pour eux, pas la plomberie), le titre finissant par le numéro de version ; la CI refuse de publier si le titre ne porte pas la version, et ajoute sous le titre le lien vers la documentation de cette version.</li>
 <li>La CI (tests Python et de l'interface) tourne sur chaque PR et sur chaque poussée vers <code>develop</code> et <code>main</code>.</li>
 </ul>
 <h2 id="règles-du-dépôt">Règles du dépôt<a class="headerlink" href="#règles-du-dépôt" title="Permanent link">&para;</a></h2>
 <ul>
-<li>L'interface et la documentation sont en français ; le code et ses commentaires en anglais.</li>
+<li>L'interface, les messages du serveur et la documentation sont en français et en anglais (voir <a href="#les-langues">Les langues</a>) ; le code et ses commentaires en anglais.</li>
 <li>Les noms de commande affichés sont ceux du jeu, traduits ; ne jamais afficher les noms bruts des fichiers Lua.</li>
 <li>Les gabarits gardent leur crédit et leur licence.</li>
 <li>Le serveur n'accepte que les hôtes <code>127.0.0.1</code> et <code>localhost</code>, et refuse les écritures venues d'un autre site.</li>
