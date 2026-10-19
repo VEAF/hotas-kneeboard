@@ -180,4 +180,11 @@ def test_programs_are_read_for_each_module(client, monkeypatch):
     data = client.get("/api/programs").json()
     assert data["problems"] == []
     assert data["srs"]["matched"]["FakePlane"] == "default"
-    assert [b["input"] for b in data["vectorxr"]["bindings"]] == ["JOY_BTN55", "JOY_BTN51", "JOY_BTN54"]
+    assert [b["input"] for b in data["vectorxr"]["bindings"]] == [
+        "JOY_BTN55",
+        "JOY_BTN51",
+        "JOY_BTN54",
+        "JOY_BTN52",
+        "JOY_BTN53",
+        "JOY_BTN70",
+    ]

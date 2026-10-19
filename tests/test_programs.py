@@ -68,11 +68,15 @@ def test_no_srs_profile_without_default():
 
 def test_vectorxr_reads_what_is_in_use_in_dcs():
     found = read_vectorxr(VECTORXR_FILE)
-    # a profile of another program and a module switched off are left out
+    # a profile of another program and a profile switched off are left out; a module saved off
+    # (PivotXR on the reference PC, DepthXR switched by its own button) still has its buttons
     assert found == [
         ProgramBinding(VECTORXR, THROTTLE, "JOY_BTN55", "Overlay : afficher / masquer"),
-        ProgramBinding(VECTORXR, THROTTLE, "JOY_BTN51", "PivotXR : recentrer"),
-        ProgramBinding(VECTORXR, THROTTLE, "JOY_BTN54", "PivotXR : vue Right MFD"),
+        ProgramBinding(VECTORXR, THROTTLE, "JOY_BTN51", "PivotXR snapviews : recentrer"),
+        ProgramBinding(VECTORXR, THROTTLE, "JOY_BTN54", "PivotXR snapviews : vue Right MFD"),
+        ProgramBinding(VECTORXR, THROTTLE, "JOY_BTN52", "PivotXR snapviews : vue Left MFD"),
+        ProgramBinding(VECTORXR, THROTTLE, "JOY_BTN53", "PivotXR enhanced motion : activer"),
+        ProgramBinding(VECTORXR, THROTTLE, "JOY_BTN70", "DepthXR : activer / désactiver"),
     ]
 
 
@@ -89,7 +93,7 @@ def test_read_programs(monkeypatch):
     assert result["srs"]["bindings"]["default"] == [
         {"program": SRS, "device_guid": THROTTLE, "input": "JOY_BTN56", "action": "Radio 3"}
     ]
-    assert len(result["vectorxr"]["bindings"]) == 3
+    assert len(result["vectorxr"]["bindings"]) == 6
 
 
 def test_missing_srs_folder_is_reported(monkeypatch, tmp_path):

@@ -39,6 +39,8 @@ La page telle qu'elle sera dans le kneeboard, ajustée à l'espace disponible.
 Au-dessus : le gabarit utilisé (trouvé automatiquement, ou choisi à la main dans la liste, et alors mémorisé), le bouton pour le **créer** ou le **modifier** dans l'éditeur, l'affichage des calques.
 En bas à droite, le zoom : page entière, toute la largeur, plus ou moins (ou Ctrl+molette).
 
+Dans la barre du haut, le livre ouvre cette documentation, celle de ta version de l'application, dans un nouvel onglet ; la fenêtre des raccourcis (`?`) y mène aussi.
+
 ## Lire une page
 
 - **Une étiquette par bouton lié**, posée sur la case du dessin.
@@ -68,7 +70,9 @@ Ils sont sur toutes les pages, même avec « Par calque » : ces logiciels ignor
   Chaque avion a son profil SRS : celui du module est trouvé par son nom (« F-16 » pour « F-16C_50 », « A-10C » pour « A-10C II »), sinon c'est le profil `default`.
   Le bouton **Autres logiciels**, en haut de la page, permet d'en choisir un autre pour ce module, ou aucun ; le choix est mémorisé.
 - **VectorXR** est lu directement aussi, et ses boutons valent pour tous les modules.
-  Seul ce qui sert dans DCS compte : un module de VectorXR éteint, ou un profil d'un autre jeu, n'apparaît pas.
+  Seul ce qui sert dans DCS compte : un profil désactivé, ou un profil d'un autre jeu, n'apparaît pas.
+  Un module de VectorXR enregistré éteint (PivotXR, DepthXR…) garde ses boutons : il se rallume en vol, et ses profils DCS servent quand même.
+  L'étiquette nomme le profil quand il y en a plusieurs (« PivotXR snapviews : vue Right MFD »).
 - **Un autre logiciel** se saisit à la main, depuis **Autres logiciels** : le nom du logiciel, le bouton (dans la liste, ou en appuyant dessus avec **Identifier**) et ce qu'il fait.
   Les entrées se modifient et se suppriment au même endroit.
 

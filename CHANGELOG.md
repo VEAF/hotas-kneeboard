@@ -5,6 +5,14 @@ Chaque lot ajoute ses entrées à la fin de `[Unreleased]` ; une release les pas
 
 ## [Unreleased]
 
+### Ajouté
+
+- Lien vers la documentation de ta version dans la barre du haut et dans la fenêtre des raccourcis.
+
+### Corrigé
+
+- Boutons VectorXR manquants : les profils PivotXR (vues rapides, recentrage, activation) n'apparaissaient pas quand le module était enregistré éteint, alors qu'ils servent en vol ; l'étiquette nomme maintenant le profil (« PivotXR snapviews : vue Right MFD »).
+
 ## [0.1.0] - 2026-10-19
 
 Première version publiée.

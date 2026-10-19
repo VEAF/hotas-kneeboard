@@ -13,6 +13,7 @@ import DcsConfigDialog from './components/DcsConfigDialog.vue'
 import EditorView from './editor/EditorView.vue'
 import { editor } from './editor/state'
 import { api } from './lib/api'
+import { docUrl } from './lib/docs'
 import { useStore } from './lib/store'
 import { pagePngBase64, pagesPdf } from './render/export'
 
@@ -182,6 +183,7 @@ onKeyStroke((event) => {
       <Button icon="pi pi-cog" text rounded aria-label="Réglages" v-tooltip.bottom="'Réglages'" @click="settingsOpen = true" />
       <Button :icon="theme === 'dark' ? 'pi pi-sun' : 'pi pi-moon'" text rounded aria-label="Thème clair ou sombre" v-tooltip.bottom="'Thème clair / sombre'" @click="theme = theme === 'dark' ? 'light' : 'dark'" />
       <Button icon="pi pi-question-circle" text rounded aria-label="Raccourcis clavier (?)" v-tooltip.bottom="'Raccourcis clavier (?)'" @click="helpOpen = true" />
+      <Button as="a" :href="docUrl(state.version)" target="_blank" rel="noopener" icon="pi pi-book" text rounded aria-label="Documentation" v-tooltip.bottom="'Documentation (nouvel onglet)'" />
       <div v-if="state.view === 'pages'" class="exports">
         <Button
           label="PDF"
