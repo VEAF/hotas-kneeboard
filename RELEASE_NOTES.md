@@ -69,4 +69,5 @@ Elle ne touche à rien tant que DCS tourne, et sauvegarde tout ton dossier de co
 
 ## 🙏 Merci
 
+À Angrydad (VEAF), pour l'idée de départ.
 À Robert Cox (Rexeh) et aux contributeurs de [Joystick Diagrams](https://github.com/Rexeh/joystick-diagrams), dont viennent les dessins des périphériques (GPL v2), et à Quaggles pour son injecteur de commandes.
