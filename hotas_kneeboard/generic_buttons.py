@@ -42,6 +42,15 @@ def is_generic_button(binding: dict, generic_base: bool) -> bool:
     )
 
 
+# a hash naming an engine command (iCommand…) whose number no diff taught the engine: a removal
+# cannot be written as DCS would (effective_bindings.lua refuses it)
+UNKNOWN_COMMAND = "@"
+
+
+def removable(binding: dict) -> bool:
+    return UNKNOWN_COMMAND not in binding["hash"]
+
+
 def plan(
     install_dir: Path,
     saved_games_dir: Path,
@@ -52,8 +61,9 @@ def plan(
 ) -> list[dict]:
     """The generic buttons of ``devices`` (names without GUID) in the profiles in scope:
     ``[{"device": full name, "name", "modules": [{"profile", "unit_type", "file": the diff file's
-    device name, "bindings": [{"hash", "key", "reformers", "command"}], "new_file", "error"}]}]``;
-    a device without any is left out."""
+    device name, "bindings": [{"hash", "key", "reformers", "command"}], "unknown": [{"key", "command"}]
+    the generic ones whose engine command has no known number (not removable), "new_file",
+    "error"}]}]``; a device without any is left out."""
     wanted = {d.lower() for d in devices}
     if not wanted:
         return []
@@ -86,7 +96,7 @@ def plan(
             if d.get("extra") and not all_modules:
                 continue
             generic = is_generic_base(d.get("base_file"))
-            bindings = [
+            generics = [
                 {
                     "hash": b["hash"],
                     "key": b["key"],
@@ -96,8 +106,11 @@ def plan(
                 for b in d["bindings"]
                 if is_generic_button(b, generic)
             ]
-            if not bindings:
+            if not generics:
                 continue
+            bindings = [b for b in generics if removable(b)]
+            # shown apart: their removal could not be written, the rest of the device still can
+            unknown = [{"key": b["key"], "command": b["command"]} for b in generics if not removable(b)]
             device = found.setdefault(
                 d["name"].lower(),
                 {"device": spelling.get(d["name"].lower(), d["name"]), "name": name, "modules": []},
@@ -108,6 +121,7 @@ def plan(
                     "unit_type": entry.get("unit_type"),
                     "file": d["name"],
                     "bindings": sorted(bindings, key=lambda b: (b["key"], b["command"])),
+                    "unknown": sorted(unknown, key=lambda b: (b["key"], b["command"])),
                     "new_file": bool(d.get("extra")),
                     "error": "chemin trop long pour DCS" if d.get("error") == PATH_TOO_LONG else None,
                 }

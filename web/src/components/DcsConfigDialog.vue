@@ -626,6 +626,9 @@ async function restore(id: string) {
                   <ul class="modules">
                     <li v-for="m in d.modules" :key="m.profile">
                       {{ m.profile }} · {{ m.bindings.map((b) => `${b.key.replace('JOY_', '')} ${b.command}`).join(', ') }}<template v-if="m.new_file"> · nouveau fichier</template><template v-if="m.error"> · ignoré : {{ m.error }}</template>
+                      <span v-if="m.unknown.length" class="s why">
+                        Non retirables, numéro de commande de DCS inconnu de l'application : {{ m.unknown.map((b) => `${b.key.replace('JOY_', '')} ${b.command}`).join(', ') }} ; à retirer dans l'écran des commandes du jeu.
+                      </span>
                     </li>
                   </ul>
                 </details>

@@ -40,7 +40,7 @@ from .dcs_config import (
     set_device_disabled,
 )
 from .engine import EffectiveBindingsError, list_user_profiles, load_effective_bindings
-from .generic_buttons import is_generic_base, remove_generic_buttons
+from .generic_buttons import is_generic_base, removable, remove_generic_buttons
 from .generic_buttons import plan as generic_buttons_plan
 from .hat_views import plan as hat_views_plan
 from .hat_views import remove_hat_views
@@ -592,6 +592,8 @@ def create_app(
                     "command": translate(b["command"]),
                     "category": b.get("category"),
                     "origin": binding_origin(b, generic_base),
+                    # an engine command whose number is unknown: its removal cannot be written
+                    "removable": removable(b),
                 }
                 for b in found["bindings"]
             ],
