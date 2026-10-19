@@ -688,7 +688,8 @@ Ce sont des dessins draw.io exportés en SVG, avec une case par entrée qui cont
 <h2 id="vérifier-un-gabarit">Vérifier un gabarit<a class="headerlink" href="#vérifier-un-gabarit" title="Permanent link">&para;</a></h2>
 <p>Avec le périphérique branché :</p>
 <ol>
-<li><code>uv run python scripts/check_templates.py</code> liste, pour tes périphériques, les entrées liées dans DCS qui n'ont pas de case sur leur gabarit (les vues génériques que DCS met sur le hat de tout périphérique sont ignorées).</li>
+<li><code>uv run python scripts/check_templates.py</code> liste, pour tes périphériques, les entrées liées dans DCS qui n'ont pas de case sur leur gabarit (les vues génériques que DCS met sur le hat de tout périphérique sont ignorées).
+   Sans le périphérique, <code>--device "Throttle - HOTAS Warthog"</code> (le nom DCS, sans GUID, option répétable) fait le même contrôle sur les liaisons que DCS lui donne par défaut dans chaque module installé (tes modifications comptent là où tu en as fait) : ça trouve les cases qui manquent, pas les erreurs de numérotation, que seul le vrai périphérique montre.</li>
 <li>Dans l'application, ouvre la page du périphérique, <strong>Modifier</strong>, puis <strong>Vérifier</strong> : appuie sur chaque bouton, déplace ou ajoute les cases (voir l'<a href="../editeur-de-gabarits/#vérifier-la-numérotation-sur-le-périphérique">éditeur</a>).</li>
 <li>Indique ton pseudo, <strong>Marquer vérifié</strong>, enregistre : ta version passe devant celle de la bibliothèque, sur ton PC.</li>
 </ol>
