@@ -1,0 +1,1258 @@
+
+<!doctype html>
+<html lang="fr" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Pages de kneeboard et fiches à imprimer pour DCS World, dessinées sur tes périphériques">
+      
+      
+      
+        <link rel="canonical" href="https://veaf.github.io/hotas-kneeboard/0.2.1/guide-utilisateur/">
+      
+      
+        <link rel="prev" href="..">
+      
+      
+        <link rel="next" href="../editeur-de-gabarits/">
+      
+      
+        
+          <link rel="alternate" href="./" hreflang="fr">
+        
+          <link rel="alternate" href="../en/guide-utilisateur/" hreflang="en">
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Guide d'utilisation - HOTAS Kneeboard</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#guide-dutilisation" class="md-skip">
+          Aller au contenu
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="En-tête">
+    <a href=".." title="HOTAS Kneeboard" class="md-header__button md-logo" aria-label="HOTAS Kneeboard" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            HOTAS Kneeboard
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Guide d'utilisation
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Passer en thème sombre"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Passer en thème sombre" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Passer en thème clair"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Passer en thème clair" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="Sélectionner la langue">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="fr" class="md-select__link">
+              Français
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="../en/guide-utilisateur/" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Rechercher" placeholder="Rechercher" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Recherche">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Effacer" aria-label="Effacer" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initialisation de la recherche
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/VEAF/hotas-kneeboard" title="Aller au dépôt" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    VEAF/hotas-kneeboard
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="HOTAS Kneeboard" class="md-nav__button md-logo" aria-label="HOTAS Kneeboard" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    HOTAS Kneeboard
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/VEAF/hotas-kneeboard" title="Aller au dépôt" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    VEAF/hotas-kneeboard
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Accueil
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guide d'utilisation
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guide d'utilisation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table des matières">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table des matières
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#premier-lancement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Premier lancement
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lécran" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        L'écran
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lire-une-page" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lire une page
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#les-boutons-des-autres-logiciels" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Les boutons des autres logiciels
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#exporter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exporter
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Exporter">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#vers-le-kneeboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Vers le kneeboard
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#en-pdf" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        En PDF
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#commandes-dcs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Commandes DCS
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Commandes DCS">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#désactiver-un-périphérique" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Désactiver un périphérique
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oublier-un-périphérique-absent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Oublier un périphérique absent
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#réparer-les-modificateurs-dun-périphérique-renommé" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Réparer les modificateurs d'un périphérique renommé
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#retirer-les-vues-du-chapeau" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Retirer les vues du chapeau
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#périphériques-sans-boutons" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Périphériques sans boutons
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#retirer-des-liaisons" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Retirer des liaisons
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#réglages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Réglages
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#raccourcis-clavier" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Raccourcis clavier
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#problèmes-courants" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Problèmes courants
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../editeur-de-gabarits/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Éditeur de gabarits
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../gabarits/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Gabarits
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../developpement/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Développement
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table des matières">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table des matières
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#premier-lancement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Premier lancement
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lécran" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        L'écran
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lire-une-page" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lire une page
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#les-boutons-des-autres-logiciels" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Les boutons des autres logiciels
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#exporter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exporter
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Exporter">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#vers-le-kneeboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Vers le kneeboard
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#en-pdf" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        En PDF
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#commandes-dcs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Commandes DCS
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Commandes DCS">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#désactiver-un-périphérique" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Désactiver un périphérique
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oublier-un-périphérique-absent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Oublier un périphérique absent
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#réparer-les-modificateurs-dun-périphérique-renommé" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Réparer les modificateurs d'un périphérique renommé
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#retirer-les-vues-du-chapeau" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Retirer les vues du chapeau
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#périphériques-sans-boutons" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Périphériques sans boutons
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#retirer-des-liaisons" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Retirer des liaisons
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#réglages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Réglages
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#raccourcis-clavier" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Raccourcis clavier
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#problèmes-courants" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Problèmes courants
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="guide-dutilisation">Guide d'utilisation<a class="headerlink" href="#guide-dutilisation" title="Permanent link">&para;</a></h1>
+<h2 id="premier-lancement">Premier lancement<a class="headerlink" href="#premier-lancement" title="Permanent link">&para;</a></h2>
+<p>Lance <code>HOTAS-Kneeboard.exe</code>.
+Une console s'ouvre avec l'adresse de l'application (<code>http://127.0.0.1:8642/</code>) et ton navigateur s'ouvre dessus.
+L'application tourne tant que la console est ouverte : la fermer quitte l'application.
+Relancer l'exe alors qu'il tourne déjà rouvre simplement le navigateur sur l'instance en cours.</p>
+<p>L'application cherche toute seule :</p>
+<ul>
+<li>l'installation de DCS, dans le registre de Windows (<code>HKCU\Software\Eagle Dynamics\DCS World</code>) ;</li>
+<li>le dossier <code>Saved Games\DCS</code> (ou <code>DCS.openbeta</code>) de ton profil ;</li>
+<li>la langue du jeu, pour afficher les commandes comme DCS les affiche.</li>
+</ul>
+<p>La pastille <strong>DCS</strong> en haut est verte quand tout est trouvé ; survole-la pour voir les dossiers.
+Si quelque chose manque, un bandeau le dit, avec un accès direct aux réglages.</p>
+<p>L'application lit tes fichiers sans les modifier, sauf quand tu lui demandes de changer tes commandes DCS (voir <a href="#commandes-dcs">Commandes DCS</a>) : elle sauvegarde alors tout avant d'écrire.
+Sinon, elle écrit seulement les pages du kneeboard, et ses propres réglages dans <code>%APPDATA%\HOTAS Kneeboard\</code>.</p>
+<h2 id="lécran">L'écran<a class="headerlink" href="#lécran" title="Permanent link">&para;</a></h2>
+<p>Trois colonnes, de gauche à droite.</p>
+<p><img alt="L'écran principal : les modules, les périphériques de l'A-10C II, la page du manche" src="../images/ecran-principal.png" /></p>
+<p><strong>Modules.</strong>
+Chaque profil de commandes que tu as configuré dans DCS (un avion, un hélicoptère, la couche d'interface…), sous le nom que lui donne l'écran des commandes du jeu (« AH-64D Pilot », « F/A-18C »), dans l'ordre alphabétique.
+Sous le nom, le dossier du profil dans <code>Saved Games\DCS\Config\Input</code> quand il est différent (<code>AH-64D_BLK_II_PLT</code>), et le dossier kneeboard de l'avion ; à droite, le nombre de périphériques exportés sur le nombre de périphériques montrés.
+Deux profils du même nom (DCS garde parfois l'ancien dossier d'un module renommé, comme <code>Mi-24P Pilot</code> et <code>Mi-24P_pilot</code>) sont départagés par leur dossier, entre parenthèses.
+Le filtre cherche dans le nom, le dossier et le type d'avion.
+Un module que DCS ne trouve pas dans ton installation est marqué « module non installé » : seules tes modifications sont connues, pas ses défauts.</p>
+<p><strong>Périphériques.</strong>
+Les périphériques configurés pour ce module.
+La case à cocher inclut ou non le périphérique dans les exports ; le glisser-déposer change l'ordre des pages.
+« gabarit » : le périphérique a un dessin ; « liste » : il n'en a pas, sa page est une liste de commandes.
+L'œil, au survol d'une ligne, cache le périphérique dans tous les modules (voir <a href="#réglages">Réglages</a>).</p>
+<p><strong>La page.</strong>
+La page telle qu'elle sera dans le kneeboard, ajustée à l'espace disponible.
+Au-dessus : le gabarit utilisé (trouvé automatiquement, ou choisi à la main dans la liste, et alors mémorisé), le bouton pour le <strong>créer</strong> ou le <strong>modifier</strong> dans l'éditeur, l'affichage des calques.
+Un choix à la main vaut pour ce périphérique dans tous les modules ; la première entrée de la liste, <strong>Automatique</strong>, nomme le gabarit reconnu par le nom du périphérique et y revient.
+Quand le gabarit choisi à la main n'est pas celui-là (le manche dessiné avec l'image de la manette des gaz), la pastille <strong>choix manuel</strong> le signale : son infobulle nomme le gabarit reconnu, un clic y revient.
+En bas à droite, le zoom : page entière, toute la largeur, plus ou moins (ou Ctrl+molette).</p>
+<p>La ligne entre deux colonnes se glisse pour élargir ou rétrécir la colonne des modules ou celle des périphériques ; l'application s'en souvient, et un double-clic sur la ligne remet la largeur par défaut.</p>
+<p>Dans la barre du haut, le livre ouvre cette documentation, celle de ta version de l'application et dans la langue de l'interface, dans un nouvel onglet ; la fenêtre des raccourcis (<code>?</code>) y mène aussi.</p>
+<h2 id="lire-une-page">Lire une page<a class="headerlink" href="#lire-une-page" title="Permanent link">&para;</a></h2>
+<p><img alt="Le haut d'une page : une étiquette par bouton, les cases libres en pointillés, le calque Paddle en orange" src="../images/page-detail.png" /></p>
+<ul>
+<li><strong>Une étiquette par bouton lié</strong>, posée sur la case du dessin.
+  Le texte rapetisse pour tenir ; s'il ne tient vraiment pas, la case s'allonge.</li>
+<li><strong>Les cases en pointillés</strong> sont des entrées du dessin sans commande : des boutons libres.</li>
+<li><strong>Un interrupteur à deux positions</strong> tient sur une étiquette : « LG Handle - UP / DN ».
+  Une position relâchée seule (sans position appuyée) est écrite en italique, précédée de « relâché : ».</li>
+<li><strong>Les calques de modificateurs.</strong>
+  Une commande liée avec un modificateur (le « Paddle » du Warthog par exemple) apparaît dans la même étiquette, en couleur, précédée d'une petite pastille (« P »).
+  La légende est au bas de la page (« P = Paddle »).
+  Avec « Par calque », chaque calque a sa propre page.</li>
+<li><strong>Hors gabarit.</strong>
+  Une commande liée à une entrée qui n'a pas de case sur le dessin est listée sous le dessin : rien ne se perd.
+  C'est souvent le signe d'un gabarit à vérifier (voir l'<a href="../editeur-de-gabarits/#vérifier-la-numérotation-sur-le-périphérique">éditeur</a>).</li>
+<li><strong>« numérotation non vérifiée »</strong> : le gabarit vient de la bibliothèque et personne n'a encore vérifié sur le vrai périphérique que chaque bouton tombe sur la bonne case.</li>
+<li><strong>Les dessins trop larges</strong> pour une page (les throttles WinWing Orion, base et poignées) sont coupés en deux pages, là où le gabarit le prévoit ; à l'écran, les deux moitiés sont côte à côte si la fenêtre est assez large.</li>
+<li><strong>Un périphérique sans gabarit</strong> a une page en liste : l'entrée (« Bouton 14 », « Hat 1 ↑ », « Axe X »), puis la commande.
+  Si la liste est longue, elle continue sur une page suivante.</li>
+</ul>
+<h2 id="les-boutons-des-autres-logiciels">Les boutons des autres logiciels<a class="headerlink" href="#les-boutons-des-autres-logiciels" title="Permanent link">&para;</a></h2>
+<p>Un bouton peut servir à autre chose qu'à DCS : l'alternat de SRS, l'overlay de VectorXR, une commande vocale de VoiceAttack.
+Ces boutons apparaissent sur les pages, à côté des commandes DCS, chaque logiciel dans sa couleur et avec sa pastille (« SRS », « VXR » pour VectorXR) ; la légende est au bas de la page.
+Ils sont sur toutes les pages, même avec « Par calque » : ces logiciels ignorent les modificateurs de DCS.</p>
+<ul>
+<li><strong>SRS</strong> est lu directement, sans jamais toucher à ses réglages.
+  Chaque avion a son profil SRS : celui du module est trouvé par son nom (« F-16 » pour « F-16C_50 », « A-10C » pour « A-10C II »), sinon c'est le profil <code>default</code>.
+  Le bouton <strong>Autres logiciels</strong>, en haut de la page, permet d'en choisir un autre pour ce module, ou aucun ; le choix est mémorisé.</li>
+<li><strong>VectorXR</strong> est lu directement aussi, et ses boutons valent pour tous les modules.
+  Seul ce qui sert dans DCS compte : un profil désactivé, ou un profil d'un autre jeu, n'apparaît pas.
+  Un module de VectorXR enregistré éteint (PivotXR, DepthXR…) garde ses boutons : il se rallume en vol, et ses profils DCS servent quand même.
+  L'étiquette nomme le profil quand il y en a plusieurs (« PivotXR snapviews : vue Right MFD »).</li>
+<li><strong>Un autre logiciel</strong> se saisit à la main, depuis <strong>Autres logiciels</strong> : le nom du logiciel, le bouton (dans la liste, ou en appuyant dessus avec <strong>Identifier</strong>) et ce qu'il fait.
+  Les entrées se modifient et se suppriment au même endroit.</li>
+</ul>
+<p><img alt="La fenêtre Autres logiciels" src="../images/autres-logiciels.png" /></p>
+<p>Dans les réglages, l'onglet <strong>Autres logiciels</strong> indique le dossier de SRS (trouvé dans le registre Windows, à indiquer s'il ne l'est pas), ce qui a été lu, et permet de cacher un logiciel des pages ou de changer sa couleur.</p>
+<h2 id="exporter">Exporter<a class="headerlink" href="#exporter" title="Permanent link">&para;</a></h2>
+<h3 id="vers-le-kneeboard">Vers le kneeboard<a class="headerlink" href="#vers-le-kneeboard" title="Permanent link">&para;</a></h3>
+<p><strong>Kneeboard</strong> (ou Ctrl+E) écrit les pages du module dans <code>Saved Games\DCS\Kneeboard\&lt;avion&gt;\</code>, une par périphérique coché (deux pour un dessin coupé, une par calque si tu as choisi « Par calque »).</p>
+<ul>
+<li>Le nom du dossier est le type d'avion de DCS (<code>A-10C_2</code> pour le profil « A-10C II »), lu dans le module : c'est celui que le jeu regarde.</li>
+<li>Les pages s'appellent <code>HOTAS - &lt;module&gt; - 01 &lt;périphérique&gt;.png</code>, dans l'ordre de la liste.</li>
+<li>Un nouvel export remplace les pages du même module, et seulement celles-là : tes propres pages restent, et les pages d'un autre poste du même appareil aussi (les profils pilote et menu IA de l'AH-64D partagent le dossier <code>AH-64D_BLK_II</code>).</li>
+<li>L'export est tout ou rien : si une page ne peut pas être écrite (une image ouverte dans un autre programme par exemple), les pages précédentes restent en place.</li>
+<li>Un profil qui n'est pas un avion (la couche d'interface) n'a pas de kneeboard.</li>
+</ul>
+<p>Les pages apparaissent dans le kneeboard de cet avion à la mission suivante.
+Leur hauteur se règle dans les réglages (1024 pixels par défaut) ; la largeur suit les proportions du dessin.</p>
+<p><strong>Tous les modules d'un coup</strong> : la flèche à côté de <strong>Kneeboard</strong>, puis <strong>Tous les modules</strong> (ou Maj+E).
+Chaque avion de la liste qui a au moins un périphérique coché reçoit ses pages, comme si tu l'exportais à la main ; les profils qui ne sont pas des avions (Default, UiLayer) sont sautés.
+Une fenêtre montre où en est l'export (« Module 7 sur 20 », le nom du module, une barre) ; il faut compter une dizaine de secondes pour une vingtaine de modules.
+<strong>Arrêter</strong> s'arrête à la fin du module en cours : les modules déjà écrits le restent, et le message de fin dit combien ne l'ont pas été.
+Si un module échoue, les autres continuent, et le message de fin dit lequel et pourquoi.</p>
+<p><img alt="La flèche à côté de Kneeboard : ce module, ou tous les modules" src="../images/export-menu.png" /></p>
+<h3 id="en-pdf">En PDF<a class="headerlink" href="#en-pdf" title="Permanent link">&para;</a></h3>
+<p><strong>PDF</strong> (ou Ctrl+P) télécharge un PDF des mêmes pages, une page A4 par page, à environ 200 points par pouce.
+La flèche à côté, <strong>Tous les modules</strong> (ou Maj+P), en fait un seul PDF, <code>HOTAS - tous les modules.pdf</code>, module après module dans l'ordre de la liste, avec les mêmes avions que pour le kneeboard ; chaque page porte le nom de son module en en-tête.
+La même fenêtre montre la progression ; <strong>Arrêter</strong> n'écrit alors aucun PDF, un PDF d'une partie des modules passerait pour le tout.</p>
+<h2 id="commandes-dcs">Commandes DCS<a class="headerlink" href="#commandes-dcs" title="Permanent link">&para;</a></h2>
+<p>Le bouton à curseurs, en haut, ouvre la fenêtre <strong>Commandes DCS</strong> : ce que l'application peut changer dans tes commandes, et les sauvegardes qu'elle fait avant.</p>
+<p><img alt="La fenêtre Commandes DCS : périphériques désactivés, périphériques absents" src="../images/commandes-dcs.png" /></p>
+<ul>
+<li><strong>DCS doit être fermé.</strong>
+  Le jeu réécrit ses fichiers de commandes quand tu enregistres dans son écran des commandes : l'application refuse toute modification tant que DCS (ou un serveur dédié) tourne.</li>
+<li><strong>Avant chaque modification</strong>, tout le dossier <code>Saved Games\DCS\Config\Input</code> est sauvegardé dans un zip, dans <code>%APPDATA%\HOTAS Kneeboard\backups\</code>.
+  Les 20 dernières sauvegardes sont gardées ; <strong>Sauvegarder maintenant</strong> en fait une à la main.</li>
+<li><strong>Restaurer…</strong> remet tes commandes exactement dans l'état de cette sauvegarde, pour tous les modules : les fichiers apparus depuis sont retirés.
+  L'état d'avant la restauration est lui-même sauvegardé d'abord, en tête de liste : une restauration se défait en restaurant celle-là.</li>
+</ul>
+<h3 id="désactiver-un-périphérique">Désactiver un périphérique<a class="headerlink" href="#désactiver-un-périphérique" title="Permanent link">&para;</a></h3>
+<p>La liste <strong>Périphériques désactivés dans DCS</strong> reprend tous les périphériques connus : ceux configurés dans un module, et ceux que DCS a vus lors de ses deux derniers lancements (« vu par DCS récemment », lu dans <code>Saved Games\DCS\Logs\dcs.log</code> et <code>dcs.log.old</code>).</p>
+<ul>
+<li>L'interrupteur désactive le périphérique comme le bouton « Désactiver » de l'écran des commandes du jeu : DCS l'ignore dans tous les modules, et ses commandes sont gardées pour sa réactivation.</li>
+<li>C'est utile pour un périphérique branché dont DCS n'a pas besoin : une manette Bluetooth, un vJoy.</li>
+<li>Dans la liste des périphériques d'un module, un périphérique désactivé porte la pastille <strong>désactivé</strong>.</li>
+</ul>
+<h3 id="oublier-un-périphérique-absent">Oublier un périphérique absent<a class="headerlink" href="#oublier-un-périphérique-absent" title="Permanent link">&para;</a></h3>
+<p>La liste <strong>Périphériques absents</strong> montre les périphériques qui ont des commandes enregistrées, mais que DCS n'a pas vus lors de ses deux derniers lancements : un vJoy désinstallé, un périphérique renommé par une mise à jour de son pilote, un manche revendu.
+Elle ne sait pas faire la différence avec un périphérique simplement débranché ces jours-là : c'est à toi de choisir.</p>
+<ul>
+<li><strong>Oublier…</strong> puis <strong>Oublier</strong> supprime les commandes du périphérique dans tous les modules, après une sauvegarde : une restauration les fait revenir.</li>
+<li>Un périphérique que DCS a vu récemment n'est jamais proposé, et un périphérique désactivé non plus : branché, il pourrait ne pas apparaître dans le journal de DCS.</li>
+<li>Sans journal de DCS, ou si le journal ne nomme aucun périphérique, la liste est vide : lance DCS une fois, périphériques branchés.</li>
+</ul>
+<h3 id="réparer-les-modificateurs-dun-périphérique-renommé">Réparer les modificateurs d'un périphérique renommé<a class="headerlink" href="#réparer-les-modificateurs-dun-périphérique-renommé" title="Permanent link">&para;</a></h3>
+<p>Un modificateur (« Paddle », une palette du manche tenue pour changer de calque) est enregistré avec le nom complet de son périphérique.
+Quand une mise à jour du pilote renomme le périphérique (WinWing : « WINWING Orion Joystick Base 2 » devenu « WINCTRL Orion Joystick Base Metal 2 »), DCS ne le reconnaît plus et l'ignore sans rien dire.
+Les liaisons qui s'en servent restent affichées, dans le jeu comme ici, mais ne marchent plus en vol.</p>
+<ul>
+<li>La section <strong>Modificateurs</strong> les liste, module par module, avec l'ancien et le nouveau nom ; dans la liste des périphériques et sur la page, la pastille <strong>modificateur inactif</strong> le signale aussi.</li>
+<li>Un périphérique est reconnu par son GUID, le même avant et après le renommage, et par le nom que DCS lui a donné à ses deux derniers lancements (<code>Saved Games\DCS\Logs\dcs.log</code>) : branche-le et lance DCS une fois avant de réparer.
+  Un périphérique simplement débranché n'est pas signalé.</li>
+<li><strong>Réparer</strong> donne à ces modificateurs le nom que DCS utilise maintenant, dans tous les modules, après une sauvegarde.</li>
+<li>Quand DCS a ignoré un modificateur, il réécrit le fichier des modificateurs sans lui à l'enregistrement suivant, et le supprime s'il ne reste que les réglages par défaut.
+  Si une sauvegarde de l'application a encore ce fichier, le module est proposé avec <strong>Ramener</strong> : le fichier revient avec les noms réparés, seul ce fichier est écrit.
+  Si tu as supprimé ce fichier toi-même, laisse-le.</li>
+</ul>
+<h3 id="retirer-les-vues-du-chapeau">Retirer les vues du chapeau<a class="headerlink" href="#retirer-les-vues-du-chapeau" title="Permanent link">&para;</a></h3>
+<p>Tous les modules mettent les 8 vues lentes (« View Up slow », « View Down Left slow »…) sur le premier chapeau de <strong>chaque</strong> périphérique : le palonnier, l'ICP, les MFD en ont aussi, même si l'écran des commandes du jeu ne les montre pas toujours.
+Avec TrackIR ou la VR, elles ne servent à rien et encombrent les pages ; la section <strong>Vues du chapeau</strong> les retire en une fois.</p>
+<p><img alt="La section Vues du chapeau" src="../images/commandes-dcs-vues-du-chapeau.png" /></p>
+<ul>
+<li><strong>Chercher</strong> calcule l'aperçu (quelques secondes) : chaque périphérique concerné, le nombre de vues, les modules (dépliables) et les fichiers qui seront créés.</li>
+<li><strong>Par défaut</strong>, ne sont cochés que les périphériques sur le chapeau desquels tu n'as rien mis toi-même, dans aucun module : le palonnier, l'ICP, les MFD, une manette dont le chapeau ne sert pas.
+  Les autres sont listés grisés, avec ce que tu as mis sur leur chapeau.</li>
+<li><strong>Tous les périphériques, chapeaux utilisés compris</strong> les rend cochables aussi : seules les 8 vues par défaut partent, tes propres liaisons sur le chapeau restent.</li>
+<li><strong>Tous les modules installés</strong> étend le retrait aux modules que tu n'as jamais configurés : un fichier de commandes est créé pour chaque module et chaque périphérique concerné.
+  Sans l'option, seuls les modules qui ont un dossier dans <code>Saved Games\DCS\Config\Input</code> sont touchés.</li>
+<li>Un fichier n'est créé que pour un périphérique que DCS a vu lors de ses deux derniers lancements, sous le nom exact que le jeu lui donne ; un périphérique absent garde ses fichiers existants, traités eux aussi.</li>
+<li><strong>Retirer…</strong> puis <strong>Retirer</strong> : une seule sauvegarde pour toute l'opération, puis les commandes sont relues et comparées à l'aperçu.
+  « Conforme à l'aperçu » veut dire que toutes les vues annoncées sont parties ; sinon, chaque écart est listé.</li>
+<li>Les fichiers sont réécrits comme DCS les enregistre : une entrée devenue sans effet (un réglage par défaut qui a changé depuis une mise à jour du module) disparaît, comme quand tu enregistres dans le jeu.
+  Un fichier qui ne garde plus aucune différence avec les réglages par défaut est supprimé, comme le fait DCS : le périphérique n'apparaît alors plus dans ce module de l'application, ce n'est pas une perte.</li>
+<li>Pour revenir en arrière, restaure la sauvegarde « avant le retrait des vues du chapeau » dans la liste des sauvegardes.</li>
+</ul>
+<h3 id="périphériques-sans-boutons">Périphériques sans boutons<a class="headerlink" href="#périphériques-sans-boutons" title="Permanent link">&para;</a></h3>
+<p>Quand un module n'a rien prévu pour un périphérique, DCS lui donne les liaisons de « n'importe quel joystick » : un palonnier reçoit un tir d'arme sur le bouton 2, une direction de roulette sur le 4, un recentrage de vue sur le 5… boutons qu'il n'a pas.
+DCS n'écrit nulle part combien de boutons a un périphérique : c'est toi qui le dis.</p>
+<ol>
+<li>Coche, dans la liste, les périphériques qui n'ont ni bouton ni chapeau (le palonnier) ; l'application s'en souvient.</li>
+<li><strong>Chercher</strong> : l'aperçu donne, par périphérique et par module, les boutons génériques qui partiraient.</li>
+<li><strong>Retirer…</strong> puis <strong>Retirer</strong> : une seule sauvegarde avant, les commandes relues après l'écriture et comparées à l'aperçu ; <strong>Annuler ce retrait</strong> restaure la sauvegarde.</li>
+</ol>
+<p><img alt="La section Périphériques sans boutons, le palonnier coché" src="../images/commandes-dcs-sans-boutons.png" /></p>
+<p>Seules partent les liaisons de bouton et de chapeau qui viennent de ce profil générique : ce que tu as mis toi-même sur le périphérique, ce que le module prévoit pour ce matériel précis, et tous les axes restent.
+Une liaison dont l'application ne connaît pas le numéro de commande de DCS (le tir secondaire et la tourelle de Combined Arms) ne peut pas être retirée d'ici : l'aperçu la montre à part, retire-la dans l'écran des commandes du jeu.
+Par défaut, seuls les modules où le périphérique est configuré sont touchés ; l'option « Tous les modules installés » crée un fichier dans chacun, pour qu'un nouvel avion soit déjà propre.</p>
+<h3 id="retirer-des-liaisons">Retirer des liaisons<a class="headerlink" href="#retirer-des-liaisons" title="Permanent link">&para;</a></h3>
+<p>Le bouton <strong>Liaisons</strong>, au-dessus de la page, liste toutes les liaisons du périphérique dans ce module : l'entrée (« Bouton 1 », « Axe Z »), le modificateur s'il y en a, la commande, et son origine.
+- « ta config » : tu l'as posée dans l'écran des commandes de DCS ;
+- « défaut pour ce périphérique » : le module la prévoit pour ce périphérique précis (le Warthog dans l'A-10C, par exemple), y compris dans le fichier qu'il livre et que DCS recopie dans le tien ;
+- « défaut générique » : le module n'a rien prévu pour ce périphérique, et DCS lui donne ce qu'il donne à n'importe quel joystick.</p>
+<p><img alt="La fenêtre Liaisons du manche, dans l'A-10C II" src="../images/liaisons.png" /></p>
+<p>Les défauts génériques sont souvent à retirer : c'est là qu'on voit un bouton qui fait deux choses sans le savoir, un « Engine Stop Right » à toi et le « Gun Trigger » que l'A-10C met sur le bouton 1 de tout joystick, ou les gaz sur l'axe Z d'un manche.</p>
+<ol>
+<li>Coche les liaisons à retirer (boutons, chapeaux ou axes) ; le filtre cherche dans l'entrée et la commande.</li>
+<li><strong>Supprimer (n)</strong>, puis <strong>Retirer</strong> pour confirmer.</li>
+<li>Les pages se relisent sans elles. <strong>Annuler</strong>, dans la même fenêtre, restaure la sauvegarde faite juste avant.</li>
+</ol>
+<p>Comme pour le reste de cette fenêtre, DCS doit être fermé, et tout <code>Config\Input</code> est sauvegardé avant ; le fichier du périphérique est réécrit comme DCS l'enregistre, une liaison par défaut retirée y figurant comme retirée.
+Le retrait ne vaut que pour ce module : la même commande reste dans les autres.</p>
+<h2 id="réglages">Réglages<a class="headerlink" href="#réglages" title="Permanent link">&para;</a></h2>
+<p>La roue dentée, en haut, ouvre les réglages.
+Ils sont enregistrés dans <code>%APPDATA%\HOTAS Kneeboard\settings.json</code> ; le chemin exact est rappelé au bas de la fenêtre.</p>
+<p><img alt="Les réglages, onglet Général" src="../images/reglages.png" /></p>
+<p><strong>Général.</strong></p>
+<ul>
+<li>La langue de l'interface : celle du navigateur par défaut (le français si ton navigateur est en français, l'anglais sinon), ou le français ou l'anglais au choix.
+  Elle s'applique tout de suite, aux menus comme aux messages de l'application, et à la documentation qu'ouvre le livre.</li>
+<li>Les dossiers de DCS : vides, ils sont trouvés automatiquement.</li>
+<li>La langue des commandes : celle du jeu par défaut, ou une autre langue livrée avec DCS.
+  Les mots que l'application écrit elle-même sur les pages (« relâché : », la ligne de crédit du gabarit, l'en-tête d'une page en liste) suivent cette langue : en français quand les commandes sont en français, en anglais sinon, pour qu'une page ne mélange pas deux langues.</li>
+<li>La hauteur des pages kneeboard.</li>
+<li>La découpe en deux pages des dessins qui ont une ligne de découpe.</li>
+</ul>
+<p><strong>Périphériques.</strong>
+Tous les périphériques vus dans tes modules, avec le nombre de modules où ils sont configurés.
+Décoche un périphérique pour le cacher partout : un vJoy, un périphérique débranché pour de bon, un doublon fantôme.
+Un périphérique caché disparaît des listes, des compteurs et des exports, dans tous les modules ; c'est appliqué tout de suite.
+« N cachés : Afficher », au bas de la liste des périphériques, les montre de nouveau (grisés) ; l'œil ou la touche <code>H</code> les cache ou les montre un par un.</p>
+<p><strong>Autres logiciels.</strong>
+Le dossier de SRS, les logiciels montrés sur les pages et leur couleur : voir <a href="#les-boutons-des-autres-logiciels">les boutons des autres logiciels</a>.</p>
+<p>Le reste est mémorisé au fil de l'eau : périphériques exportés, ordre des pages, gabarit choisi à la main, affichage des calques, zoom, thème clair ou sombre.</p>
+<h2 id="raccourcis-clavier">Raccourcis clavier<a class="headerlink" href="#raccourcis-clavier" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Touche</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>↑ ↓</td>
+<td>Périphérique précédent / suivant</td>
+</tr>
+<tr>
+<td>PgUp PgDn</td>
+<td>Module précédent / suivant</td>
+</tr>
+<tr>
+<td>Alt + ↑ ↓</td>
+<td>Déplacer le périphérique (ordre des pages)</td>
+</tr>
+<tr>
+<td>Espace</td>
+<td>Inclure ou non le périphérique dans l'export</td>
+</tr>
+<tr>
+<td>H</td>
+<td>Cacher ou montrer le périphérique, dans tous les modules</td>
+</tr>
+<tr>
+<td>L</td>
+<td>Calques : sur la même page / une page par calque</td>
+</tr>
+<tr>
+<td>/</td>
+<td>Filtrer les modules</td>
+</tr>
+<tr>
+<td>Ctrl + E</td>
+<td>Exporter le module vers le kneeboard</td>
+</tr>
+<tr>
+<td>Ctrl + P</td>
+<td>PDF du module</td>
+</tr>
+<tr>
+<td>F5</td>
+<td>Relire les fichiers de DCS et les gabarits</td>
+</tr>
+<tr>
+<td>Ctrl + molette</td>
+<td>Zoomer sur la page</td>
+</tr>
+<tr>
+<td>?</td>
+<td>La liste des raccourcis</td>
+</tr>
+</tbody>
+</table>
+<p>L'éditeur de gabarits a ses propres raccourcis, listés dans sa colonne de gauche.</p>
+<h2 id="problèmes-courants">Problèmes courants<a class="headerlink" href="#problèmes-courants" title="Permanent link">&para;</a></h2>
+<p><strong>« Installation de DCS introuvable » ou « Dossier Saved Games de DCS introuvable ».</strong>
+Indique le dossier dans les réglages : celui qui contient <code>bin\luae.exe</code> pour l'installation, celui qui contient <code>Config\Input</code> pour Saved Games.</p>
+<p><strong>Une page ne correspond pas à ce que tu as réglé dans DCS.</strong>
+Tu as changé tes commandes dans DCS pendant que l'application tournait : F5 relit les fichiers.</p>
+<p><strong>« module non installé » ou « pas de profil de base ».</strong>
+DCS n'a pas trouvé les défauts de ce module ou de ce périphérique : la page ne montre que ce que tes modifications ajoutent.</p>
+<p><strong>Un bouton tombe sur la mauvaise case, ou une commande est « hors gabarit ».</strong>
+La numérotation du gabarit ne correspond pas à ton périphérique : vérifie-le dans l'<a href="../editeur-de-gabarits/#vérifier-la-numérotation-sur-le-périphérique">éditeur</a>.</p>
+<p><strong>Un périphérique apparaît deux fois, ou porte un nom étrange (« … BOOT »).</strong>
+Windows l'a vu une fois sous un autre nom, et DCS a gardé sa configuration ; cache-le dans les réglages.</p>
+<p><strong>Une liaison avec un modificateur (« Paddle + … ») ne marche pas en vol.</strong>
+Le pilote du périphérique l'a peut-être renommé : la page porte alors la pastille « modificateur inactif ». Voir <a href="#réparer-les-modificateurs-dun-périphérique-renommé">Réparer les modificateurs d'un périphérique renommé</a>.</p>
+<p><strong>Les pages n'apparaissent pas dans le kneeboard.</strong>
+Relance la mission : DCS lit le dossier kneeboard au chargement.
+Vérifie le dossier indiqué dans le message après l'export, et que tu voles bien sur l'avion de ce module.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Retour en haut de la page
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.top", "search.highlight", "search.suggest", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copi\u00e9 dans le presse-papier", "clipboard.copy": "Copier dans le presse-papier", "search.result.more.one": "1 de plus sur cette page", "search.result.more.other": "# de plus sur cette page", "search.result.none": "Aucun document trouv\u00e9", "search.result.one": "1 document trouv\u00e9", "search.result.other": "# documents trouv\u00e9s", "search.result.placeholder": "Taper pour d\u00e9marrer la recherche", "search.result.term.missing": "Non trouv\u00e9", "select.version": "S\u00e9lectionner la version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>
