@@ -3,7 +3,7 @@ import base64
 import pytest
 from fastapi.testclient import TestClient
 
-from hotas_kneeboard.app import create_app
+from hotas_kneeboard.app import create_app, profile_labels
 from hotas_kneeboard.kneeboard import PNG_SIGNATURE
 from hotas_kneeboard.settings import Settings, SettingsStore
 from hotas_kneeboard.templates import TemplateLibrary
@@ -45,6 +45,24 @@ def test_bindings_give_pages_with_their_template(client):
     assert stick["dcs_disabled"] is False
     assert stick["inputs"]["JOY_BTN8"][""]["text"] == "Gear Up / Down"
     assert stick["inputs"]["JOY_BTN4"]["JOY_BTN5"]["text"] == "Master Arm"
+    # DCS's name of the profile, else its folder's
+    assert fake["display_name"] == "Fake Plane"
+    assert profiles["MissingPlane"]["display_name"] == "MissingPlane"
+
+
+def test_profile_labels_say_the_folder_of_namesakes():
+    profiles = [
+        {"name": "Mi-24P Pilot", "display_name": "Mi-24P Pilot"},  # an old folder DCS kept
+        {"name": "Mi-24P_pilot", "display_name": "Mi-24P Pilot"},
+        {"name": "FA-18C_hornet", "display_name": "F/A-18C"},
+        {"name": "OH-58D Pilot", "display_name": None},
+    ]
+    assert profile_labels(profiles) == [
+        "Mi-24P Pilot",
+        "Mi-24P Pilot (Mi-24P_pilot)",
+        "F/A-18C",
+        "OH-58D Pilot",
+    ]
 
 
 def test_hidden_devices_are_saved(client):

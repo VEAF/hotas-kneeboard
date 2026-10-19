@@ -9,10 +9,13 @@ Chaque lot ajoute ses entrées à la fin de `[Unreleased]` ; une release les pas
 
 - Lien vers la documentation de ta version dans la barre du haut et dans la fenêtre des raccourcis.
 - Export de tous les modules d'un coup, vers leur kneeboard (Maj+E) ou en un seul PDF (Maj+P), depuis la flèche à côté de chaque bouton d'export : les avions qui ont un périphérique coché, avec une fenêtre de progression qui permet d'arrêter ; un module en échec n'arrête pas les autres.
+- Les modules portent le nom de l'écran des commandes de DCS (« AH-64D Pilot » au lieu de `AH-64D_BLK_II_PLT`), dans la liste et en en-tête des pages, triés par ce nom ; le dossier du profil reste affiché dessous.
+- Les colonnes des modules et des périphériques se redimensionnent en glissant la ligne qui les sépare ; double-clic pour revenir à la largeur par défaut.
 
 ### Corrigé
 
 - Boutons VectorXR manquants : les profils PivotXR (vues rapides, recentrage, activation) n'apparaissaient pas quand le module était enregistré éteint, alors qu'ils servent en vol ; l'étiquette nomme maintenant le profil (« PivotXR snapviews : vue Right MFD »).
+- Un gabarit choisi à la main par erreur (le manche Warthog dessiné avec l'image de sa manette des gaz, signalé par un pilote) se voit et se défait : entrée **Automatique** en tête de la liste, qui nomme le gabarit reconnu, pastille « choix manuel » quand le choix diffère de celui-ci, liste plus large et nom complet en infobulle.
 
 ## [0.1.0] - 2026-10-19
 

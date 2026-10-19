@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watchEffect } from 'vue'
-import { onKeyStroke, useLocalStorage } from '@vueuse/core'
+import { computed, nextTick, onMounted, ref, watch, watchEffect } from 'vue'
+import { onKeyStroke, useLocalStorage, useResizeObserver } from '@vueuse/core'
 import Button from 'primevue/button'
 import Toast from 'primevue/toast'
 import { useToast } from 'primevue/usetoast'
@@ -15,6 +15,7 @@ import EditorView from './editor/EditorView.vue'
 import { editor } from './editor/state'
 import { api } from './lib/api'
 import { docUrl } from './lib/docs'
+import { clampColumn, type ColumnWidths } from './lib/columns'
 import { exportableModules, failuresDetail, type ExportProgress, type ModuleFailure } from './lib/exportAll'
 import type { Profile } from './lib/types'
 import SplitButton from 'primevue/splitbutton'
@@ -48,6 +49,52 @@ const kneeboardHint = computed(() => {
 })
 
 onMounted(() => store.load())
+
+// --- column widths: the lines between the columns are dragged --------------------------------
+
+const columns = useLocalStorage<ColumnWidths>('hotas-kneeboard-columns', { modules: null, devices: null }, { mergeDefaults: true })
+const COLUMN_KEYS = ['modules', 'devices'] as const
+const colsEl = ref<HTMLElement | null>(null)
+/** x of the right edge of the module and device columns, in the column area */
+const edges = ref<number[]>([])
+const columnStyle = computed(() => ({
+  ...(columns.value.modules ? { '--col-modules': `${columns.value.modules}px` } : {}),
+  ...(columns.value.devices ? { '--col-devices': `${columns.value.devices}px` } : {}),
+}))
+
+function measureColumns() {
+  const area = colsEl.value
+  if (!area || area.children.length < 3) return
+  const left = area.getBoundingClientRect().left
+  edges.value = [0, 1].map((i) => area.children[i].getBoundingClientRect().right - left)
+}
+useResizeObserver(colsEl, measureColumns)
+watch(columns, () => nextTick(measureColumns), { deep: true })
+
+function startResize(event: PointerEvent, index: number) {
+  const area = colsEl.value
+  if (!area) return
+  event.preventDefault()
+  const handle = event.currentTarget as HTMLElement
+  handle.setPointerCapture(event.pointerId)
+  const startX = event.clientX
+  const startWidth = area.children[index].getBoundingClientRect().width
+  const move = (e: PointerEvent) => {
+    columns.value = { ...columns.value, [COLUMN_KEYS[index]]: clampColumn(startWidth + e.clientX - startX, window.innerWidth) }
+  }
+  const stop = () => {
+    handle.removeEventListener('pointermove', move)
+    handle.removeEventListener('pointerup', stop)
+    handle.removeEventListener('pointercancel', stop)
+  }
+  handle.addEventListener('pointermove', move)
+  handle.addEventListener('pointerup', stop)
+  handle.addEventListener('pointercancel', stop)
+}
+
+function resetColumn(index: number) {
+  columns.value = { ...columns.value, [COLUMN_KEYS[index]]: null }
+}
 
 /** "All the modules": the aircraft with a device ticked, in the list order */
 const allModules = computed(() => exportableModules(store.profiles.value, store.isExported))
@@ -328,10 +375,22 @@ onKeyStroke((event) => {
     </div>
 
     <EditorView v-if="state.view === 'editor'" />
-    <main v-else class="cols">
+    <main v-else ref="colsEl" class="cols" :style="columnStyle">
       <ModuleList ref="modules" />
       <DeviceList />
       <PagePreview />
+      <div
+        v-for="(edge, i) in edges"
+        :key="i"
+        class="col-resize"
+        :style="{ left: `${edge}px` }"
+        role="separator"
+        aria-orientation="vertical"
+        :aria-label="i === 0 ? 'Largeur de la colonne des modules' : 'Largeur de la colonne des périphériques'"
+        title="Glisser pour élargir ou rétrécir ; double-clic : largeur par défaut"
+        @pointerdown="startResize($event, i)"
+        @dblclick="resetColumn(i)"
+      />
     </main>
 
     <footer v-if="state.view === 'pages'" class="status">
@@ -367,7 +426,10 @@ onKeyStroke((event) => {
 .exports .p-button { font-weight: 600; }
 .exports { align-items: center; }
 .banner { display: flex; align-items: center; gap: 10px; padding: 8px 14px; background: color-mix(in srgb, var(--warn) 18%, var(--panel)); border-bottom: 1px solid var(--line); }
-.cols { flex: 1; min-height: 0; display: grid; grid-template-columns: 230px 300px minmax(0, 1fr); }
+.cols { flex: 1; min-height: 0; display: grid; grid-template-columns: var(--col-modules, 230px) var(--col-devices, 300px) minmax(0, 1fr); position: relative; }
+/* the line between two columns, dragged to resize them; wider than it looks, to be caught */
+.col-resize { position: absolute; top: 0; bottom: 0; width: 9px; margin-left: -5px; cursor: col-resize; z-index: 2; touch-action: none; }
+.col-resize:hover, .col-resize:active { background: linear-gradient(to right, transparent 3px, var(--amber) 3px, var(--amber) 6px, transparent 6px); }
 .col { border-right: 1px solid var(--line); display: flex; flex-direction: column; min-width: 0; min-height: 0; }
 .col:last-child { border-right: 0; }
 .colhead { padding: 10px 12px 8px; display: flex; flex-direction: column; gap: 8px; border-bottom: 1px solid var(--line); }
@@ -385,11 +447,12 @@ onKeyStroke((event) => {
 .version { font-family: var(--f-mono); }
 /* the page keeps the full height down to small screens: narrower lists rather than stacked */
 @media (max-width: 1280px) {
-  .cols { grid-template-columns: 190px 250px minmax(0, 1fr); }
+  .cols { grid-template-columns: var(--col-modules, 190px) var(--col-devices, 250px) minmax(0, 1fr); }
   .dcs code, .dcs .sep { display: none; }
 }
 @media (max-width: 860px) {
   .cols { grid-template-columns: 180px minmax(0, 1fr); grid-template-rows: minmax(0, 40%) minmax(0, 1fr); }
   .cols > .page-col { grid-column: 1 / -1; border-top: 1px solid var(--line); }
+  .col-resize { display: none; }
 }
 </style>

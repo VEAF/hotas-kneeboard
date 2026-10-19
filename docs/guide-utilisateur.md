@@ -24,8 +24,10 @@ Sinon, elle écrit seulement les pages du kneeboard, et ses propres réglages da
 Trois colonnes, de gauche à droite.
 
 **Modules.**
-Chaque profil de commandes que tu as configuré dans DCS (un avion, un hélicoptère, la couche d'interface…).
-Sous le nom, le dossier kneeboard de l'avion ; à droite, le nombre de périphériques exportés sur le nombre de périphériques montrés.
+Chaque profil de commandes que tu as configuré dans DCS (un avion, un hélicoptère, la couche d'interface…), sous le nom que lui donne l'écran des commandes du jeu (« AH-64D Pilot », « F/A-18C »), dans l'ordre alphabétique.
+Sous le nom, le dossier du profil dans `Saved Games\DCS\Config\Input` quand il est différent (`AH-64D_BLK_II_PLT`), et le dossier kneeboard de l'avion ; à droite, le nombre de périphériques exportés sur le nombre de périphériques montrés.
+Deux profils du même nom (DCS garde parfois l'ancien dossier d'un module renommé, comme `Mi-24P Pilot` et `Mi-24P_pilot`) sont départagés par leur dossier, entre parenthèses.
+Le filtre cherche dans le nom, le dossier et le type d'avion.
 Un module que DCS ne trouve pas dans ton installation est marqué « module non installé » : seules tes modifications sont connues, pas ses défauts.
 
 **Périphériques.**
@@ -37,7 +39,11 @@ L'œil, au survol d'une ligne, cache le périphérique dans tous les modules (vo
 **La page.**
 La page telle qu'elle sera dans le kneeboard, ajustée à l'espace disponible.
 Au-dessus : le gabarit utilisé (trouvé automatiquement, ou choisi à la main dans la liste, et alors mémorisé), le bouton pour le **créer** ou le **modifier** dans l'éditeur, l'affichage des calques.
+Un choix à la main vaut pour ce périphérique dans tous les modules ; la première entrée de la liste, **Automatique**, nomme le gabarit reconnu par le nom du périphérique et y revient.
+Quand le gabarit choisi à la main n'est pas celui-là (le manche dessiné avec l'image de la manette des gaz), la pastille **choix manuel** le signale : son infobulle nomme le gabarit reconnu, un clic y revient.
 En bas à droite, le zoom : page entière, toute la largeur, plus ou moins (ou Ctrl+molette).
+
+La ligne entre deux colonnes se glisse pour élargir ou rétrécir la colonne des modules ou celle des périphériques ; l'application s'en souvient, et un double-clic sur la ligne remet la largeur par défaut.
 
 Dans la barre du haut, le livre ouvre cette documentation, celle de ta version de l'application, dans un nouvel onglet ; la fenêtre des raccourcis (`?`) y mène aussi.
 

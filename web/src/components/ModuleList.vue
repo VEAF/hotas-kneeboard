@@ -11,7 +11,9 @@ const search = ref<{ $el: HTMLInputElement } | null>(null)
 
 const shown = computed(() => {
   const q = state.filter.trim().toLowerCase()
-  return store.profiles.value.filter((p) => !q || p.name.toLowerCase().includes(q) || (p.unit_type ?? '').toLowerCase().includes(q))
+  return store.profiles.value.filter(
+    (p) => !q || [p.display_name, p.name, p.unit_type ?? ''].some((s) => s.toLowerCase().includes(q)),
+  )
 })
 
 function exportedCount(name: string): [number, number] {
@@ -57,8 +59,9 @@ defineExpose({ focusSearch: () => search.value?.$el.focus(), shown })
         @click="select(p.name)"
       >
         <span class="meta">
-          <span class="t">{{ p.name }}</span>
+          <span class="t" v-tooltip.right="p.display_name !== p.name ? `Profil ${p.name} dans Saved Games\\DCS\\Config\\Input` : undefined">{{ p.display_name }}</span>
           <span class="s">
+            <template v-if="p.display_name !== p.name && !p.display_name.includes(`(${p.name})`)">{{ p.name }} · </template>
             <template v-if="!p.found">module non installé</template>
             <template v-else-if="p.unit_type">kneeboard {{ p.unit_type }}</template>
             <template v-else>pas d'avion : pas de kneeboard</template>

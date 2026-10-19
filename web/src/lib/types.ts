@@ -24,7 +24,8 @@ export interface Device {
 }
 
 export interface Profile {
-  name: string
+  name: string // the folder in Saved Games\DCS\Config\Input: the key of settings and kneeboard files
+  display_name: string // what DCS shows in its controls screen ("AH-64D Pilot"), else the folder
   unit_type: string | null
   found: boolean
   devices: Device[]

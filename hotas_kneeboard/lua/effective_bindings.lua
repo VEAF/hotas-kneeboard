@@ -469,8 +469,18 @@ local function moduleInputProfiles(modDir)
 	return declared, flyables
 end
 
+-- The name DCS shows for a profile in its controls screen ("AH-64D Pilot" for the folder
+-- AH-64D_BLK_II_PLT): the string its folder's name.lua returns, untranslated; nil without one
+local function profileDisplayName(folder, profile)
+	local f = loadChunk(folder .. 'name.lua')
+	if not f then return nil end
+	setfenv(f, {_ = function(s) return s end})
+	local ok, name = pcall(f, profile)
+	if ok and type(name) == 'string' and name ~= '' then return name end
+end
+
 -- Profiles of the install: unit name -> {folder = profile folder, unit = is a unit profile,
--- unitType = see unitTypeOf, nil for a built-in profile}.
+-- unitType = see unitTypeOf, nil for a built-in profile, displayName = see profileDisplayName}.
 -- The unit name, stripped of the characters a file name cannot hold, is the profile's folder in
 -- Saved Games/DCS/Config/Input/.
 local function listProfiles()
@@ -478,7 +488,8 @@ local function listProfiles()
 	local function add(unitName, folder, unit, unitType)
 		local userName = unitName:gsub('[%*/%?<>|\\:"]', '')
 		if not result[userName] then
-			result[userName] = {folder = folder, unit = unit, unitType = unitType}
+			result[userName] = {folder = folder, unit = unit, unitType = unitType,
+				displayName = profileDisplayName(folder)}
 			seenFolders[folder] = true
 		end
 	end
@@ -874,7 +885,7 @@ local result = {}
 for _, name in ipairs(requested) do
 	local profile = profiles[name]
 	local entry = {found = profile ~= nil, profile_folder = profile and profile.folder,
-		unit_type = profile and profile.unitType, devices = {}}
+		unit_type = profile and profile.unitType, display_name = profile and profile.displayName, devices = {}}
 	local userFolder = SAVED_GAMES .. 'Config/Input/' .. name .. '/joystick/'
 	local present = {} -- devices with a diff file here, in lower case: a GUID's case may differ
 	for _, file in ipairs(listDir(userFolder)) do
