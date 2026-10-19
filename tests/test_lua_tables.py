@@ -581,9 +581,35 @@ def test_the_api_lists_a_device_bindings_with_their_origin(make_client):
     assert data["editable"] is True
     rows = {(b["kind"], b["key"], tuple(b["reformers"])): b for b in data["bindings"]}
     assert rows[("axis", "JOY_Z", ())]["command"] == "Brightness"
-    assert rows[("axis", "JOY_Z", ())]["origin"] == "default"
+    # the module has a profile for the throttle (Fake Throttle.lua)
+    assert rows[("axis", "JOY_Z", ())]["origin"] == "device"
     # placed by the user's diff
     assert rows[("key", "JOY_BTN10", ("JOY_BTN5",))]["origin"] == "user"
+    # none for the stick: what DCS puts on it comes from the profile of any joystick
+    stick = {
+        (b["kind"], b["key"], tuple(b["reformers"])): b for b in device_rows(make_client(), STICK)["bindings"]
+    }
+    assert stick[("key", "JOY_BTN_POV1_U", ())]["origin"] == "generic"
+
+
+def test_a_binding_the_module_ships_for_the_device_is_not_the_user_s(lua, saved):
+    # DCS copies the module's diff into the user's at the first save: its Trim on JOY_BTN11 stays
+    # the module's
+    from hotas_kneeboard.engine import load_effective_bindings
+
+    path = saved / "Config" / "Input" / "FakePlane" / "joystick" / f"{THROTTLE}.diff.lua"
+    diff = read_table(INSTALL, path, lua)
+    diff["keyDiffs"]["dnilp100unilcdnilvdnilvpnilvunil"] = {
+        "name": "Trim: Nose Up",
+        "added": [{"key": "JOY_BTN11"}],
+    }
+    write_table(INSTALL, path, "diff", diff, lua)
+    result = load_effective_bindings(INSTALL, saved, ["FakePlane"], lua)
+    throttle = next(d for d in result["profiles"]["FakePlane"]["devices"] if d["name"] == THROTTLE)
+    trim = next(b for b in throttle["bindings"] if b["key"] == "JOY_BTN11")
+    assert not trim.get("from_diff") and trim.get("from_module_diff")
+    brake = next(b for b in throttle["bindings"] if b["key"] == "JOY_BTN10" and b["reformers"])
+    assert brake.get("from_diff") and not brake.get("from_module_diff")
 
 
 def test_the_api_removes_a_key_and_an_axis_then_the_backup_gives_them_back(make_client, saved):

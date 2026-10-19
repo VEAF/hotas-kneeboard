@@ -174,8 +174,11 @@ Avec TrackIR ou la VR, elles ne servent à rien et encombrent les pages ; la sec
 ### Retirer des liaisons
 
 Le bouton **Liaisons**, au-dessus de la page, liste toutes les liaisons du périphérique dans ce module : l'entrée (« Bouton 1 », « Axe Z »), le modificateur s'il y en a, la commande, et son origine.
-« ta config » : tu l'as posée dans l'écran des commandes de DCS ; « défaut du module » : DCS la met d'office, et tu ne l'as pas retirée.
-C'est là qu'on voit un bouton qui fait deux choses sans le savoir : un « Engine Stop Right » à toi, et le « Gun Trigger » que le module met sur le bouton 1 de tout joystick.
+- « ta config » : tu l'as posée dans l'écran des commandes de DCS ;
+- « défaut pour ce périphérique » : le module la prévoit pour ce périphérique précis (le Warthog dans l'A-10C, par exemple), y compris dans le fichier qu'il livre et que DCS recopie dans le tien ;
+- « défaut générique » : le module n'a rien prévu pour ce périphérique, et DCS lui donne ce qu'il donne à n'importe quel joystick.
+
+Les défauts génériques sont souvent à retirer : c'est là qu'on voit un bouton qui fait deux choses sans le savoir, un « Engine Stop Right » à toi et le « Gun Trigger » que l'A-10C met sur le bouton 1 de tout joystick, ou les gaz sur l'axe Z d'un manche.
 
 1. Coche les liaisons à retirer (boutons, chapeaux ou axes) ; le filtre cherche dans l'entrée et la commande.
 2. **Supprimer (n)**, puis **Retirer** pour confirmer.

@@ -25,6 +25,20 @@ const busy = ref(false)
 /** The last removal, which Annuler undoes by restoring the backup made just before it */
 const done = ref<{ removed: number; backup: DcsBackup } | null>(null)
 
+const ORIGINS = {
+  user: { label: 'ta config', class: 'ok', hint: "Tu l'as posée dans l'écran des commandes de DCS." },
+  device: {
+    label: 'défaut pour ce périphérique',
+    class: '',
+    hint: 'Le module la prévoit pour ce périphérique précis.',
+  },
+  generic: {
+    label: 'défaut générique',
+    class: 'warn',
+    hint: "Le module n'a rien prévu pour ce périphérique : DCS lui donne ce qu'il donne à n'importe quel joystick (la gâchette canon sur le bouton 1…). Souvent à retirer.",
+  },
+} as const
+
 const id = (b: DeviceBinding) => `${b.kind}|${b.hash}|${b.key}|${b.reformers.join('+')}`
 const modifier = (b: DeviceBinding) => b.reformers.map(inputName).join(' + ')
 
@@ -155,7 +169,7 @@ async function undo() {
               <td>{{ modifier(b) }}</td>
               <td>{{ b.command }}</td>
               <td>
-                <span class="pill" :class="b.origin === 'user' ? 'ok' : ''">{{ b.origin === 'user' ? 'ta config' : 'défaut du module' }}</span>
+                <span class="pill" :class="ORIGINS[b.origin].class" v-tooltip.left="ORIGINS[b.origin].hint">{{ ORIGINS[b.origin].label }}</span>
               </td>
             </tr>
           </tbody>

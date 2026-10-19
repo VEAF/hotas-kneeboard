@@ -656,14 +656,25 @@ local function deviceBindings(baseFolder, userFolder, deviceName, unitProfile)
 		table.insert(unmatched, u)
 	end
 
-	-- combos the user's diff adds or changes: placed by the user (not by a diff shipped with the module)
-	local fromDiff = {}
-	for _, kind in ipairs({'key', 'axis'}) do
-		for hash, d in pairs(userDiff and userDiff[kind .. 'Diffs'] or {}) do
-			for _, field in ipairs({'added', 'changed'}) do
-				for _, combo in ipairs(d[field] or {}) do fromDiff[hash .. '|' .. comboHash(combo)] = true end
+	-- combos a diff adds or changes, by hash and combo
+	local function placedBy(d)
+		local placed = {}
+		for _, kind in ipairs({'key', 'axis'}) do
+			for hash, entry in pairs(d and d[kind .. 'Diffs'] or {}) do
+				for _, field in ipairs({'added', 'changed'}) do
+					for _, combo in ipairs(entry[field] or {}) do placed[hash .. '|' .. comboHash(combo)] = true end
+				end
 			end
 		end
+		return placed
+	end
+	-- the diff shipped with the module for this device: DCS copies it into the user's at the first
+	-- save, so what it places is the module's, even found in the user's file
+	local shipped = placedBy(loadDiffFile(baseFolder .. templateName(deviceName) .. '.diff.lua'))
+	-- placed by the user: in the user's diff, and not one the module ships
+	local fromDiff = {}
+	for id in pairs(placedBy(userDiff)) do
+		if not shipped[id] then fromDiff[id] = true end
 	end
 
 	local bindings, seen = {}, {}
@@ -683,6 +694,9 @@ local function deviceBindings(baseFolder, userFolder, deviceName, unitProfile)
 						command = c.name,
 						category = categoryOf(c),
 						from_diff = fromDiff[id] or nil,
+						-- placed for this very device by the module (its diff), not by the profile of
+						-- any joystick
+						from_module_diff = (not fromDiff[id] and shipped[id]) or nil,
 					})
 				end
 			end

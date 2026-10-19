@@ -12,6 +12,7 @@ Chaque lot ajoute ses entrées à la fin de `[Unreleased]` ; une release les pas
 - Les modules portent le nom de l'écran des commandes de DCS (« AH-64D Pilot » au lieu de `AH-64D_BLK_II_PLT`), dans la liste et en en-tête des pages, triés par ce nom ; le dossier du profil reste affiché dessous.
 - Les colonnes des modules et des périphériques se redimensionnent en glissant la ligne qui les sépare ; double-clic pour revenir à la largeur par défaut.
 - Retrait de liaisons de DCS depuis l'application (bouton **Liaisons** au-dessus de la page) : boutons, chapeaux et axes d'un périphérique dans un module, avec leur origine (ta config ou défaut du module) ; DCS fermé, sauvegarde avant, fichier réécrit comme DCS l'enregistre, **Annuler** dans la même fenêtre (FEAT-REMOVE-DCS-BINDINGS, #53).
+- Fenêtre **Liaisons** : l'origine distingue le défaut prévu pour ce périphérique du défaut générique, ce que DCS donne à tout joystick dont le module n'a pas de profil (la gâchette canon sur le bouton 1 d'un throttle), souvent à retirer ; une liaison du fichier que le module livre pour le périphérique, recopié par DCS dans le tien, n'est plus comptée comme la tienne.
 
 ### Corrigé
 

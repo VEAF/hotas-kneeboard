@@ -197,6 +197,22 @@ class Bindings:
         return {"profiles": profiles, "error": None}
 
 
+def is_generic_base(base_file: str | None) -> bool:
+    """A device DCS gives the profile of any joystick: the module has no profile for it"""
+    return bool(base_file) and base_file.replace("\\", "/").lower().endswith("/default.lua")
+
+
+def binding_origin(binding: dict, generic_base: bool) -> str:
+    """ "user": the user placed it; "device": the module placed it for this very device (its profile
+    for the device, or the diff it ships for it); "generic": the module's profile of any joystick
+    (the Gun Trigger on button 1 of a throttle), often a binding to remove"""
+    if binding.get("from_diff"):
+        return "user"
+    if binding.get("from_module_diff") or not generic_base:
+        return "device"
+    return "generic"
+
+
 def profile_labels(profiles: list[dict]) -> list[str]:
     """The name each profile shows: DCS's (its folder's name.lua), else its folder's; two profiles
     of the same name (an old folder DCS kept, "Mi-24P Pilot" and "Mi-24P_pilot") say their folder"""
@@ -507,9 +523,8 @@ def create_app(
 
     @app.get("/api/dcs-config/bindings")
     def get_device_bindings(profile: str, device: str) -> dict:
-        """Every binding of a device in a module, one row each, for the user to pick what to remove:
-        ``origin`` "user" when the user's diff placed it, else "default" (the module's, or a diff the
-        module ships)"""
+        """Every binding of a device in a module, one row each, for the user to pick what to remove,
+        with its origin (see ``binding_origin``)"""
         install, saved = install_and_saved()
         # only a module the user configured: the name goes to the engine
         if profile not in list_user_profiles(saved):
@@ -523,6 +538,7 @@ def create_app(
         if found is None:
             raise HTTPException(404, f"{device} n'est pas configuré dans {profile}")
         translate = command_translator(install, current_dirs()["language"])
+        generic_base = is_generic_base(found.get("base_file"))
         return {
             "profile": profile,
             "device": found["name"],
@@ -536,7 +552,7 @@ def create_app(
                     "reformers": b.get("reformers") or [],
                     "command": translate(b["command"]),
                     "category": b.get("category"),
-                    "origin": "user" if b.get("from_diff") else "default",
+                    "origin": binding_origin(b, generic_base),
                 }
                 for b in found["bindings"]
             ],
