@@ -24,6 +24,17 @@ jobs:
           DCS_TEST_LUA: lua5.1
         run: uv run pytest
 
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+      - run: uv sync --frozen --only-group docs
+      # a broken link or anchor is a warning, and --strict turns it into a failure
+      - run: uv run --no-sync mkdocs build --strict
+
   ui:
     runs-on: ubuntu-latest
     defaults:

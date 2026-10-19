@@ -5,6 +5,8 @@ __pycache__/
 .ruff_cache/
 build/
 dist/
+# mkdocs build
+site/
 web/node_modules/
 web/dist/
 hotas_kneeboard/web/

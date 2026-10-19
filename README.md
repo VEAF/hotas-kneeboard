@@ -38,6 +38,8 @@ Un projet de la [VEAF](https://www.veaf.org), sous licence GPL v2.
 
 ## Documentation
 
+Elle est aussi en ligne, avec un menu et une recherche : <https://veaf.github.io/hotas-kneeboard/>.
+
 - [Guide d'utilisation](docs/guide-utilisateur.md) : l'écran, les pages, les exports, les réglages, les raccourcis, les problèmes courants.
 - [Éditeur de gabarits](docs/editeur-de-gabarits.md) : dessiner un périphérique qui n'a pas de gabarit, corriger un gabarit, le vérifier sur le vrai matériel, le partager.
 - [Gabarits](docs/gabarits.md) : le format, la bibliothèque, la conversion depuis Joystick Diagrams, comment verser un gabarit vérifié.

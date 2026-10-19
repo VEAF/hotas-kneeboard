@@ -117,16 +117,34 @@ pwsh packaging/build.ps1
 
 Il produit `dist/HOTAS-Kneeboard.exe`.
 
+## Le site de documentation
+
+La documentation est publiée sur <https://veaf.github.io/hotas-kneeboard/> (GitHub Pages du dépôt, branche `gh-pages`) avec MkDocs Material et mike, comme celle de VEAF-Mission-Creation-Tools.
+La page d'accueil est le `README.md`, repris tel quel au moment du build (`scripts/mkdocs_hooks.py`) ; les pages sont celles de `docs/`, sauf `docs/agents/`, qui s'adresse aux sessions Claude.
+
+- Une poussée vers `develop` publie la version « dev » ; tant qu'aucune release n'est sortie, l'adresse du site ouvre celle-là.
+- Une release (poussée vers `main`) publie la version de `pyproject.toml` et la marque « latest », que l'adresse du site ouvre ensuite.
+  C'est la poussée vers `main` qui déclenche, pas le tag `vX.Y.Z` : `release.yml` crée le tag avec le jeton de GitHub Actions, et un événement fait avec ce jeton ne lance aucun autre workflow.
+- Chaque PR construit le site avec `--strict` : un lien vers une page absente ou une ancre qui n'existe pas fait échouer la CI.
+  Les ancres sont celles de GitHub, accents compris (`#vérifier-la-numérotation-sur-le-périphérique`) : un lien marche sur les deux.
+  Un lien vers un fichier hors du site (`CHANGELOG.md`, `docs/agents/`) s'écrit en adresse GitHub complète.
+
+Voir le site en local, rechargé à chaque modification :
+
+```bash
+uv run --group docs mkdocs serve
+```
+
 ## Lots, tickets, branches et releases
 
-Le suivi suit l'organisation de VEAF-Mission-Creation-Tools, avec des tickets GitHub à la place des fichiers de `.backlog/` ; le détail est dans [`docs/agents/issue-tracker.md`](agents/issue-tracker.md).
+Le suivi suit l'organisation de VEAF-Mission-Creation-Tools, avec des tickets GitHub à la place des fichiers de `.backlog/` ; le détail est dans [`docs/agents/issue-tracker.md`](https://github.com/VEAF/hotas-kneeboard/blob/develop/docs/agents/issue-tracker.md).
 
 - Le PRD du produit est [#1](https://github.com/VEAF/hotas-kneeboard/issues/1) ; ses lots en sont les sous-tickets.
 - Un lot est un ticket étiqueté `lot`, titré `<LOT-ID> — …`, son PRD dans le corps ; ses tickets sont ses sous-tickets, étiquetés `ticket`, découpés avec `/to-tickets` avant le code.
-- Le statut est une étiquette : ⬜ ready · 🔄 in-progress · 🧑 waiting-human · ⏸ paused ; fermé = ✅ done ou 🚫 won't fix ([détail](agents/triage-labels.md)).
+- Le statut est une étiquette : ⬜ ready · 🔄 in-progress · 🧑 waiting-human · ⏸ paused ; fermé = ✅ done ou 🚫 won't fix ([détail](https://github.com/VEAF/hotas-kneeboard/blob/develop/docs/agents/triage-labels.md)).
 - `develop` est la branche par défaut et reçoit le travail, `main` ne reçoit que des releases.
 - Un lot, c'est une branche `feature/`, `fix/` ou `chore/<LOT-ID>` créée depuis `develop`, et une seule PR vers `develop`, qui ferme ses tickets et le lot.
-  Chaque lot ajoute ses entrées à la fin de `[Unreleased]` dans [`CHANGELOG.md`](../CHANGELOG.md), sans toucher à la version.
+  Chaque lot ajoute ses entrées à la fin de `[Unreleased]` dans [`CHANGELOG.md`](https://github.com/VEAF/hotas-kneeboard/blob/develop/CHANGELOG.md), sans toucher à la version.
 - Une release, c'est une PR de `develop` vers `main` qui monte la version dans `pyproject.toml` et `hotas_kneeboard/__init__.py` (les deux doivent être égales) et passe `[Unreleased]` sous ce numéro.
   À la fusion, la CI construit l'exe sous Windows et publie la release `vX.Y.Z` ; une fusion sans changement de version ne publie rien.
 - La CI (tests Python et de l'interface) tourne sur chaque PR et sur chaque poussée vers `develop` et `main`.

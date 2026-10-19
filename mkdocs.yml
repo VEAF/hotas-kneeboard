@@ -1,0 +1,66 @@
+site_name: HOTAS Kneeboard
+site_description: Pages de kneeboard et fiches à imprimer pour DCS World, dessinées sur tes périphériques
+site_url: https://veaf.github.io/hotas-kneeboard/
+repo_url: https://github.com/VEAF/hotas-kneeboard
+repo_name: VEAF/hotas-kneeboard
+docs_dir: docs
+edit_uri: blob/develop/docs/
+
+# instructions for the Claude sessions working on the repository: not for the site's readers
+exclude_docs: |
+  agents/
+
+# the home page is the README (scripts/mkdocs_hooks.py)
+hooks:
+  - scripts/mkdocs_hooks.py
+
+theme:
+  name: material
+  language: fr
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Passer en thème sombre
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Passer en thème clair
+  features:
+    - navigation.sections
+    - navigation.top
+    - search.highlight
+    - search.suggest
+    - content.code.copy
+
+markdown_extensions:
+  # the same anchors as on GitHub, accents kept: links like #vérifier-la-numérotation work on both
+  - toc:
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
+      permalink: true
+  - admonition
+  - attr_list
+  - tables
+  - pymdownx.superfences
+
+extra:
+  version:
+    provider: mike
+
+nav:
+  - Accueil: index.md
+  - Guide d'utilisation: guide-utilisateur.md
+  - Éditeur de gabarits: editeur-de-gabarits.md
+  - Gabarits: gabarits.md
+  - Développement: developpement.md
+
+# every warning (a broken link or anchor) fails the build in CI
+validation:
+  links:
+    anchors: warn

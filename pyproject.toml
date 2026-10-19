@@ -17,6 +17,11 @@ dev = [
     "pytest>=8.3",
     "ruff>=0.15",
 ]
+docs = [
+    "mike>=2.0,<3",
+    "mkdocs>=1.6,<2",
+    "mkdocs-material>=9.5,<10",
+]
 
 [project.scripts]
 hotas-kneeboard = "hotas_kneeboard.__main__:main"
