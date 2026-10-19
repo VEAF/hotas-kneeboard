@@ -1,54 +1,47 @@
-# HOTAS Kneeboard — 0.2.0
+# HOTAS Kneeboard — 0.2.1
 
-**Cette version fait le ménage dans tes commandes DCS, et exporte tous tes avions d'un coup.**
-Les retours des premiers jours ont montré deux choses : on veut ses planchettes pour tous ses avions, pas un par un, et on découvre en les lisant des boutons qui font deux choses sans qu'on le sache.
-Le cas d'école : sur l'A-10C II, couper le moteur droit avec le cran OFF de la manette des gaz tirait aussi au canon, parce que DCS met la gâchette sur le bouton 1 de tout joystick qu'il ne connaît pas.
-L'application te montre maintenant d'où vient chaque liaison, et te laisse retirer celles qui n'ont rien à faire là.
-
-> ### ⚠️ À savoir avant de modifier tes commandes
->
-> Toutes les modifications des commandes de DCS se font **DCS fermé** : le jeu réécrit ces fichiers quand il enregistre ses commandes, et l'application refuse tant qu'il tourne.
-> Avant chaque modification, tout ton dossier `Saved Games\DCS\Config\Input` est sauvegardé ; chaque retrait se défait d'un clic (**Annuler**), et les 20 dernières sauvegardes se restaurent depuis la fenêtre **Commandes DCS**.
+**Cette version parle anglais.**
+Elle peut maintenant servir aux escadrilles qui ne lisent pas le français : l'interface, ses messages et toute la documentation existent en anglais, et le français reste là pour nous.
 
 ---
 
-## 🛫 Tous tes avions d'un coup
+## 🌍 En français ou en anglais
 
-- **Kneeboard et PDF de tous les modules** : la flèche à côté de **Kneeboard** et de **PDF**, puis **Tous les modules** (ou Maj+E, Maj+P).
-  Chaque avion qui a un périphérique coché reçoit ses pages ; le PDF les réunit dans un seul fichier.
-- Une fenêtre montre où en est l'export (« Module 7 sur 20 »), et **Arrêter** s'arrête à la fin du module en cours.
-- Une vingtaine d'avions s'exportent en une dizaine de secondes.
-
----
-
-## 🧹 Le ménage dans les commandes de DCS
-
-- **La fenêtre Liaisons**, au-dessus de chaque page : toutes les liaisons du périphérique dans ce module, boutons, chapeaux et axes, avec leur origine.
-  - « ta config » : tu l'as posée toi-même ;
-  - « défaut pour ce périphérique » : le module l'a prévue pour ce matériel ;
-  - « défaut générique » : DCS la donne à n'importe quel joystick qu'il ne connaît pas. C'est là que se cachent la gâchette sur le bouton 1 d'un throttle, ou les gaz sur l'axe Z d'un manche.
-  Coche, **Supprimer**, c'est retiré ; **Annuler** remet tout comme avant.
-- **Les périphériques sans boutons** (fenêtre **Commandes DCS**) : coche ton palonnier, et les boutons que DCS lui invente (un tir d'arme sur le bouton 2, une direction de roulette sur le 4…) partent de tous les modules d'un coup.
-  Ce que tu y as mis toi-même et ses axes restent ; un aperçu avant, une relecture après.
+- **L'interface suit la langue de ton navigateur** : en français si ton navigateur est en français, en anglais sinon.
+  Tu peux la choisir dans les réglages (roue dentée), **Langue de l'interface** ; le changement s'applique tout de suite.
+- **Les messages de l'application** (erreurs, sauvegardes, aperçus) sont dans la même langue que l'interface.
+- **Les pages du kneeboard ne mélangent jamais deux langues** : les mots que l'application écrit dessus (« relâché : », la ligne de crédit du gabarit, l'en-tête d'une page en liste) et les actions de SRS et VectorXR suivent la langue des commandes de DCS.
+  DCS en français, tout est en français ; sinon, tout est en anglais.
+- Les noms de commande ne changent pas : ce sont toujours ceux que DCS affiche dans sa langue.
 
 ---
 
-## ✈️ Plus lisible
+## 📖 La documentation en anglais
 
-- **Les vrais noms des avions** : « AH-64D Pilot », « F/A-18C », « CH-47F Gunner Station » plutôt que `AH-64D_BLK_II_PLT` ou `FA-18C_hornet`, dans la liste et en tête des pages.
-- **Des colonnes à ta largeur** : glisse la ligne entre deux colonnes ; un double-clic revient à la largeur par défaut.
-- **La documentation à un clic** : le livre, en haut à droite.
-
----
-
-## 🔧 Corrigé
-
-- **Les boutons VectorXR manquants** : les vues rapides, le recentrage et l'activation de PivotXR apparaissent, avec le nom du profil (« PivotXR snapviews : vue Right MFD »).
-- **Le manche dessiné avec l'image de la manette des gaz** : un gabarit choisi à la main par erreur se voit (pastille « choix manuel ») et se défait (**Automatique** en tête de la liste).
-- **La sécurité** : une page web d'un autre site, ouverte dans ton navigateur, ne peut plus faire travailler l'application à ton insu.
+- Le guide d'utilisation, l'éditeur de gabarits, les gabarits et le développement existent en anglais, avec des captures de l'interface anglaise : <https://veaf.github.io/hotas-kneeboard/latest/en/>.
+- Le site a un sélecteur de langue, et le livre de l'application ouvre la documentation dans la langue de l'interface.
+- Le guide d'utilisation montre maintenant chaque écran en image, dans les deux langues.
 
 ---
 
-## 🙏 Merci
+## 🇬🇧 In English
 
-À Angrydad (VEAF), pour ses retours dès le premier jour, dont le manche Warthog qui avait l'image de sa manette des gaz.
+**This version speaks English.**
+Squadrons that do not read French can now use it: the interface, its messages and the whole documentation exist in English, and French is still there.
+
+**Documentation**: https://veaf.github.io/hotas-kneeboard/0.2.1/en/
+
+### 🌍 English or French
+
+- **The interface follows your browser's language**: French if your browser is in French, English otherwise.
+  You can choose it in the settings (cog wheel), **Interface language**; the change applies at once.
+- **The app's messages** (errors, backups, previews) are in the same language as the interface.
+- **Kneeboard pages never mix two languages**: the words the app writes on them ("released:", the template's credit line, the head of a list page) and the SRS and VectorXR actions follow the language of the DCS controls.
+  DCS in French, everything is in French; otherwise, everything is in English.
+- The command names do not change: they are still those DCS shows in its language.
+
+### 📖 The documentation in English
+
+- The user guide, the template editor, the templates and the development pages exist in English, with screenshots of the English interface.
+- The site has a language switcher, and the app's book opens the documentation in the interface's language.
+- The user guide now shows each screen as a picture, in both languages.

@@ -23,6 +23,8 @@ Sinon, elle écrit seulement les pages du kneeboard, et ses propres réglages da
 
 Trois colonnes, de gauche à droite.
 
+![L'écran principal : les modules, les périphériques de l'A-10C II, la page du manche](images/ecran-principal.png)
+
 **Modules.**
 Chaque profil de commandes que tu as configuré dans DCS (un avion, un hélicoptère, la couche d'interface…), sous le nom que lui donne l'écran des commandes du jeu (« AH-64D Pilot », « F/A-18C »), dans l'ordre alphabétique.
 Sous le nom, le dossier du profil dans `Saved Games\DCS\Config\Input` quand il est différent (`AH-64D_BLK_II_PLT`), et le dossier kneeboard de l'avion ; à droite, le nombre de périphériques exportés sur le nombre de périphériques montrés.
@@ -45,9 +47,11 @@ En bas à droite, le zoom : page entière, toute la largeur, plus ou moins (ou C
 
 La ligne entre deux colonnes se glisse pour élargir ou rétrécir la colonne des modules ou celle des périphériques ; l'application s'en souvient, et un double-clic sur la ligne remet la largeur par défaut.
 
-Dans la barre du haut, le livre ouvre cette documentation, celle de ta version de l'application, dans un nouvel onglet ; la fenêtre des raccourcis (`?`) y mène aussi.
+Dans la barre du haut, le livre ouvre cette documentation, celle de ta version de l'application et dans la langue de l'interface, dans un nouvel onglet ; la fenêtre des raccourcis (`?`) y mène aussi.
 
 ## Lire une page
+
+![Le haut d'une page : une étiquette par bouton, les cases libres en pointillés, le calque Paddle en orange](images/page-detail.png)
 
 - **Une étiquette par bouton lié**, posée sur la case du dessin.
   Le texte rapetisse pour tenir ; s'il ne tient vraiment pas, la case s'allonge.
@@ -82,6 +86,8 @@ Ils sont sur toutes les pages, même avec « Par calque » : ces logiciels ignor
 - **Un autre logiciel** se saisit à la main, depuis **Autres logiciels** : le nom du logiciel, le bouton (dans la liste, ou en appuyant dessus avec **Identifier**) et ce qu'il fait.
   Les entrées se modifient et se suppriment au même endroit.
 
+![La fenêtre Autres logiciels](images/autres-logiciels.png)
+
 Dans les réglages, l'onglet **Autres logiciels** indique le dossier de SRS (trouvé dans le registre Windows, à indiquer s'il ne l'est pas), ce qui a été lu, et permet de cacher un logiciel des pages ou de changer sa couleur.
 
 ## Exporter
@@ -105,6 +111,8 @@ Une fenêtre montre où en est l'export (« Module 7 sur 20 », le nom du module
 **Arrêter** s'arrête à la fin du module en cours : les modules déjà écrits le restent, et le message de fin dit combien ne l'ont pas été.
 Si un module échoue, les autres continuent, et le message de fin dit lequel et pourquoi.
 
+![La flèche à côté de Kneeboard : ce module, ou tous les modules](images/export-menu.png)
+
 ### En PDF
 
 **PDF** (ou Ctrl+P) télécharge un PDF des mêmes pages, une page A4 par page, à environ 200 points par pouce.
@@ -114,6 +122,8 @@ La même fenêtre montre la progression ; **Arrêter** n'écrit alors aucun PDF,
 ## Commandes DCS
 
 Le bouton à curseurs, en haut, ouvre la fenêtre **Commandes DCS** : ce que l'application peut changer dans tes commandes, et les sauvegardes qu'elle fait avant.
+
+![La fenêtre Commandes DCS : périphériques désactivés, périphériques absents](images/commandes-dcs.png)
 
 - **DCS doit être fermé.**
   Le jeu réécrit ses fichiers de commandes quand tu enregistres dans son écran des commandes : l'application refuse toute modification tant que DCS (ou un serveur dédié) tourne.
@@ -158,6 +168,8 @@ Les liaisons qui s'en servent restent affichées, dans le jeu comme ici, mais ne
 Tous les modules mettent les 8 vues lentes (« View Up slow », « View Down Left slow »…) sur le premier chapeau de **chaque** périphérique : le palonnier, l'ICP, les MFD en ont aussi, même si l'écran des commandes du jeu ne les montre pas toujours.
 Avec TrackIR ou la VR, elles ne servent à rien et encombrent les pages ; la section **Vues du chapeau** les retire en une fois.
 
+![La section Vues du chapeau](images/commandes-dcs-vues-du-chapeau.png)
+
 - **Chercher** calcule l'aperçu (quelques secondes) : chaque périphérique concerné, le nombre de vues, les modules (dépliables) et les fichiers qui seront créés.
 - **Par défaut**, ne sont cochés que les périphériques sur le chapeau desquels tu n'as rien mis toi-même, dans aucun module : le palonnier, l'ICP, les MFD, une manette dont le chapeau ne sert pas.
   Les autres sont listés grisés, avec ce que tu as mis sur leur chapeau.
@@ -180,6 +192,8 @@ DCS n'écrit nulle part combien de boutons a un périphérique : c'est toi qui l
 2. **Chercher** : l'aperçu donne, par périphérique et par module, les boutons génériques qui partiraient.
 3. **Retirer…** puis **Retirer** : une seule sauvegarde avant, les commandes relues après l'écriture et comparées à l'aperçu ; **Annuler ce retrait** restaure la sauvegarde.
 
+![La section Périphériques sans boutons, le palonnier coché](images/commandes-dcs-sans-boutons.png)
+
 Seules partent les liaisons de bouton et de chapeau qui viennent de ce profil générique : ce que tu as mis toi-même sur le périphérique, ce que le module prévoit pour ce matériel précis, et tous les axes restent.
 Une liaison dont l'application ne connaît pas le numéro de commande de DCS (le tir secondaire et la tourelle de Combined Arms) ne peut pas être retirée d'ici : l'aperçu la montre à part, retire-la dans l'écran des commandes du jeu.
 Par défaut, seuls les modules où le périphérique est configuré sont touchés ; l'option « Tous les modules installés » crée un fichier dans chacun, pour qu'un nouvel avion soit déjà propre.
@@ -190,6 +204,8 @@ Le bouton **Liaisons**, au-dessus de la page, liste toutes les liaisons du péri
 - « ta config » : tu l'as posée dans l'écran des commandes de DCS ;
 - « défaut pour ce périphérique » : le module la prévoit pour ce périphérique précis (le Warthog dans l'A-10C, par exemple), y compris dans le fichier qu'il livre et que DCS recopie dans le tien ;
 - « défaut générique » : le module n'a rien prévu pour ce périphérique, et DCS lui donne ce qu'il donne à n'importe quel joystick.
+
+![La fenêtre Liaisons du manche, dans l'A-10C II](images/liaisons.png)
 
 Les défauts génériques sont souvent à retirer : c'est là qu'on voit un bouton qui fait deux choses sans le savoir, un « Engine Stop Right » à toi et le « Gun Trigger » que l'A-10C met sur le bouton 1 de tout joystick, ou les gaz sur l'axe Z d'un manche.
 
@@ -205,10 +221,15 @@ Le retrait ne vaut que pour ce module : la même commande reste dans les autres.
 La roue dentée, en haut, ouvre les réglages.
 Ils sont enregistrés dans `%APPDATA%\HOTAS Kneeboard\settings.json` ; le chemin exact est rappelé au bas de la fenêtre.
 
+![Les réglages, onglet Général](images/reglages.png)
+
 **Général.**
 
+- La langue de l'interface : celle du navigateur par défaut (le français si ton navigateur est en français, l'anglais sinon), ou le français ou l'anglais au choix.
+  Elle s'applique tout de suite, aux menus comme aux messages de l'application, et à la documentation qu'ouvre le livre.
 - Les dossiers de DCS : vides, ils sont trouvés automatiquement.
 - La langue des commandes : celle du jeu par défaut, ou une autre langue livrée avec DCS.
+  Les mots que l'application écrit elle-même sur les pages (« relâché : », la ligne de crédit du gabarit, l'en-tête d'une page en liste) suivent cette langue : en français quand les commandes sont en français, en anglais sinon, pour qu'une page ne mélange pas deux langues.
 - La hauteur des pages kneeboard.
 - La découpe en deux pages des dessins qui ont une ligne de découpe.
 

@@ -19,15 +19,17 @@ import type {
   Template,
   TemplateSummary,
 } from './types'
+import { lang, t } from './i18n'
 
 export class ApiError extends Error {}
 
 async function request<T>(url: string, init?: RequestInit): Promise<T> {
   let response: Response
   try {
-    response = await fetch(url, init)
+    // the server answers in the interface's language
+    response = await fetch(url, { ...init, headers: { 'Accept-Language': lang.value, ...init?.headers } })
   } catch {
-    throw new ApiError("Le serveur ne répond pas : l'application est-elle toujours lancée ?")
+    throw new ApiError(t('api.no_server'))
   }
   if (!response.ok) {
     let detail = response.statusText
@@ -53,7 +55,8 @@ export const api = {
   saveSettings: (changes: Partial<Settings>) =>
     request<{ dcs: DcsState; settings: Settings }>('/api/settings', json('PUT', changes)),
   bindings: (refresh = false) => request<BindingsResponse>(`/api/bindings${refresh ? '?refresh=true' : ''}`),
-  programs: () => request<ProgramsResponse>('/api/programs'),
+  /** the actions in `pages`, the language of the pages they are drawn on (the problems in the interface's) */
+  programs: (pages: string) => request<ProgramsResponse>(`/api/programs?pages=${encodeURIComponent(pages)}`),
   templates: () => request<TemplateSummary[]>('/api/templates'),
   template: (id: string) => request<Template>(`/api/templates/${encodeURIComponent(id)}`),
   templateImageUrl: (id: string) => `/api/templates/${encodeURIComponent(id)}/image`,

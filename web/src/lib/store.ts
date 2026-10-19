@@ -18,6 +18,7 @@ import { canvasMeasurer, type Measurer } from '../render/text'
 import { devicePages, type Page } from '../render/page'
 import { FONT_CSS } from '../render/export'
 import { marksFor, programStyles, SRS } from '../render/programs'
+import { pageLanguage, setLanguage, t } from './i18n'
 
 export interface LoadedTemplate {
   data: Template
@@ -57,8 +58,7 @@ async function blobToDataUrl(blob: Blob): Promise<string> {
 
 /** Tooltip of a device whose layers use modifiers DCS drops (their device was renamed) */
 export function inactiveHint(modifiers: string[]): string {
-  const names = modifiers.join(', ')
-  return `${names} : DCS ignore ce modificateur, son périphérique a changé de nom. Ses liaisons s'affichent mais ne marchent pas en jeu. Réparer dans la fenêtre Commandes DCS.`
+  return t('store.inactive_modifier', { names: modifiers.join(', ') })
 }
 
 export function loadTemplate(id: string): Promise<LoadedTemplate> {
@@ -68,7 +68,7 @@ export function loadTemplate(id: string): Promise<LoadedTemplate> {
       const [data, image] = await Promise.all([
         api.template(id),
         fetch(api.templateImageUrl(id)).then((r) => {
-          if (!r.ok) throw new Error(`image du gabarit ${id} introuvable`)
+          if (!r.ok) throw new Error(t('store.template_image_missing', { id }))
           return r.blob()
         }),
       ])
@@ -102,7 +102,12 @@ async function load(refresh = false): Promise<void> {
     state.settingsFile = current.settings_file
     state.dcs = current.dcs
     state.settings = current.settings
-    const [bindings, templates, programs] = await Promise.all([api.bindings(refresh), api.templates(), api.programs()])
+    setLanguage(current.settings.ui_language)
+    const [bindings, templates, programs] = await Promise.all([
+      api.bindings(refresh),
+      api.templates(),
+      api.programs(pageLanguage(current.dcs.language)),
+    ])
     state.bindings = bindings
     state.templates = templates
     state.programs = programs
@@ -140,7 +145,7 @@ async function flushSettings(): Promise<void> {
     const saved = await api.saveSettings(changes)
     state.dcs = saved.dcs
   } catch (error) {
-    state.error = `Réglages non enregistrés : ${(error as Error).message}`
+    state.error = t('store.settings_not_saved', { error: (error as Error).message })
   }
 }
 
@@ -153,6 +158,16 @@ async function saveReading(changes: Pick<Settings, 'dcs_install_dir' | 'saved_ga
   state.dcs = saved.dcs
   state.settings = saved.settings
   await load(true)
+}
+
+/** The interface's language (null: the browser's): applied at once; saved, then everything read
+ * again, so that the server's messages already shown (DCS problems, errors) speak it too. The pages
+ * do not change: they speak the commands' language. */
+async function setUiLanguage(ui_language: string | null): Promise<void> {
+  setLanguage(ui_language)
+  changeSettings({ ui_language })
+  await flushSettings()
+  await load()
 }
 
 // --- derived -------------------------------------------------------------------------------
@@ -309,7 +324,7 @@ async function saveSrsDir(srs_dir: string | null): Promise<void> {
   await flushSettings()
   const saved = await api.saveSettings({ srs_dir })
   state.settings = saved.settings
-  state.programs = await api.programs()
+  state.programs = await api.programs(pageLanguage(state.dcs?.language))
 }
 
 /** The name a module shows (DCS's), its folder name staying the key of everything */
@@ -322,7 +337,15 @@ async function pagesOf(profileName: string, d: Device): Promise<Page[]> {
   const [m, template] = await Promise.all([getMeasurer(), id ? loadTemplate(id) : Promise.resolve(null)])
   const marks = marksFor(d.guid, programBindings(profileName), state.settings?.hidden_programs ?? [])
   return devicePages(
-    { profile: profileLabel(profileName), device: d, template, measurer: m, fontCss: FONT_CSS, programs: { marks, styles: styles.value } },
+    {
+      profile: profileLabel(profileName),
+      device: d,
+      template,
+      measurer: m,
+      fontCss: FONT_CSS,
+      programs: { marks, styles: styles.value },
+      lang: pageLanguage(state.dcs?.language),
+    },
     state.settings?.layer_mode ?? 'merge',
     state.settings?.split_wide ?? true,
   )
@@ -356,6 +379,7 @@ export function useStore() {
     changeSettings,
     flushSettings,
     saveReading,
+    setUiLanguage,
     orderedDevices,
     isExported,
     templateIdFor,

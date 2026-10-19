@@ -50,14 +50,18 @@ const ctx = (layer: string | null, withTemplate = true): PageContext => ({
   template: withTemplate ? { data: template, image: 'data:image/svg+xml;base64,AA' } : null,
   layer,
   measurer: approximateMeasurer,
+  lang: 'fr',
 })
 
 describe('inputs', () => {
-  it('names inputs for a pilot', () => {
-    expect(inputName('JOY_BTN14')).toBe('Bouton 14')
-    expect(inputName('JOY_BTN_POV1_UL')).toBe('Hat 1 ↖')
-    expect(inputName('JOY_RZ')).toBe('Axe RZ')
-    expect(inputName('JOY_SLIDER2')).toBe('Curseur 2')
+  it('names inputs for a pilot, in the language asked', () => {
+    expect(inputName('JOY_BTN14', 'fr')).toBe('Bouton 14')
+    expect(inputName('JOY_BTN_POV1_UL', 'fr')).toBe('Hat 1 ↖')
+    expect(inputName('JOY_RZ', 'fr')).toBe('Axe RZ')
+    expect(inputName('JOY_SLIDER2', 'fr')).toBe('Curseur 2')
+    expect(inputName('JOY_BTN14', 'en')).toBe('Button 14')
+    expect(inputName('JOY_RZ', 'en')).toBe('Axis RZ')
+    expect(inputName('JOY_SLIDER2', 'en')).toBe('Slider 2')
   })
 
   it('orders buttons, then hats in compass order, then axes', () => {
@@ -92,7 +96,7 @@ describe('text', () => {
 
 describe('pages', () => {
   it('lists the entries of each input in layer order, or of one layer', () => {
-    const all = entriesByInput(device, null)
+    const all = entriesByInput(device, null, {}, 'fr')
     expect([...all.keys()]).toEqual(['JOY_BTN2', 'JOY_BTN9', 'JOY_BTN17', 'JOY_Z'])
     expect(all.get('JOY_BTN2')!.map((e) => e.layer)).toEqual(['', 'Paddle'])
     expect(all.get('JOY_BTN9')![0]).toMatchObject({ text: 'relâché : Switch Released', released: true })

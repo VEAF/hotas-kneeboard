@@ -13,8 +13,11 @@ import logging
 import os
 import re
 import sys
+from contextlib import nullcontext
 from dataclasses import asdict, dataclass
 from pathlib import Path
+
+from .i18n import language, t
 
 _logger = logging.getLogger(__name__)
 
@@ -49,24 +52,25 @@ HAT_DIRECTIONS = {
     31500: "UL",
 }
 
+# SRS's sections -> catalog key of their name (srs.<section>)
 SRS_ACTIONS = {
-    "Ptt": "PTT radio",
-    "Intercom": "Interphone",
-    "IntercomPTT": "PTT interphone",
-    "NextRadio": "Radio suivante",
-    "PreviousRadio": "Radio précédente",
-    "OverlayToggle": "Overlay radio",
-    "AwacsOverlayToggle": "Overlay AWACS",
-    "RadioChannelUp": "Canal +",
-    "RadioChannelDown": "Canal −",
-    "RadioVolumeUp": "Volume +",
-    "RadioVolumeDown": "Volume −",
-    "ToggleGuard": "Garde",
-    "ToggleEncryption": "Chiffrement",
-    "EncryptionKeyIncrease": "Clé de chiffrement +",
-    "EncryptionKeyDecrease": "Clé de chiffrement −",
-    "TransponderIDENT": "IDENT transpondeur",
-    "ReadoutToggle": "Lecture des fréquences",
+    "Ptt",
+    "Intercom",
+    "IntercomPTT",
+    "NextRadio",
+    "PreviousRadio",
+    "OverlayToggle",
+    "AwacsOverlayToggle",
+    "RadioChannelUp",
+    "RadioChannelDown",
+    "RadioVolumeUp",
+    "RadioVolumeDown",
+    "ToggleGuard",
+    "ToggleEncryption",
+    "EncryptionKeyIncrease",
+    "EncryptionKeyDecrease",
+    "TransponderIDENT",
+    "ReadoutToggle",
 }
 _SWITCH = re.compile(r"^Switch(\d+)$")
 _CAMEL = re.compile(r"(?<=[a-z0-9])(?=[A-Z])")
@@ -100,10 +104,10 @@ def _button(number: int) -> str:
 
 def srs_action(section: str) -> str:
     if section.startswith("Modifier") and section != "Modifier":
-        return f"{srs_action(section.removeprefix('Modifier'))} (modificateur)"
+        return t("srs.modifier", action=srs_action(section.removeprefix("Modifier")))
     if match := _SWITCH.match(section):
-        return f"Radio {match[1]}"
-    return SRS_ACTIONS.get(section) or _CAMEL.sub(" ", section)
+        return t("srs.radio", n=match[1])
+    return t(f"srs.{section}") if section in SRS_ACTIONS else _CAMEL.sub(" ", section)
 
 
 def srs_input(button: int, value: int) -> str | None:
@@ -196,9 +200,13 @@ def _vectorxr_action(path: list, data: dict) -> str:
     """Readable name of a binding from where it sits in VectorXR's settings"""
     keys = [p for p in path if isinstance(p, str)]
     if keys[:3] == ["core", "osd", "toggleBindings"]:
-        return "Overlay : afficher / masquer"
+        return t("vectorxr.action", label="Overlay", action=t("vectorxr.show_hide"))
     if keys[:2] == ["core", "osd"]:
-        return "Overlay : " + _CAMEL.sub(" ", keys[2]).lower().removesuffix(" binding")
+        return t(
+            "vectorxr.action",
+            label="Overlay",
+            action=_CAMEL.sub(" ", keys[2]).lower().removesuffix(" binding"),
+        )
     module = keys[1] if len(keys) > 1 and keys[0] == "modules" else keys[0]
     label = {"pivotxr": "PivotXR", "depthxr": "DepthXR", "quadviews": "Quad views"}.get(module, module)
     if "profiles" in keys:
@@ -210,15 +218,18 @@ def _vectorxr_action(path: list, data: dict) -> str:
     if "quickViews" in keys:
         index = path[path.index("quickViews") + 1]
         view = _get(data, path[: path.index("quickViews") + 2]) or {}
-        return f"{label} : vue {view.get('name') or index + 1}"
+        return t(
+            "vectorxr.action", label=label, action=t("vectorxr.view", name=view.get("name") or index + 1)
+        )
     last = keys[-1] if keys[-1] not in ("binding",) else keys[-2]
     words = {
-        "activationBindings": "activer",
-        "setOriginBindings": "recentrer",
-        "toggleEnabled": "activer / désactiver",
-        "toggleAnchor": "ancrage",
+        "activationBindings": "vectorxr.activate",
+        "setOriginBindings": "vectorxr.recenter",
+        "toggleEnabled": "vectorxr.toggle",
+        "toggleAnchor": "vectorxr.anchor",
     }
-    return f"{label} : {words.get(last, _CAMEL.sub(' ', last).lower())}"
+    action = t(words[last]) if last in words else _CAMEL.sub(" ", last).lower()
+    return t("vectorxr.action", label=label, action=action)
 
 
 def _get(data, path: list):
@@ -279,19 +290,26 @@ def read_vectorxr(path: Path) -> list[ProgramBinding]:
 # --- everything --------------------------------------------------------------------------------
 
 
-def read_programs(srs_dir_setting: str | None, dcs_profiles: list[str]) -> dict:
+def read_programs(
+    srs_dir_setting: str | None, dcs_profiles: list[str], actions_language: str | None = None
+) -> dict:
     """What the programs read directly give the pages: VectorXR's bindings, which hold in every
     module, each SRS profile's bindings, and the SRS profile matched by name to each DCS module.
-    The user's choices (another SRS profile, entries by hand, colours) are applied by the UI."""
+    The user's choices (another SRS profile, entries by hand, colours) are applied by the UI.
+
+    The actions are named in ``actions_language`` (the pages' language) when given, the problems in
+    the current one (the interface's)."""
     problems: list[str] = []
+    actions = (lambda: language(actions_language)) if actions_language else nullcontext
 
     vectorxr = vectorxr_settings_file()
     vectorxr_bindings: list[dict] = []
     if vectorxr and vectorxr.is_file():
         try:
-            vectorxr_bindings = [b.as_dict() for b in read_vectorxr(vectorxr)]
+            with actions():
+                vectorxr_bindings = [b.as_dict() for b in read_vectorxr(vectorxr)]
         except (OSError, ValueError, KeyError, TypeError, IndexError) as error:
-            problems.append(f"Réglages VectorXR illisibles : {error}")
+            problems.append(t("programs.vectorxr_unreadable", error=error))
     else:
         vectorxr = None
 
@@ -299,13 +317,14 @@ def read_programs(srs_dir_setting: str | None, dcs_profiles: list[str]) -> dict:
     folder = srs_profiles_dir(srs_dir)
     srs_names = srs_profile_names(folder) if folder else []
     if srs_dir_setting and not folder:
-        problems.append(f"Pas de profil SRS (fichier .cfg) dans {srs_dir}")
+        problems.append(t("programs.srs_no_profile", folder=srs_dir))
     srs_bindings: dict[str, list[dict]] = {}
     for name in srs_names:
         try:
-            srs_bindings[name] = [b.as_dict() for b in read_srs_profile(folder / f"{name}.cfg")]
+            with actions():
+                srs_bindings[name] = [b.as_dict() for b in read_srs_profile(folder / f"{name}.cfg")]
         except (OSError, configparser.Error) as error:
-            problems.append(f"Profil SRS {name} illisible : {error}")
+            problems.append(t("programs.srs_unreadable", name=name, error=error))
 
     return {
         "srs": {

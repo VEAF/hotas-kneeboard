@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { exportableModules, failuresDetail } from '../exportAll'
 import type { Device, Profile } from '../types'
+import { lang } from '../i18n'
 
 const device = (full_name: string) => ({ full_name, name: full_name }) as Device
 const profile = (name: string, unit_type: string | null, devices: Device[]) =>
@@ -28,7 +29,10 @@ describe('exportableModules', () => {
 })
 
 describe('failuresDetail', () => {
-  it('says which module failed and why', () => {
+  it('says which module failed and why, with the typography of the language', () => {
+    lang.value = 'fr'
     expect(failuresDetail([{ module: 'F-16C_50', error: 'disque plein' }])).toBe('F-16C_50 : disque plein')
+    lang.value = 'en'
+    expect(failuresDetail([{ module: 'F-16C_50', error: 'disk full' }])).toBe('F-16C_50: disk full')
   })
 })

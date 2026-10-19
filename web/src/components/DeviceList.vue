@@ -4,6 +4,7 @@ import Button from 'primevue/button'
 import Checkbox from 'primevue/checkbox'
 import { inactiveHint, useStore } from '../lib/store'
 import type { Device } from '../lib/types'
+import { t, tn } from '../lib/i18n'
 
 const store = useStore()
 const { state } = store
@@ -12,7 +13,7 @@ const over = ref<number | null>(null)
 
 function layersText(d: Device): string {
   const others = d.layers.filter((l) => l !== '')
-  return others.length ? ` · calque ${others.join(', ')}` : ''
+  return others.length ? ` · ${t('devices.layer', { layers: others.join(', ') })}` : ''
 }
 
 // the selected device hidden: select another one
@@ -27,12 +28,12 @@ function onDrop(index: number) {
 </script>
 
 <template>
-  <section class="col" aria-label="Périphériques">
+  <section class="col" :aria-label="t('devices.title')">
     <header class="colhead">
-      <span class="eyebrow">Périphériques<template v-if="store.profile.value"> · {{ store.profile.value.display_name }}</template></span>
-      <span class="hint">Cochés = pages exportées · glisser pour l'ordre des pages</span>
+      <span class="eyebrow">{{ t('devices.title') }}<template v-if="store.profile.value"> · {{ store.profile.value.display_name }}</template></span>
+      <span class="hint">{{ t('devices.hint') }}</span>
     </header>
-    <div class="list" role="listbox" aria-label="Périphériques">
+    <div class="list" role="listbox" :aria-label="t('devices.title')">
       <div
         v-for="(d, i) in store.devices.value"
         :key="d.full_name"
@@ -53,35 +54,35 @@ function onDrop(index: number) {
           :model-value="store.isExported(store.profile.value!.name, d)"
           binary
           :disabled="store.isHidden(d.name)"
-          :aria-label="`Exporter ${d.name}`"
+          :aria-label="t('devices.export', { name: d.name })"
           @click.stop
           @update:model-value="store.toggleExported(store.profile.value!.name, d)"
         />
         <span class="meta">
           <span class="t" :title="d.full_name">{{ d.name }}</span>
-          <span class="s">{{ d.binding_count }} liaisons{{ layersText(d) }}</span>
+          <span class="s">{{ tn('devices.bindings', d.binding_count) }}{{ layersText(d) }}</span>
         </span>
-        <span v-if="d.inactive_modifiers.length" class="pill warn" v-tooltip.left="inactiveHint(d.inactive_modifiers)">modificateur inactif</span>
-        <span v-if="d.dcs_disabled" class="pill" v-tooltip.left="'Désactivé dans DCS : le jeu ignore ce périphérique (fenêtre Commandes DCS)'">désactivé</span>
-        <span v-else-if="store.isHidden(d.name)" class="pill">caché</span>
-        <span v-else-if="store.templateIdFor(d)" class="pill ok">gabarit</span>
-        <span v-else class="pill">liste</span>
+        <span v-if="d.inactive_modifiers.length" class="pill warn" v-tooltip.left="inactiveHint(d.inactive_modifiers)">{{ t('devices.pill.inactive_modifier') }}</span>
+        <span v-if="d.dcs_disabled" class="pill" v-tooltip.left="t('devices.disabled_tip')">{{ t('devices.pill.disabled') }}</span>
+        <span v-else-if="store.isHidden(d.name)" class="pill">{{ t('devices.pill.hidden') }}</span>
+        <span v-else-if="store.templateIdFor(d)" class="pill ok">{{ t('devices.pill.template') }}</span>
+        <span v-else class="pill">{{ t('devices.pill.list') }}</span>
         <Button
           class="eye"
           text
           rounded
           size="small"
           :icon="store.isHidden(d.name) ? 'pi pi-eye' : 'pi pi-eye-slash'"
-          :aria-label="store.isHidden(d.name) ? `Montrer ${d.name}` : `Cacher ${d.name}`"
-          v-tooltip.left="store.isHidden(d.name) ? 'Montrer ce périphérique (H)' : 'Cacher ce périphérique dans tous les modules (H)'"
+          :aria-label="store.isHidden(d.name) ? t('devices.show', { name: d.name }) : t('devices.hide', { name: d.name })"
+          v-tooltip.left="store.isHidden(d.name) ? t('devices.show_tip') : t('devices.hide_tip')"
           @click.stop="store.setHidden(d.name, !store.isHidden(d.name))"
         />
       </div>
-      <p v-if="store.profile.value && !store.devices.value.length && !store.hiddenCount.value" class="empty">Aucun périphérique configuré pour ce module.</p>
+      <p v-if="store.profile.value && !store.devices.value.length && !store.hiddenCount.value" class="empty">{{ t('devices.none') }}</p>
     </div>
     <footer v-if="store.hiddenCount.value" class="hidden-bar">
-      <span>{{ store.hiddenCount.value }} caché{{ store.hiddenCount.value > 1 ? 's' : '' }}</span>
-      <Button size="small" text :label="state.showHidden ? 'Masquer' : 'Afficher'" @click="state.showHidden = !state.showHidden" />
+      <span>{{ tn('settings.hidden', store.hiddenCount.value) }}</span>
+      <Button size="small" text :label="state.showHidden ? t('devices.hidden.hide') : t('devices.hidden.show')" @click="state.showHidden = !state.showHidden" />
     </footer>
   </section>
 </template>

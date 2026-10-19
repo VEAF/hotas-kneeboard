@@ -13,6 +13,8 @@ import re
 import uuid
 from pathlib import Path
 
+from .i18n import t
+
 PREFIX = "HOTAS - "
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 _UNSAFE = re.compile(r'[<>:"/\\|?*\x00-\x1f]')
@@ -44,9 +46,9 @@ def _decode(pages: list[dict]) -> list[tuple[str, bytes]]:
         try:
             data = base64.b64decode(page["png"], validate=True)
         except (KeyError, TypeError, binascii.Error) as error:
-            raise KneeboardError(f"page {page.get('title')!r} : données PNG illisibles (base64)") from error
+            raise KneeboardError(t("kneeboard.bad_base64", page=repr(page.get("title")))) from error
         if not data.startswith(PNG_SIGNATURE):
-            raise KneeboardError(f"page {page.get('title')!r} : ce n'est pas une image PNG")
+            raise KneeboardError(t("kneeboard.not_png", page=repr(page.get("title"))))
         images.append((str(page.get("title") or "page"), data))
     return images
 

@@ -4,6 +4,7 @@ import IconField from 'primevue/iconfield'
 import InputIcon from 'primevue/inputicon'
 import InputText from 'primevue/inputtext'
 import { useStore } from '../lib/store'
+import { t } from '../lib/i18n'
 
 const store = useStore()
 const { state } = store
@@ -31,23 +32,23 @@ defineExpose({ focusSearch: () => search.value?.$el.focus(), shown })
 </script>
 
 <template>
-  <section class="col" aria-label="Modules">
+  <section class="col" :aria-label="t('modules.title')">
     <header class="colhead">
-      <span class="eyebrow">Modules</span>
+      <span class="eyebrow">{{ t('modules.title') }}</span>
       <IconField>
         <InputIcon class="pi pi-search" />
         <InputText
           ref="search"
           v-model="state.filter"
           size="small"
-          placeholder="Filtrer…   /"
-          aria-label="Filtrer les modules"
+          :placeholder="`${t('common.filter')}   /`"
+          :aria-label="t('modules.filter')"
           fluid
           @keydown.esc="($event.target as HTMLInputElement).blur()"
         />
       </IconField>
     </header>
-    <div class="list" role="listbox" aria-label="Modules">
+    <div class="list" role="listbox" :aria-label="t('modules.title')">
       <div
         v-for="p in shown"
         :key="p.name"
@@ -59,19 +60,19 @@ defineExpose({ focusSearch: () => search.value?.$el.focus(), shown })
         @click="select(p.name)"
       >
         <span class="meta">
-          <span class="t" v-tooltip.right="p.display_name !== p.name ? `Profil ${p.name} dans Saved Games\\DCS\\Config\\Input` : undefined">{{ p.display_name }}</span>
+          <span class="t" v-tooltip.right="p.display_name !== p.name ? t('modules.profile', { name: p.name }) : undefined">{{ p.display_name }}</span>
           <span class="s">
             <template v-if="p.display_name !== p.name && !p.display_name.includes(`(${p.name})`)">{{ p.name }} · </template>
-            <template v-if="!p.found">module non installé</template>
-            <template v-else-if="p.unit_type">kneeboard {{ p.unit_type }}</template>
-            <template v-else>pas d'avion : pas de kneeboard</template>
+            <template v-if="!p.found">{{ t('modules.not_installed') }}</template>
+            <template v-else-if="p.unit_type">{{ t('modules.kneeboard', { unit: p.unit_type }) }}</template>
+            <template v-else>{{ t('modules.no_aircraft') }}</template>
           </span>
         </span>
-        <span class="n" v-tooltip.right="'périphériques exportés / configurés'">
+        <span class="n" v-tooltip.right="t('modules.count')">
           {{ exportedCount(p.name)[0] }}/{{ exportedCount(p.name)[1] }}
         </span>
       </div>
-      <p v-if="!shown.length && store.profiles.value.length" class="empty">Aucun module ne correspond.</p>
+      <p v-if="!shown.length && store.profiles.value.length" class="empty">{{ t('modules.none') }}</p>
     </div>
   </section>
 </template>

@@ -77,6 +77,8 @@ export interface Settings {
   dcs_install_dir: string | null
   saved_games_dir: string | null
   language: string | null
+  /** the interface's language, "fr" or "en"; null: the browser's */
+  ui_language: string | null
   exported: Record<string, Record<string, boolean>>
   device_templates: Record<string, string>
   device_order: Record<string, string[]>

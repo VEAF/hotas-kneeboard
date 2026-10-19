@@ -11,6 +11,8 @@ L'éditeur sert à dessiner un périphérique qui n'en a pas, à corriger un gab
 
 **Pages** ramène à l'écran principal ; l'éditeur prévient si des modifications ne sont pas enregistrées.
 
+![L'éditeur, ouvert sur le gabarit du manche WinWing Orion](images/editeur.png)
+
 ## Partir d'une image
 
 Glisse une photo ou un dessin du périphérique sur la fenêtre (PNG, JPG ou SVG), ou clique sur **Image…**.
@@ -49,6 +51,8 @@ Les hats ne sont pas reconnus : choisis-les dans la liste.
 
 Les boutons vus s'affichent au fur et à mesure, en vert quand ils ont leur case.
 Une fois tous les boutons essayés et les cases corrigées, indique ton pseudo et clique sur **Marquer vérifié** : la page ne dira plus « numérotation non vérifiée ».
+
+![Le mode Vérifier, dans la colonne de gauche](images/editeur-verifier.png)
 
 ## Découper en deux pages
 

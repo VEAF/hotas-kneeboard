@@ -1,4 +1,73 @@
+<a id="en"></a>
+
 # HOTAS Kneeboard
+
+> 🇫🇷 [Lire ce document en français](#fr)
+
+Kneeboard pages and printable sheets for DCS World, showing what every button of your HOTAS does, drawn on your own hardware.
+
+HOTAS Kneeboard reads how your devices are set up in DCS, module by module, and draws it on the picture of each device: stick, throttle, rudder pedals, panels.
+One click writes the pages into the aircraft's kneeboard; another one makes a PDF to print or to share.
+
+A [VEAF](https://www.veaf.org) project, under the GPL v2 license.
+
+## What it does
+
+- **What DCS really does**: the module's defaults, your changes, the defaults you removed, the commands added by the community (Quaggles' injector), with the names as the game shows them in its language.
+  Checked identical to DCS's "MAKE HTML" export on the A-10C II and the F-16C.
+- **Readable at a glance**: a two-position switch fits on a single label ("LG Handle - UP / DN"); modifier layers (a "Paddle", say) show in colour in the same label, or on one page per layer.
+- **Nothing gets lost**: a command bound to an input that has no box on the drawing is listed under the drawing; a device without a drawing gets a list page.
+- **Other programs too**: the buttons SRS (per aircraft) and VectorXR use are read directly and drawn in their colour; those of another program (VoiceAttack, OpenKneeboard…) are entered by hand.
+- **To the kneeboard in one click**: the pages land in `Saved Games\DCS\Kneeboard\<aircraft>\` and you find them in flight.
+- **PDF** of every page of a module.
+- **45 device drawings** taken from [Joystick Diagrams](https://github.com/Rexeh/joystick-diagrams) (Thrustmaster, WinWing, Virpil, VKB, Saitek, CH…), and an **editor** to draw the missing ones or correct the others.
+- **Tidying up the DCS controls** (DCS closed, a backup before every change, undoable): remove a binding from a device, with its origin (yours, the one meant for this hardware, or the one DCS gives "any joystick"), remove at once the hat views or the buttons of rudder pedals in every module, disable or forget a device, repair the modifiers of a renamed device.
+- **Handy**: everything works from the keyboard, drag and drop for the order of the pages, choices remembered, useless devices hidden.
+- **In English or in French**: the interface follows your browser's language, or the one you choose in the settings.
+
+## Installation
+
+1. Download `HOTAS-Kneeboard.exe` from the [releases](https://github.com/VEAF/hotas-kneeboard/releases).
+2. Run it: nothing to install, no Python needed.
+   A console window opens (closing it quits the app) and the app opens in your browser.
+3. It finds DCS by itself: the install through the Windows registry, `Saved Games\DCS` in your profile.
+   Otherwise, enter the folders in the settings (cog wheel).
+
+## In two minutes
+
+1. Choose a module on the left, then a device: the page shows what DCS will do.
+2. Untick the devices you do not want in the kneeboard, drag them to change the order of the pages.
+3. **Kneeboard** (Ctrl+E) writes the pages; they are in the kneeboard the next time you fly this aircraft.
+   The arrow beside it (Shift+E) does it for all your aircraft at once.
+4. **PDF** (Ctrl+P) downloads the same pages; Shift+P, every module in a single PDF.
+
+`?` shows every keyboard shortcut.
+
+## Documentation
+
+It is also online, with a menu and a search: <https://veaf.github.io/hotas-kneeboard/en/>.
+
+- [User guide](docs/guide-utilisateur.en.md): the screen, the pages, the exports, the settings, the shortcuts, the usual problems.
+- [Template editor](docs/editeur-de-gabarits.en.md): draw a device that has no template, correct a template, check it on the real hardware, share it.
+- [Templates](docs/gabarits.en.md): the format, the library, the conversion from Joystick Diagrams, how to add a checked template.
+- [Development](docs/developpement.en.md): the architecture, the reading engine, the commands, the tests, the branches and the releases.
+
+## Credits
+
+The device drawings come from [Joystick Diagrams](https://github.com/Rexeh/joystick-diagrams), by Robert Cox (Rexeh) and its contributors, under the GPL v2 license; every template keeps its credit, recalled at the bottom of each page.
+Reading the bindings reproduces DCS's logic (`Scripts/Input/Data.lua`) and runs with the Lua interpreter shipped with the game.
+
+## License
+
+GNU General Public License v2, see [LICENSE](LICENSE).
+
+---
+
+<a id="fr"></a>
+
+# HOTAS Kneeboard
+
+> 🇬🇧 [Read this document in English](#en)
 
 Des pages de kneeboard et des fiches à imprimer pour DCS World, qui montrent ce que fait chaque bouton de ton HOTAS, dessiné sur ton propre matériel.
 
@@ -19,6 +88,7 @@ Un projet de la [VEAF](https://www.veaf.org), sous licence GPL v2.
 - **45 dessins de périphériques** repris de [Joystick Diagrams](https://github.com/Rexeh/joystick-diagrams) (Thrustmaster, WinWing, Virpil, VKB, Saitek, CH…), et un **éditeur** pour dessiner ceux qui manquent ou corriger les autres.
 - **Le ménage dans les commandes de DCS** (DCS fermé, sauvegarde avant chaque modification, annulable) : retirer une liaison d'un périphérique, avec son origine (la tienne, celle prévue pour ce matériel, ou celle que DCS donne à « n'importe quel joystick »), retirer d'un coup les vues du chapeau ou les boutons d'un palonnier dans tous les modules, désactiver ou oublier un périphérique, réparer les modificateurs d'un périphérique renommé.
 - **Pratique** : tout se fait au clavier, glisser-déposer pour l'ordre des pages, choix mémorisés, périphériques inutiles masqués.
+- **En français ou en anglais** : l'interface suit la langue de ton navigateur, ou celle que tu choisis dans les réglages.
 
 ## Installation
 
@@ -55,4 +125,3 @@ La lecture des liaisons reproduit la logique de DCS (`Scripts/Input/Data.lua`) e
 ## Licence
 
 GNU General Public License v2, voir [LICENSE](LICENSE).
-L'interface est en français ; l'internationalisation viendra plus tard.

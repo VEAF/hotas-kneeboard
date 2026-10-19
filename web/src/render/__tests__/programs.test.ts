@@ -65,6 +65,7 @@ describe('other programs', () => {
     template: withTemplate ? { data: template, image: 'data:image/svg+xml;base64,AA' } : null,
     layer,
     measurer: approximateMeasurer,
+    lang: 'fr',
     programs: { marks: marksFor(device.guid, bindings, []), styles: programStyles(['SRS', 'VectorXR'], {}) },
   })
 

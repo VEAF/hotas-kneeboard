@@ -1,6 +1,6 @@
 [project]
 name = "hotas-kneeboard"
-version = "0.2.0"
+version = "0.2.1"
 description = "DCS World kneeboard pages and printable sheets of your HOTAS bindings, drawn on your devices"
 readme = "README.md"
 license = "GPL-2.0-only"
@@ -21,6 +21,7 @@ docs = [
     "mike>=2.0,<3",
     "mkdocs>=1.6,<2",
     "mkdocs-material>=9.5,<10",
+    "mkdocs-static-i18n>=1.0,<2",
 ]
 
 [project.scripts]
