@@ -1,0 +1,55 @@
+name: Docs
+
+# Publishes the documentation on https://veaf.github.io/hotas-kneeboard/ (GitHub Pages, branch
+# gh-pages), one version per release, with mike, like VEAF-Mission-Creation-Tools:
+# - a push to develop -> the "dev" version;
+# - a push to main (a release) -> the version of pyproject.toml and the "latest" alias.
+# Triggered by the push to main and not by the vX.Y.Z tag: release.yml creates the tag with
+# GITHUB_TOKEN, and an event made with that token starts no other workflow.
+
+on:
+  push:
+    branches: [develop, main]
+  workflow_dispatch:
+
+# Every run fetches gh-pages, adds to it and pushes it back: two at once, the second push is
+# rejected. Queued, never cancelled, so that no version is left unpublished.
+concurrency:
+  group: deploy-docs
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: github.repository == 'VEAF/hotas-kneeboard'
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+      - run: uv sync --frozen --only-group docs
+      - name: Git identity for mike
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch origin gh-pages --depth=1 || true
+
+      - name: Publish "dev"
+        if: github.ref == 'refs/heads/develop'
+        run: |
+          uv run --no-sync mike deploy --push --update-aliases dev
+          # until the first release, the site's address opens "dev"
+          if ! uv run --no-sync mike list | grep -q latest; then
+            uv run --no-sync mike set-default --push dev
+          fi
+
+      - name: Publish the release
+        if: github.ref == 'refs/heads/main'
+        run: |
+          version=$(python -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])")
+          uv run --no-sync mike deploy --push --update-aliases "$version" latest
+          uv run --no-sync mike set-default --push latest

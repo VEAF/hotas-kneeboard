@@ -41,6 +41,9 @@ Pour chaque demande, dans l'ordre :
 
 - `README.md` et `docs/` (guide d'utilisation, éditeur de gabarits, gabarits, développement) sont en français ; l'internationalisation de l'interface et de la doc viendra plus tard.
 - Un changement visible de l'utilisateur met à jour la page de `docs/` qui en parle, dans le même mouvement.
+- Le site <https://veaf.github.io/hotas-kneeboard/> est construit par MkDocs Material + mike (`mkdocs.yml`, `.github/workflows/docs.yml`) : « dev » à chaque poussée vers `develop`, la version et « latest » à chaque release ; l'accueil est le README (`scripts/mkdocs_hooks.py`), `docs/agents/` en est exclu.
+  La CI construit le site avec `--strict` : un lien vers un fichier hors du site (`CHANGELOG.md`, `docs/agents/`) s'écrit en adresse GitHub complète, et une page nouvelle s'ajoute au `nav` de `mkdocs.yml`.
+  Vérifier : `uv run --group docs mkdocs build --strict`.
 
 ## Structure
 
