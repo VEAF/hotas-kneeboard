@@ -1,0 +1,944 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="DCS World kneeboard pages and printable sheets, drawn on your own devices">
+      
+      
+      
+        <link rel="canonical" href="https://veaf.github.io/hotas-kneeboard/dev/en/developpement/">
+      
+      
+        <link rel="prev" href="../gabarits/">
+      
+      
+      
+        
+          <link rel="alternate" href="../../developpement/" hreflang="fr">
+        
+          <link rel="alternate" href="./" hreflang="en">
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Development - HOTAS Kneeboard</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#development" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../" title="HOTAS Kneeboard" class="md-header__button md-logo" aria-label="HOTAS Kneeboard" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            HOTAS Kneeboard
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Development
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="Select language">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="../../developpement/" hreflang="fr" class="md-select__link">
+              Français
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/VEAF/hotas-kneeboard" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    VEAF/hotas-kneeboard
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../" title="HOTAS Kneeboard" class="md-nav__button md-logo" aria-label="HOTAS Kneeboard" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    HOTAS Kneeboard
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/VEAF/hotas-kneeboard" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    VEAF/hotas-kneeboard
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-utilisateur/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../editeur-de-gabarits/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Template editor
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../gabarits/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Templates
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-reading-engine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The reading engine
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-languages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The languages
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Commands
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-documentation-site" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The documentation site
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The documentation site">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-screenshots" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The screenshots
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lots-tickets-branches-and-releases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lots, tickets, branches and releases
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#repository-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Repository rules
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-reading-engine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The reading engine
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-languages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The languages
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Commands
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-documentation-site" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The documentation site
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The documentation site">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-screenshots" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The screenshots
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lots-tickets-branches-and-releases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lots, tickets, branches and releases
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#repository-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Repository rules
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="development">Development<a class="headerlink" href="#development" title="Permanent link">&para;</a></h1>
+<h2 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h2>
+<p>A local app: a Python server that reads DCS and serves a web interface, all shipped as a single <code>.exe</code>.</p>
+<div class="highlight"><pre><span></span><code>hotas_kneeboard/          FastAPI server (127.0.0.1 only)
+  engine.py + lua/        engine reading the bindings
+  pages.py                grouping per input and per layer, released positions
+  dcs.py                  detection of DCS, of Saved Games, of the language; translation of the commands
+  templates.py            format and library of the templates
+  kneeboard.py            writing of the PNG pages
+  dcs_config.py           changes to the DCS controls: refused while DCS runs, backup and restore, devices disabled or forgotten
+  hat_views.py            removal at once of the 8 generic hat views (preview, selection, reading again)
+  generic_buttons.py      removal at once of the generic buttons of the devices without buttons (same pattern)
+  lua_tables.py + lua/    reading and writing DCS's Lua files, with the game's serializer
+  settings.py             settings (%APPDATA%/HOTAS Kneeboard/settings.json)
+  i18n.py + locales/      the server's messages in French and in English
+  app.py                  HTTP routes
+  library/                the shipped templates
+web/                      Vue 3 + TypeScript + Vite + PrimeVue + VueUse interface
+  src/render/             building the pages as SVG (screen, PNG and PDF start from the same SVG)
+  src/editor/             template editor
+  src/locales/            the interface's texts in French and in English (src/lib/i18n.ts)
+scripts/                  conversion of the templates, comparison with DCS, checking of the templates
+packaging/                building the exe (PyInstaller)
+</code></pre></div>
+<p>The pages are built in the browser: the PNG goes through a canvas, the PDF through jsPDF.
+The server only writes the PNG files; there is neither Chromium nor Cairo to ship.</p>
+<p>The DCS controls files (<code>Saved Games/DCS/Config/Input</code>) are only changed by <code>dcs_config.py</code>, and always through <code>guarded_write</code>.
+It refuses while DCS runs, since the game writes these files again when it saves its controls.
+Before writing, it zips the whole folder into <code>%APPDATA%/HOTAS Kneeboard/backups/</code> (the last 20 zips are kept); a restore replaces the folder with a single rename, after backing up the current state.</p>
+<p>A DCS file is read by running it with <code>luae.exe</code>, which gives back its value as JSON, and written again with the game's <code>Scripts/Serializer.lua</code>, in binary (DCS writes LF line endings).
+Read then written again this way, the 88 files of a real <code>Config/Input</code> (diffs, <code>modifiers.lua</code>, <code>disabled.lua</code>) are identical byte for byte.
+ED's serializer cannot be redistributed: the test fixture has its own, and <code>test_lua_tables.py</code> checks that it writes the same bytes as the real one when <code>DCS_TEST_LUA</code> is the <code>bin/luae.exe</code> of an install.</p>
+<h2 id="the-reading-engine">The reading engine<a class="headerlink" href="#the-reading-engine" title="Permanent link">&para;</a></h2>
+<p>A <code>Saved Games/DCS/Config/Input/&lt;profile&gt;/joystick/&lt;device&gt;.diff.lua</code> file only holds the user's changes against the module's defaults.
+The real bindings are the defaults (Lua programs of the module) plus this diff, merged by rules that live in <code>DCS World/Scripts/Input/Data.lua</code>.</p>
+<p><code>lua/effective_bindings.lua</code> reproduces this logic and runs with the Lua 5.1 interpreter shipped with DCS (<code>bin/luae.exe</code>): the defaults are run as they are, and the commands' "hashes" are computed exactly as in the game.
+It comes from VEAF/joystick-diagrams-dcs-world-plugin, where its rules are documented (the plugin's PRD, VEAF/joystick-diagrams-dcs-world-plugin#1).
+Additions specific to this repository:</p>
+<ul>
+<li>the aircraft type of each profile, read in the <code>make_flyable</code> calls of the module's <code>entry.lua</code>: it is the name of the kneeboard folder (<code>A-10C II</code> → <code>A-10C_2</code>);</li>
+<li>the name the DCS controls screen gives each profile (<code>display_name</code>), the string the <code>name.lua</code> of its folder returns ("AH-64D Pilot" for <code>AH-64D_BLK_II_PLT</code>); the server translates it like the commands, and tells two profiles with the same name apart by their folder;</li>
+<li>a device without a base profile, or of a module not installed, shows what its diff adds rather than nothing;</li>
+<li>the removal of bindings (<code>remove</code> records, key or axis by their last field): the engine then computes the diff of each device concerned again as DCS does when saving (<code>saveDeviceProfile</code>), against the module's defaults without the diff shipped with it; a removed axis is written as DCS writes it (<code>["removed"] = { [1] = { ["key"] = "JOY_RZ" } }</code>, compared with a diff saved by the game);</li>
+<li>the combos whose key is not an input of the device are left out, as DCS does (<code>getKeyBelongToDevice</code>): the C-130J's joystick profile declares keyboard keys;</li>
+<li>the devices asked for by <code>device</code> records are computed in the module profiles where they have no diff too (the module's defaults, marked <code>extra</code>), and <code>scope installed</code> adds every installed module profile: that is what allows creating a diff where there is none;</li>
+<li>each binding the user's diff adds or changes is marked <code>from_diff</code>, unless the diff shipped by the module for this device places it too: DCS copies that diff into the user's at the first save, what it places is therefore still the module's; those are marked <code>from_module_diff</code>;</li>
+<li><code>base_file</code> says where the defaults come from: the module's profile for this device, or its <code>default.lua</code>, the profile of "any joystick" when it has none; with both marks, that is the origin in the Bindings window (<code>app.binding_origin</code>: <code>user</code>, <code>device</code>, <code>generic</code>);</li>
+<li>each recomputation gives back the number of bindings actually removed (<code>removed</code>); <code>remove_bindings</code> does not write a device again where none was.</li>
+</ul>
+<p>The 8 hat views (<code>hat_views.py</code>) come from <code>Config/Input/Aircrafts/common_joystick_binding.lua</code>, included in the defaults of every module: they are recognised by the (hash, key) pair, the same in every module (<code>dnilp34u214…</code> for <code>JOY_BTN_POV1_U</code>…), never by the name shown.
+A device is offered by default if no hat binding (a key holding <code>POV</code>) comes from a diff, in any module: a module's defaults on a hat (the turret of <code>ground_unit</code>, the Ka-50's Shkval) do not count.
+Only the views coming from the defaults are removed; a new diff is only created for a device that <code>Logs/dcs.log</code> names, under that name.
+After writing, the preview is computed again: a view expected that is still there, or a number removed other than expected, is reported.
+Checked on 2026-10-19 on a faithful copy of a real <code>Saved Games</code>: 505 views removed over 160 device × module pairs (44 files created among them), reading again without difference, and effective bindings identical before and after apart from these views.</p>
+<p>The generic buttons (<code>generic_buttons.py</code>) are the key bindings of a device whose base is <code>default.lua</code>, neither <code>from_diff</code> nor <code>from_module_diff</code>, on the devices the user marked as without buttons (<code>Settings.buttonless_devices</code>, names without GUID): DCS writes nowhere how many buttons a device has.
+The default scope is the modules where the device has a diff; <code>all_modules</code> adds every installed module (a diff created where there is none). Preview, single backup, reading again and differences are those of the hat views.
+A binding whose hash still names an <code>iCommand…</code> symbol (<code>@</code>), for lack of a learnt number, cannot be removed: its removal cannot be written as DCS writes it; the preview shows it apart (<code>unknown</code>), the bindings API marks it <code>removable: false</code>.
+Checked on 2026-10-19 on a copy of a real <code>Saved Games</code>: rudder pedals, 20 bindings in 9 modules, reading again as previewed, no axis touched; the 5 of <code>ground_unit</code> (turret, secondary fire) stay apart.</p>
+<p>The recomputation covers keys (combos added, removed) and axes (plus the combos whose filter changed, compared as DCS does: default values of <code>createAxisFilter</code>, detent values never compared); the force feedback diff is copied from the file, read by <code>lua_tables</code>.
+A diff entry that no longer matches any command disappears, as when DCS saves; an entry whose command has an unknown <code>iCommand</code> number makes the write refused, so as not to lose the binding.
+An empty diff is deleted, as DCS does: the device falls back on the module's defaults, and on the diff shipped with it if there is one.
+Proven on 2026-10-19 against DCS: 4 views removed by hand in the controls screen (Orion stick, F-16C_50), the same operation made by the app on the same starting state gives the same file byte for byte, and so do the rudder pedals DCS wrote again on the way.
+On a faithful copy of a real <code>Saved Games</code> (community commands included), writing the 57 diffs again without removing anything leaves the bindings of 55 devices identical; the other 2 only held stale entries, their file is deleted and they fall back on the defaults, with no effect in the game.</p>
+<p>The values that go to the engine pass through its standard input, one record per line, fields separated by tabs: <code>engine._loader_input</code> refuses any value holding a tab or a line break, which would add records of its own (an <code>install</code> elsewhere, whose Lua files the interpreter would run).
+The routes that get a module name only accept a configured module, and the server refuses any <code>/api/</code> request marked <code>Sec-Fetch-Site: cross-site</code>, reads included: a page of another site must not be able to start the engine.</p>
+<p><code>luae.exe</code> opens files through the C library, limited to 260 characters on Windows: a diff with a longer path is not read.
+The recomputation would take it for a missing diff; <code>dcs_config.new_diffs</code> therefore refuses to write when the user's diff exists and the engine did not read it.</p>
+<p>The command names shown are translated by <code>l10n/&lt;language&gt;/LC_MESSAGES/input.mo</code>, as the game does, English included ("Trim: Nose Up" shows as "Trim Hat - NOSE UP" in the A-10C II).</p>
+<p>Any change to the engine or to <code>pages.py</code> is checked against the "MAKE HTML" export of the DCS controls screen:</p>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>scripts/compare_make_html.py<span class="w"> </span><span class="s2">"A-10C II"</span><span class="w"> </span><span class="s2">"F-16C_50"</span>
+</code></pre></div>
+<p>The last line is the verdict; the export only covers the devices plugged in when it was made.</p>
+<h2 id="the-languages">The languages<a class="headerlink" href="#the-languages" title="Permanent link">&para;</a></h2>
+<p>The interface, the server's messages and the documentation exist in French and in English, the same way as in VEAF-Mission-Creation-Tools.
+The command names come from DCS's <code>l10n</code> files (the "Commands language" setting) and do not go through this.</p>
+<ul>
+<li><strong>The texts</strong> are in flat JSON catalogs, one per language: <code>web/src/locales/&lt;language&gt;.json</code> for the interface, <code>hotas_kneeboard/locales/&lt;language&gt;.json</code> for the server.
+  A dotted key (<code>settings.title</code>), parameters in braces (<code>{device}</code>); a plural is a <code>&lt;key&gt;.one</code> / <code>&lt;key&gt;.other</code> pair (in French, zero is singular).
+  English is the reference: a key missing from another catalog falls back on English, then on the key itself.</li>
+<li><strong>In the interface</strong>, <code>t('key', { parameters })</code> and <code>tn('key', count)</code> (<code>web/src/lib/i18n.ts</code>); a text holding markup (a <code>&lt;code&gt;</code>, a link) goes through the <code>Tr</code> component, which puts each named slot where the translation puts <code>{name}</code>.
+  <code>lang</code> is reactive: what reads it is drawn again when the language changes.</li>
+<li><strong>The interface language</strong> is a setting (<code>ui_language</code>: <code>fr</code>, <code>en</code>, or <code>null</code> for the browser's), applied at once; a copy in <code>localStorage</code> avoids showing the other language while the settings are read.</li>
+<li><strong>The server</strong> answers in the language of the request: the interface sends its own in <code>Accept-Language</code>, and <code>i18n.LanguageMiddleware</code> sets it for the time of the request (a <code>ContextVar</code>, seen from synchronous routes too).
+  Out of a request (the console of the exe), it is <code>HOTAS_KNEEBOARD_LANG</code>, else Windows' display language, else English.
+  <code>t("key", name=value)</code> in <code>hotas_kneeboard/i18n.py</code>.</li>
+<li><strong>The kneeboard pages</strong> speak the commands' language, not the interface's (<code>pageLanguage</code>): in French when DCS is in French, in English otherwise, so that a page does not mix two languages.
+  The same holds for the SRS and VectorXR actions drawn on them: the interface asks for <code>/api/programs</code> in that language.</li>
+<li><strong>The tests</strong> check that both catalogs have the same keys and the same parameters, and that every key the code asks for exists (<code>web/src/lib/__tests__/i18n.test.ts</code>, <code>tests/test_i18n.py</code>).
+  The Python tests read the messages in French (<code>tests/conftest.py</code>), <code>test_i18n.py</code> checks the English ones.</li>
+</ul>
+<p>A new text goes into both catalogs, in the same move as the code; a text written straight into a component or an error message is an oversight.</p>
+<h2 id="commands">Commands<a class="headerlink" href="#commands" title="Permanent link">&para;</a></h2>
+<p>Python (with <a href="https://docs.astral.sh/uv/">uv</a>):</p>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>sync
+uv<span class="w"> </span>run<span class="w"> </span>ruff<span class="w"> </span>check<span class="w"> </span>.<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>uv<span class="w"> </span>run<span class="w"> </span>ruff<span class="w"> </span>format<span class="w"> </span>--check<span class="w"> </span>.
+<span class="nv">DCS_TEST_LUA</span><span class="o">=</span><span class="s2">"C:/jeux/DCS World/bin/luae.exe"</span><span class="w"> </span>uv<span class="w"> </span>run<span class="w"> </span>pytest
+</code></pre></div>
+<p>Without <code>DCS_TEST_LUA</code>, the engine tests look for a Lua 5.1 in the PATH and are skipped if there is none; the CI uses <code>lua5.1</code>.</p>
+<p>Interface (with npm):</p>
+<div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>web
+npm<span class="w"> </span>ci
+npx<span class="w"> </span>vue-tsc<span class="w"> </span>-b<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>npx<span class="w"> </span>vitest<span class="w"> </span>run
+npm<span class="w"> </span>run<span class="w"> </span>build
+</code></pre></div>
+<p><code>npm run build</code> writes the interface into <code>hotas_kneeboard/web/</code>, ignored by git.</p>
+<p>Running for development:</p>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>hotas-kneeboard<span class="w"> </span>--no-browser
+</code></pre></div>
+<p>then <code>npm run dev</code> in <code>web/</code> for the interface reloaded on the fly (the <code>/api</code> calls are relayed to the server on port 8642).
+<code>HOTAS_KNEEBOARD_DATA</code> changes the folder of the user's settings and templates, so as not to touch your own while trying things.</p>
+<p>Building the exe:</p>
+<div class="highlight"><pre><span></span><code>pwsh<span class="w"> </span>packaging/build.ps1
+</code></pre></div>
+<p>It produces <code>dist/HOTAS-Kneeboard.exe</code>.</p>
+<h2 id="the-documentation-site">The documentation site<a class="headerlink" href="#the-documentation-site" title="Permanent link">&para;</a></h2>
+<p>The documentation is published on <a href="https://veaf.github.io/hotas-kneeboard/">https://veaf.github.io/hotas-kneeboard/</a> (the repository's GitHub Pages, <code>gh-pages</code> branch) with MkDocs Material and mike, like VEAF-Mission-Creation-Tools'.
+The pages are those of <code>docs/</code>, except <code>docs/agents/</code>, which is meant for the Claude sessions.</p>
+<p>It is in French and in English, with the mkdocs-static-i18n plugin, as VMCT does:</p>
+<ul>
+<li><code>page.md</code> is the French page (the default language, at the root of the site), <code>page.en.md</code> the English page (under <code>en/</code>); a new page is written in both languages and goes into the <code>nav</code> of <code>mkdocs.yml</code>, written in English, with its translation in <code>nav_translations</code>.</li>
+<li>A picture <code>name.en.png</code> takes the place of <code>name.png</code> on the English site; without it, the English site shows the French picture.</li>
+<li><code>README.md</code> holds the English then the French, from <code>&lt;a id="fr"&gt;&lt;/a&gt;</code>; at build time, <code>scripts/mkdocs_hooks.py</code> makes the two home pages of it, <code>docs/index.en.md</code> and <code>docs/index.md</code> (ignored by git).</li>
+<li>The links of an English page aim at the English pages (<code>guide-utilisateur.en.md</code>): that way they work on GitHub as on the site.</li>
+</ul>
+<p>Publishing:</p>
+<ul>
+<li>A push to <code>develop</code> publishes the "dev" version; as long as no release is out, the site's address opens that one.</li>
+<li>A release (a push to <code>main</code>) publishes the version of <code>pyproject.toml</code> and marks it "latest", which the site's address opens from then on.
+  It is the push to <code>main</code> that triggers it, not the <code>vX.Y.Z</code> tag: <code>release.yml</code> creates the tag with GitHub Actions' token, and an event made with that token starts no other workflow.</li>
+<li>Each PR builds the site with <code>--strict</code>: a link to a missing page or an anchor that does not exist makes the CI fail.
+  The anchors are GitHub's, accents included (<code>#vérifier-la-numérotation-sur-le-périphérique</code>): a link works on both.
+  Each language has its own, taken from its headings (<code>#check-the-numbering-on-the-device</code> in English); <code>--strict</code> catches a link a reworded heading broke.
+  A link to a file outside the site (<code>CHANGELOG.md</code>, <code>docs/agents/</code>) is written as a full GitHub address.</li>
+</ul>
+<p>Seeing the site locally, reloaded on each change:</p>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>--group<span class="w"> </span>docs<span class="w"> </span>mkdocs<span class="w"> </span>serve
+</code></pre></div>
+<h3 id="the-screenshots">The screenshots<a class="headerlink" href="#the-screenshots" title="Permanent link">&para;</a></h3>
+<p>The pictures of <code>docs/images/</code> are taken in the app itself by <code>scripts/doc_screenshots.py</code>, which drives the installed Edge with Playwright.
+The script only looks: it opens the screens and the windows, runs the previews ("Search"), and clicks on nothing that writes to DCS.
+It sets the interface and commands language, and ticks the rudder pedals in "Devices without buttons", which writes the app's settings: it is therefore run on an app started with a throwaway <code>HOTAS_KNEEBOARD_DATA</code>, in a first terminal:</p>
+<div class="highlight"><pre><span></span><code><span class="nv">$env:HOTAS_KNEEBOARD_DATA</span> <span class="p">=</span> <span class="s2">"$env:TEMP\hk-shots"</span><span class="p">;</span> <span class="n">uv</span> <span class="n">run</span> <span class="n">hotas-kneeboard</span> <span class="p">-</span><span class="n">-port</span> <span class="n">8654</span> <span class="p">-</span><span class="n">-no-browser</span>
+</code></pre></div>
+<p>then, in a second terminal, the French screenshots, then the English ones:</p>
+<div class="highlight"><pre><span></span><code><span class="nv">$env:HOTAS_KNEEBOARD_DATA</span> <span class="p">=</span> <span class="s2">"$env:TEMP\hk-shots"</span><span class="p">;</span> <span class="n">uv</span> <span class="n">run</span> <span class="p">-</span><span class="n">-with</span> <span class="n">playwright</span> <span class="n">python</span> <span class="n">scripts</span><span class="p">/</span><span class="n">doc_screenshots</span><span class="p">.</span><span class="n">py</span>
+<span class="nv">$env:HOTAS_KNEEBOARD_DATA</span> <span class="p">=</span> <span class="s2">"$env:TEMP\hk-shots"</span><span class="p">;</span> <span class="n">uv</span> <span class="n">run</span> <span class="p">-</span><span class="n">-with</span> <span class="n">playwright</span> <span class="n">python</span> <span class="n">scripts</span><span class="p">/</span><span class="n">doc_screenshots</span><span class="p">.</span><span class="n">py</span> <span class="p">-</span><span class="n">-lang</span> <span class="n">en</span>
+</code></pre></div>
+<ul>
+<li><code>--lang en</code> writes <code>name.en.png</code> beside each <code>name.png</code>, the interface and the commands in English; the script finds the buttons by their text in the interface's catalog, which a reworded label therefore does not break.</li>
+<li>The pictures show the devices of the PC that takes them: the script picks the A-10C II, the WinWing Orion stick and the T-Pendular rudder pedals; elsewhere, change <code>MODULE</code>, <code>STICK</code> and <code>RUDDER</code> at the top of the script.</li>
+<li>The Windows user's name and the throwaway folder are replaced on screen with those of an ordinary pilot (<code>C:\Users\Pilote</code>, <code>%APPDATA%\HOTAS Kneeboard</code>).</li>
+<li>Screen names as arguments (<code>ecran</code>, <code>editeur</code>…) retake only those.</li>
+<li>The screenshots are retaken when the interface changes, at the latest in the release PR: look at each picture again before committing it.</li>
+</ul>
+<h2 id="lots-tickets-branches-and-releases">Lots, tickets, branches and releases<a class="headerlink" href="#lots-tickets-branches-and-releases" title="Permanent link">&para;</a></h2>
+<p>The tracking follows the organisation of VEAF-Mission-Creation-Tools, with GitHub issues in place of the <code>.backlog/</code> files; the details are in <a href="https://github.com/VEAF/hotas-kneeboard/blob/develop/docs/agents/issue-tracker.md"><code>docs/agents/issue-tracker.md</code></a>.</p>
+<ul>
+<li>The product's PRD is <a href="https://github.com/VEAF/hotas-kneeboard/issues/1">#1</a>; its lots are its sub-issues.</li>
+<li>A lot is an issue labelled <code>lot</code>, titled <code>&lt;LOT-ID&gt; — …</code>, its PRD in the body; its tickets are its sub-issues, labelled <code>ticket</code>, cut with <code>/to-tickets</code> before the code.</li>
+<li>The status is a label: ⬜ ready · 🔄 in-progress · 🧑 waiting-human · ⏸ paused; closed = ✅ done or 🚫 won't fix (<a href="https://github.com/VEAF/hotas-kneeboard/blob/develop/docs/agents/triage-labels.md">details</a>).</li>
+<li><code>develop</code> is the default branch and gets the work, <code>main</code> only gets releases.</li>
+<li>A lot is a <code>feature/</code>, <code>fix/</code> or <code>chore/&lt;LOT-ID&gt;</code> branch made from <code>develop</code>, and a single PR to <code>develop</code>, which closes its tickets and the lot.
+  Each lot adds its entries at the end of <code>[Unreleased]</code> in <a href="https://github.com/VEAF/hotas-kneeboard/blob/develop/CHANGELOG.md"><code>CHANGELOG.md</code></a>, without touching the version.</li>
+<li>A release is a PR from <code>develop</code> to <code>main</code> that raises the version in <code>pyproject.toml</code> and <code>hotas_kneeboard/__init__.py</code> (the two must be equal) and moves <code>[Unreleased]</code> under that number.
+  On merge, the CI builds the exe on Windows and publishes the <code>vX.Y.Z</code> release; a merge without a version change publishes nothing.
+  If the interface changed since the previous release, the PR also retakes the <a href="#the-screenshots">screenshots</a>.
+  Its notes are <a href="https://github.com/VEAF/hotas-kneeboard/blob/develop/RELEASE_NOTES.md"><code>RELEASE_NOTES.md</code></a>, rewritten at each release as for VMCT: in French, for the pilots (what changes for them, not the plumbing), the title ending with the version number; the CI refuses to publish if the title does not carry the version, and adds under the title the link to the documentation of that version.</li>
+<li>The CI (Python and interface tests) runs on each PR and on each push to <code>develop</code> and <code>main</code>.</li>
+</ul>
+<h2 id="repository-rules">Repository rules<a class="headerlink" href="#repository-rules" title="Permanent link">&para;</a></h2>
+<ul>
+<li>The interface, the server's messages and the documentation are in French and in English (see <a href="#the-languages">The languages</a>); the code and its comments in English.</li>
+<li>The command names shown are the game's, translated; never show the raw names of the Lua files.</li>
+<li>The templates keep their credit and their license.</li>
+<li>The server only accepts the <code>127.0.0.1</code> and <code>localhost</code> hosts, and refuses writes coming from another site.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.top", "search.highlight", "search.suggest", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>
