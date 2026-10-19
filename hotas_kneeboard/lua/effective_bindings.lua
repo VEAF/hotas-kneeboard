@@ -17,11 +17,16 @@
 --                                a key binding to remove (reformers comma-separated, may be empty):
 --                                the output then holds "rewrites", the new diff of each device
 --                                concerned, as DCS would save it (see diffAfterRemovals)
+--   device <full name>           a joystick computed in every requested unit profile even without
+--                                a diff file there (from the module's defaults, as DCS would);
+--                                such a device is marked "extra"
+--   scope installed              computes every unit profile of the install besides the requested ones
 -- Lua 5.1 can neither list a directory nor take a non-ASCII path on the command line (luae.exe
 -- reads its arguments in the ANSI code page but opens files in UTF-8), hence stdin and listings.
 
 local DCS_ROOT, SAVED_GAMES, CASEFOLD
-local requested, listings, removals = {}, {}, {}
+local requested, listings, removals, extraDevices = {}, {}, {}, {}
+local allInstalled = false
 
 local function norm(path) return (path:gsub('\\', '/')) end
 local function dirKey(path)
@@ -37,6 +42,8 @@ do
 		elseif kind == 'saved' then SAVED_GAMES = value
 		elseif kind == 'casefold' then CASEFOLD = value == '1'
 		elseif kind == 'profile' then table.insert(requested, value)
+		elseif kind == 'device' then table.insert(extraDevices, value)
+		elseif kind == 'scope' then allInstalled = value == 'installed'
 		elseif kind == 'dir' then currentDir = {} listings[value] = currentDir
 		elseif kind == 'entry' and currentDir then table.insert(currentDir, value)
 		elseif kind == 'remove' then
@@ -633,6 +640,16 @@ local function deviceBindings(baseFolder, userFolder, deviceName, unitProfile)
 		table.insert(unmatched, u)
 	end
 
+	-- combos the diff adds or changes: placed by the user (or by the diff shipped with the module)
+	local fromDiff = {}
+	for _, kind in ipairs({'key', 'axis'}) do
+		for hash, d in pairs(diff and diff[kind .. 'Diffs'] or {}) do
+			for _, field in ipairs({'added', 'changed'}) do
+				for _, combo in ipairs(d[field] or {}) do fromDiff[hash .. '|' .. comboHash(combo)] = true end
+			end
+		end
+	end
+
 	local bindings, seen = {}, {}
 	for _, kind in ipairs({'key', 'axis'}) do
 		local commands = (kind == 'key' and base.keyCommands or base.axisCommands) or {}
@@ -649,6 +666,7 @@ local function deviceBindings(baseFolder, userFolder, deviceName, unitProfile)
 						reformers = combo.reformers or {},
 						command = c.name,
 						category = categoryOf(c),
+						from_diff = fromDiff[id] or nil,
 					})
 				end
 			end
@@ -786,8 +804,8 @@ end
 -- New diff of one device after removing some of its key bindings, as DCS writes it when it saves its
 -- controls (Data.lua, saveDeviceProfile): key and axis diffs recomputed against the module's
 -- defaults (without the diff shipped with the module).
--- Returns {keyDiffs = …, axisDiffs = …, source = the diff file read, nil for none}, or nil and an
--- error. The force feedback diff is not recomputed: the caller keeps the one of the source file.
+-- Returns {keyDiffs = …, axisDiffs = …, source = the diff file read, nil for none, removed = number
+-- of combos actually removed}, or nil and an error. The force feedback diff is not recomputed: the caller keeps the one of the source file.
 local function diffAfterRemovals(baseFolder, userFolder, deviceName, unitProfile, toRemove)
 	local effective = loadBase(baseFolder, deviceName, 'joystick', unitProfile)
 	local pristine = loadBase(baseFolder, deviceName, 'joystick', unitProfile)
@@ -804,24 +822,37 @@ local function diffAfterRemovals(baseFolder, userFolder, deviceName, unitProfile
 	local err = checkUnmatched(applyDiff(effective.keyCommands, diff.keyDiffs, KEY_HASH), pristine.keyCommands, KEY_HASH)
 		or checkUnmatched(applyDiff(effective.axisCommands, diff.axisDiffs, AXIS_HASH), pristine.axisCommands, AXIS_HASH)
 	if err then return nil, err end
+	local removed = 0
 	for _, c in ipairs(effective.keyCommands or {}) do
 		local hash = hashOf(c, KEY_HASH)
 		for _, r in ipairs(toRemove) do
 			local i = r.hash == hash and findCombo(c.combos, r)
-			if i then table.remove(c.combos, i) end
+			if i then
+				table.remove(c.combos, i)
+				removed = removed + 1
+			end
 		end
 	end
 	local keyDiffs, keyErr = commandDiffs(effective.keyCommands, pristine.keyCommands, KEY_HASH, diff.keyDiffs, false)
 	if not keyDiffs then return nil, keyErr end
 	local axisDiffs, axisErr = commandDiffs(effective.axisCommands, pristine.axisCommands, AXIS_HASH, diff.axisDiffs, true)
 	if not axisDiffs then return nil, axisErr end
-	return {keyDiffs = keyDiffs, axisDiffs = axisDiffs, source = diffSource}
+	return {keyDiffs = keyDiffs, axisDiffs = axisDiffs, source = diffSource, removed = removed}
 end
 
 -- Main program
 if #requested == 0 then requested = listDir(SAVED_GAMES .. 'Config/Input/') end
 
 local profiles = listProfiles()
+if allInstalled then
+	local seen, more = {}, {}
+	for _, name in ipairs(requested) do seen[name] = true end
+	for name, profile in pairs(profiles) do
+		if profile.unit and not seen[name] then table.insert(more, name) end
+	end
+	table.sort(more)
+	for _, name in ipairs(more) do table.insert(requested, name) end
+end
 learnAllSymbols(profiles)
 local conflicts = resolveSymbols()
 
@@ -839,12 +870,28 @@ for _, name in ipairs(requested) do
 	local entry = {found = profile ~= nil, profile_folder = profile and profile.folder,
 		unit_type = profile and profile.unitType, devices = {}}
 	local userFolder = SAVED_GAMES .. 'Config/Input/' .. name .. '/joystick/'
+	local present = {} -- devices with a diff file here, in lower case: a GUID's case may differ
 	for _, file in ipairs(listDir(userFolder)) do
 		local deviceName = file:match('^(.*)%.diff%.lua$')
+		if deviceName then present[deviceName:lower()] = true end
 		if deviceName and profile then
 			table.insert(entry.devices, deviceBindings(profile.folder .. 'joystick/', userFolder, deviceName, profile.unit))
 		elseif deviceName then
 			table.insert(entry.devices, diffOnlyDevice(userFolder, deviceName, 'module not installed'))
+		end
+	end
+	-- the other devices get the module's defaults (a unit profile always has a base: at worst the
+	-- Default unit's default.lua)
+	if profile and profile.unit then
+		for _, deviceName in ipairs(extraDevices) do
+			if not present[deviceName:lower()] then
+				present[deviceName:lower()] = true
+				local device = deviceBindings(profile.folder .. 'joystick/', userFolder, deviceName, profile.unit)
+				if device.source == 'effective' then
+					device.extra = true
+					table.insert(entry.devices, device)
+				end
+			end
 		end
 	end
 	result[name] = entry
@@ -872,6 +919,8 @@ do
 		else
 			local diff, err = diffAfterRemovals(profile.folder .. 'joystick/', userFolder, g.device, profile.unit, g.list)
 			entry.diff, entry.error = diff, err
+			entry.removed = diff and diff.removed
+			if diff then diff.removed = nil end
 		end
 		table.insert(rewrites, entry)
 	end

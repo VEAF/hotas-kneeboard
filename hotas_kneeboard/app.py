@@ -33,6 +33,8 @@ from .dcs_config import (
     set_device_disabled,
 )
 from .engine import EffectiveBindingsError, list_user_profiles, load_effective_bindings
+from .hat_views import plan as hat_views_plan
+from .hat_views import remove_hat_views
 from .kneeboard import KneeboardError, write_pages
 from .pages import build_page, split_device_name
 from .programs import read_programs
@@ -73,6 +75,12 @@ class DeviceDisabled(BaseModel):
 
 class DeviceForget(BaseModel):
     device: str  # full name, with its GUID
+
+
+class HatViewsRemoval(BaseModel):
+    devices: list[str]  # full names, with their GUID
+    every_device: bool = False
+    all_modules: bool = False
 
 
 class TemplateImport(BaseModel):
@@ -413,6 +421,43 @@ def create_app(
             raise HTTPException(409, str(error)) from error
         bindings.invalidate()
         return {"backup": backup.as_dict()}
+
+    def install_and_saved() -> tuple[Path, Path]:
+        dirs = current_dirs()
+        if dirs["problems"]:
+            raise HTTPException(409, " ; ".join(dirs["problems"]))
+        return Path(dirs["install_dir"]), Path(dirs["saved_games_dir"])
+
+    @app.get("/api/dcs-config/hat-views")
+    def get_hat_views(all_modules: bool = False) -> dict:
+        """Preview: the devices whose hat carries the 8 generic views, and where; nothing written"""
+        install, saved = install_and_saved()
+        try:
+            devices = hat_views_plan(install, saved, all_modules=all_modules, lua_interpreter=lua_interpreter)
+        except DcsConfigError as error:
+            raise HTTPException(422, str(error)) from error
+        return {"all_modules": all_modules, "devices": devices}
+
+    @app.post("/api/dcs-config/hat-views")
+    def post_hat_views(body: HatViewsRemoval) -> dict:
+        install, saved = install_and_saved()
+        try:
+            result = remove_hat_views(
+                install,
+                saved,
+                backups,
+                body.devices,
+                every_device=body.every_device,
+                all_modules=body.all_modules,
+                is_running=is_dcs_running,
+                lua_interpreter=lua_interpreter,
+            )
+        except DcsConfigError as error:
+            raise HTTPException(409, str(error)) from error
+        finally:
+            # even a write stopped halfway may have changed files
+            bindings.invalidate()
+        return result
 
     if WEB_DIR.is_dir():
         app.mount("/", StaticFiles(directory=WEB_DIR, html=True), name="web")

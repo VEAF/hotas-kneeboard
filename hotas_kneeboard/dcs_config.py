@@ -395,8 +395,9 @@ def new_diffs(
 ) -> list[dict]:
     """New diff of each (profile, device) concerned by ``removals`` (``profile``, ``device`` = the
     diff file's name without ``.diff.lua``, ``hash``, ``key``, ``reformers``), as DCS would save it:
-    ``[{"profile", "device", "path", "diff"}]``, ``diff`` None when nothing differs from the
-    module's defaults (DCS then deletes the file). Raises when one of them cannot be computed."""
+    ``[{"profile", "device", "path", "diff", "removed"}]``, ``diff`` None when nothing differs from
+    the module's defaults (DCS then deletes the file), ``removed`` the number of bindings actually
+    found and removed. Raises when one of them cannot be computed."""
     profiles = sorted({r["profile"] for r in removals})
     try:
         result = load_effective_bindings(install_dir, saved_games_dir, profiles, lua_interpreter, removals)
@@ -431,7 +432,13 @@ def new_diffs(
         }
         diff = {k: v for k, v in diff.items() if v}
         out.append(
-            {"profile": rewrite["profile"], "device": rewrite["device"], "path": path, "diff": diff or None}
+            {
+                "profile": rewrite["profile"],
+                "device": rewrite["device"],
+                "path": path,
+                "diff": diff or None,
+                "removed": rewrite.get("removed") or 0,
+            }
         )
     return out
 
@@ -447,12 +454,16 @@ def remove_bindings(
     lua_interpreter=None,
 ) -> tuple[Backup, list[dict]]:
     """Removes key bindings (see ``new_diffs``) and writes each device's diff as DCS would: every
-    diff is computed before the first is written, so that an error changes nothing."""
+    diff is computed before the first is written, so that an error changes nothing. A device none of
+    whose bindings was found is left as it is (``written`` false): no file is created for nothing."""
 
     def change(_input_dir: Path) -> list[dict]:
         rewrites = new_diffs(install_dir, saved_games_dir, removals, lua_interpreter)
         try:
             for r in rewrites:
+                r["written"] = r["removed"] > 0
+                if not r["written"]:
+                    continue
                 if r["diff"] is None:
                     r["path"].unlink(missing_ok=True)
                 else:

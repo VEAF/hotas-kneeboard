@@ -105,7 +105,13 @@ def _directory_listings(install: str, saved_games: str) -> dict[str, list[str]]:
 
 
 def _loader_input(
-    install: str, saved_games: str, profiles: list[str], removals: list[dict] | None = None
+    install: str,
+    saved_games: str,
+    profiles: list[str],
+    removals: list[dict] | None = None,
+    *,
+    extra_devices: list[str] | None = None,
+    all_installed: bool = False,
 ) -> bytes:
     """stdin of the interpreter: the script, then the records it reads (see its header)"""
     # Lua reads stdin in text mode on Windows: a CR would shift the script length
@@ -116,6 +122,12 @@ def _loader_input(
         f"casefold\t{1 if sys.platform == 'win32' else 0}",
     ]
     records += [f"profile\t{profile}" for profile in profiles]
+    if all_installed:
+        records.append("scope\tinstalled")
+    for device in extra_devices or []:
+        if any(c in device for c in "\t\n"):
+            raise EffectiveBindingsError(f"nom de périphérique illisible : {device!r}")
+        records.append(f"device\t{device}")
     for r in removals or []:
         fields = [r["profile"], r["device"], r["hash"], r["key"]]
         reformers = list(r.get("reformers") or [])
@@ -138,6 +150,9 @@ def load_effective_bindings(
     profiles: list[str],
     lua_interpreter: Path | str | None = None,
     removals: list[dict] | None = None,
+    *,
+    extra_devices: list[str] | None = None,
+    all_installed: bool = False,
 ) -> dict:
     """Runs the Lua loader and returns its JSON output.
 
@@ -145,6 +160,10 @@ def load_effective_bindings(
     The result maps each requested profile name to ``{"found": bool, "unit_type": str | None,
     "devices": [...]}`` under ``"profiles"``; ``found`` is false when the module is not in the
     install, and its devices then only hold what their diffs add (``"source": "diff"``).
+
+    ``extra_devices`` are computed in every unit profile where they have no diff file, from the
+    module's defaults (marked ``"extra": true``); ``all_installed`` adds every unit profile of the
+    install to ``profiles``. ``removals`` ask for ``"rewrites"`` (see ``dcs_config.new_diffs``).
 
     Everything but the interpreter goes through stdin in UTF-8: luae.exe reads its command
     line in the ANSI code page but opens files in UTF-8, so a non-ASCII path (a Windows user
@@ -160,7 +179,14 @@ def load_effective_bindings(
     try:
         completed = subprocess.run(
             command,
-            input=_loader_input(install, saved_games, profiles, removals),
+            input=_loader_input(
+                install,
+                saved_games,
+                profiles,
+                removals,
+                extra_devices=extra_devices,
+                all_installed=all_installed,
+            ),
             capture_output=True,
             timeout=TIMEOUT_SECONDS,
             check=False,
