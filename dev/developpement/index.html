@@ -473,6 +473,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Le site de documentation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#les-captures-décran" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Les captures d'écran
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -572,6 +589,23 @@
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Le site de documentation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#les-captures-décran" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Les captures d'écran
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -724,6 +758,21 @@ La page d'accueil est le <code>README.md</code>, repris tel quel au moment du bu
 <p>Voir le site en local, rechargé à chaque modification :</p>
 <div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>--group<span class="w"> </span>docs<span class="w"> </span>mkdocs<span class="w"> </span>serve
 </code></pre></div>
+<h3 id="les-captures-décran">Les captures d'écran<a class="headerlink" href="#les-captures-décran" title="Permanent link">&para;</a></h3>
+<p>Les images de <code>docs/images/</code> sont prises dans l'application elle-même par <code>scripts/doc_screenshots.py</code>, qui pilote l'Edge installé avec Playwright.
+Le script ne fait que regarder : il ouvre les écrans et les fenêtres, lance les aperçus (« Chercher »), et ne clique sur rien qui écrive dans DCS.
+Il coche quand même le palonnier dans « Périphériques sans boutons », ce qui écrit les réglages de l'application : on le lance donc sur une application démarrée avec un <code>HOTAS_KNEEBOARD_DATA</code> jetable, dans un premier terminal :</p>
+<div class="highlight"><pre><span></span><code><span class="nv">$env:HOTAS_KNEEBOARD_DATA</span> <span class="p">=</span> <span class="s2">"$env:TEMP\hk-shots"</span><span class="p">;</span> <span class="n">uv</span> <span class="n">run</span> <span class="n">hotas-kneeboard</span> <span class="p">-</span><span class="n">-port</span> <span class="n">8654</span> <span class="p">-</span><span class="n">-no-browser</span>
+</code></pre></div>
+<p>puis, dans un second terminal :</p>
+<div class="highlight"><pre><span></span><code><span class="nv">$env:HOTAS_KNEEBOARD_DATA</span> <span class="p">=</span> <span class="s2">"$env:TEMP\hk-shots"</span><span class="p">;</span> <span class="n">uv</span> <span class="n">run</span> <span class="p">-</span><span class="n">-with</span> <span class="n">playwright</span> <span class="n">python</span> <span class="n">scripts</span><span class="p">/</span><span class="n">doc_screenshots</span><span class="p">.</span><span class="n">py</span>
+</code></pre></div>
+<ul>
+<li>Les images montrent les périphériques du PC qui les prend : le script choisit l'A-10C II, le manche WinWing Orion et le palonnier T-Pendular ; ailleurs, changer <code>MODULE</code>, <code>STICK</code> et <code>RUDDER</code> en tête du script.</li>
+<li>Le nom de l'utilisateur Windows et le dossier jetable sont remplacés à l'écran par ceux d'un pilote ordinaire (<code>C:\Users\Pilote</code>, <code>%APPDATA%\HOTAS Kneeboard</code>).</li>
+<li>Des noms d'écran en argument (<code>ecran</code>, <code>editeur</code>…) ne reprennent que ceux-là.</li>
+<li>Les captures se refont quand l'interface change, au plus tard dans la PR de release : relire chaque image avant de la committer.</li>
+</ul>
 <h2 id="lots-tickets-branches-et-releases">Lots, tickets, branches et releases<a class="headerlink" href="#lots-tickets-branches-et-releases" title="Permanent link">&para;</a></h2>
 <p>Le suivi suit l'organisation de VEAF-Mission-Creation-Tools, avec des tickets GitHub à la place des fichiers de <code>.backlog/</code> ; le détail est dans <a href="https://github.com/VEAF/hotas-kneeboard/blob/develop/docs/agents/issue-tracker.md"><code>docs/agents/issue-tracker.md</code></a>.</p>
 <ul>
@@ -735,6 +784,7 @@ La page d'accueil est le <code>README.md</code>, repris tel quel au moment du bu
   Chaque lot ajoute ses entrées à la fin de <code>[Unreleased]</code> dans <a href="https://github.com/VEAF/hotas-kneeboard/blob/develop/CHANGELOG.md"><code>CHANGELOG.md</code></a>, sans toucher à la version.</li>
 <li>Une release, c'est une PR de <code>develop</code> vers <code>main</code> qui monte la version dans <code>pyproject.toml</code> et <code>hotas_kneeboard/__init__.py</code> (les deux doivent être égales) et passe <code>[Unreleased]</code> sous ce numéro.
   À la fusion, la CI construit l'exe sous Windows et publie la release <code>vX.Y.Z</code> ; une fusion sans changement de version ne publie rien.
+  Si l'interface a changé depuis la release précédente, la PR refait aussi les <a href="#les-captures-décran">captures d'écran</a>.
   Ses notes sont <a href="https://github.com/VEAF/hotas-kneeboard/blob/develop/RELEASE_NOTES.md"><code>RELEASE_NOTES.md</code></a>, réécrit à chaque release comme pour VMCT : en français, pour les pilotes (ce qui change pour eux, pas la plomberie), le titre finissant par le numéro de version ; la CI refuse de publier si le titre ne porte pas la version, et ajoute sous le titre le lien vers la documentation de cette version.</li>
 <li>La CI (tests Python et de l'interface) tourne sur chaque PR et sur chaque poussée vers <code>develop</code> et <code>main</code>.</li>
 </ul>
