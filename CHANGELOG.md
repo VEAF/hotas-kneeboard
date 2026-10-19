@@ -22,6 +22,8 @@ Chaque lot ajoute ses entrées à la fin de `[Unreleased]` ; une release les pas
 - Oubli d'un périphérique que DCS n'a pas vu lors de ses deux derniers lancements (vJoy désinstallé, périphérique renommé) : ses commandes sont supprimées dans tous les modules, après une sauvegarde (INVESTIGATE-EDIT-DCS-BINDINGS, #34).
 - Retrait en une fois des 8 vues lentes que DCS met sur le premier chapeau de chaque périphérique (palonnier, ICP, MFD…), depuis la fenêtre « Commandes DCS » : aperçu par périphérique et par module, par défaut les périphériques dont tu n'as pas utilisé le chapeau, options « tous les périphériques » (tes liaisons sur le chapeau restent) et « tous les modules installés » (un fichier créé par module) ; une seule sauvegarde, relecture après l'écriture comparée à l'aperçu (INVESTIGATE-EDIT-DCS-BINDINGS, #32).
 - Documentation publiée sur <https://veaf.github.io/hotas-kneeboard/> : version « dev » à chaque modification de `develop`, une version par release ; liens et ancres vérifiés à chaque PR (DOC-PUBLISH, #39).
+- Gabarit du throttle Thrustmaster Warthog complété : cases des crans OFF (boutons 29 et 30), du levier de friction et des quatre axes (gaz gauche et droit, slew) ; toutes les entrées que les modules installés lient par défaut ont leur case. Pas encore vérifié sur le vrai périphérique (FEAT-TEMPLATE-LIBRARY, #19).
+- `check_templates.py --device "<nom DCS>"` contrôle un gabarit sans avoir le périphérique, sur les liaisons que DCS lui donne par défaut dans chaque module installé (#19).
 
 ### Corrigé
 

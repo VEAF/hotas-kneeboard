@@ -71,6 +71,7 @@
   },
   "Thrustmaster/Thrustmaster Warthog - Throttle.svg": {
    "id": "thrustmaster-warthog-throttle",
+   "maintained": true,
    "devices": [
     "Throttle - HOTAS Warthog"
    ],
