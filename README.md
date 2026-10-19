@@ -17,6 +17,7 @@ Un projet de la [VEAF](https://www.veaf.org), sous licence GPL v2.
 - **Vers le kneeboard en un clic** : les pages arrivent dans `Saved Games\DCS\Kneeboard\<avion>\` et tu les retrouves en vol.
 - **PDF** de toutes les pages d'un module.
 - **45 dessins de périphériques** repris de [Joystick Diagrams](https://github.com/Rexeh/joystick-diagrams) (Thrustmaster, WinWing, Virpil, VKB, Saitek, CH…), et un **éditeur** pour dessiner ceux qui manquent ou corriger les autres.
+- **Le ménage dans les commandes de DCS** (DCS fermé, sauvegarde avant chaque modification, annulable) : retirer une liaison d'un périphérique, avec son origine (la tienne, celle prévue pour ce matériel, ou celle que DCS donne à « n'importe quel joystick »), retirer d'un coup les vues du chapeau ou les boutons d'un palonnier dans tous les modules, désactiver ou oublier un périphérique, réparer les modificateurs d'un périphérique renommé.
 - **Pratique** : tout se fait au clavier, glisser-déposer pour l'ordre des pages, choix mémorisés, périphériques inutiles masqués.
 
 ## Installation

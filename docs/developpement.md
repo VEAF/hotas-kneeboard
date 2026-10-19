@@ -13,6 +13,7 @@ hotas_kneeboard/          serveur FastAPI (127.0.0.1 seulement)
   kneeboard.py            écriture des pages PNG
   dcs_config.py           modifications des commandes de DCS : refus si DCS tourne, sauvegarde et restauration, périphériques désactivés ou oubliés
   hat_views.py            retrait en une fois des 8 vues génériques du chapeau (aperçu, sélection, relecture)
+  generic_buttons.py      retrait en une fois des boutons génériques des périphériques sans boutons (même schéma)
   lua_tables.py + lua/    lecture et écriture des fichiers Lua de DCS, avec le sérialiseur du jeu
   settings.py             réglages (%APPDATA%/HOTAS Kneeboard/settings.json)
   app.py                  routes HTTP
@@ -45,11 +46,13 @@ Il vient de VEAF/joystick-diagrams-dcs-world-plugin, où ses règles sont docume
 Ajouts propres à ce dépôt :
 
 - le type d'avion de chaque profil, lu dans les appels `make_flyable` du `entry.lua` du module : c'est le nom du dossier kneeboard (`A-10C II` → `A-10C_2`) ;
+- le nom que l'écran des commandes de DCS donne à chaque profil (`display_name`), la chaîne que rend le `name.lua` de son dossier (« AH-64D Pilot » pour `AH-64D_BLK_II_PLT`) ; le serveur la traduit comme les commandes, et départage deux profils du même nom par leur dossier ;
 - un périphérique sans profil de base, ou d'un module non installé, montre ce que son diff ajoute plutôt que rien ;
-- le retrait de liaisons (enregistrements `remove`) : le moteur recalcule alors le diff de chaque périphérique concerné comme DCS le fait en enregistrant (`saveDeviceProfile`), contre les défauts du module sans le diff livré avec lui ;
+- le retrait de liaisons (enregistrements `remove`, touche ou axe selon leur dernier champ) : le moteur recalcule alors le diff de chaque périphérique concerné comme DCS le fait en enregistrant (`saveDeviceProfile`), contre les défauts du module sans le diff livré avec lui ; un axe retiré s'écrit comme DCS l'écrit (`["removed"] = { [1] = { ["key"] = "JOY_RZ" } }`, comparé à un diff enregistré par le jeu) ;
 - les combinaisons dont la touche n'est pas une entrée du périphérique sont écartées, comme DCS le fait (`getKeyBelongToDevice`) : le profil joystick du C-130J déclare des touches clavier ;
 - les périphériques demandés par des enregistrements `device` sont calculés aussi dans les profils de module où ils n'ont pas de diff (défauts du module, marqués `extra`), et `scope installed` ajoute tous les profils de module installés : c'est ce qui permet de créer un diff là où il n'y en a pas ;
-- chaque liaison venue d'un diff (ajoutée ou changée) est marquée `from_diff` : c'est ce que l'utilisateur a placé, par opposition aux défauts du module ;
+- chaque liaison que le diff de l'utilisateur ajoute ou change est marquée `from_diff`, sauf si le diff livré par le module pour ce périphérique la place aussi : DCS recopie ce diff dans celui de l'utilisateur au premier enregistrement, ce qu'il place reste donc le module ; celles-là sont marquées `from_module_diff` ;
+- `base_file` dit d'où viennent les défauts : le profil du module pour ce périphérique, ou son `default.lua`, le profil de « n'importe quel joystick » quand il n'en a pas ; avec les deux marques, c'est l'origine de la fenêtre Liaisons (`app.binding_origin` : `user`, `device`, `generic`) ;
 - chaque recalcul rend le nombre de liaisons réellement retirées (`removed`) ; `remove_bindings` ne réécrit pas un périphérique où aucune ne l'a été.
 
 Les 8 vues du chapeau (`hat_views.py`) viennent de `Config/Input/Aircrafts/common_joystick_binding.lua`, inclus dans les défauts de chaque module : elles se reconnaissent au couple (hash, touche), identique dans tous les modules (`dnilp34u214…` pour `JOY_BTN_POV1_U`…), jamais au nom affiché.
@@ -58,11 +61,19 @@ Seules les vues venues des défauts sont retirées ; un nouveau diff n'est cré�
 Après l'écriture, l'aperçu est recalculé : une vue prévue encore présente, ou un nombre retiré différent du prévu, est signalé.
 Vérifié le 2026-10-19 sur une copie fidèle d'un vrai `Saved Games` : 505 vues retirées sur 160 couples périphérique × module (dont 44 fichiers créés), relecture sans écart, et des liaisons effectives identiques avant et après à ces vues près.
 
+Les boutons génériques (`generic_buttons.py`) sont les liaisons de touche d'un périphérique dont la base est `default.lua`, ni `from_diff` ni `from_module_diff`, sur les périphériques que l'utilisateur a marqués sans boutons (`Settings.buttonless_devices`, noms sans GUID) : DCS n'écrit nulle part combien de boutons a un périphérique.
+La portée par défaut est celle des modules où le périphérique a un diff ; `all_modules` y ajoute tous les modules installés (un diff créé où il n'y en a pas). Aperçu, sauvegarde unique, relecture et écarts sont ceux des vues du chapeau.
+Une liaison dont le hash nomme encore un symbole `iCommand…` (`@`), faute de numéro appris, n'est pas retirable : son retrait ne peut pas s'écrire comme DCS ; l'aperçu la montre à part (`unknown`), l'API des liaisons la marque `removable: false`.
+Vérifié le 2026-10-19 sur une copie d'un vrai `Saved Games` : palonnier, 20 liaisons dans 9 modules, relecture conforme, aucun axe touché ; les 5 de `ground_unit` (tourelle, tir secondaire) restent à part.
+
 Le recalcul couvre les touches (combinaisons ajoutées, retirées) et les axes (plus les combinaisons dont le filtre a changé, comparé comme DCS : valeurs par défaut de `createAxisFilter`, valeurs de cran jamais comparées) ; le diff de retour de force est recopié depuis le fichier, relu par `lua_tables`.
 Une entrée de diff qui ne correspond plus à aucune commande disparaît, comme quand DCS enregistre ; une entrée dont la commande a un numéro `iCommand` inconnu fait refuser l'écriture, pour ne pas perdre la liaison.
 Un diff vide est supprimé, comme DCS le fait : le périphérique retombe sur les défauts du module, et sur le diff livré avec lui s'il y en a un.
 Prouvé le 2026-10-19 contre DCS : 4 vues retirées à la main dans l'écran des commandes (manche Orion, F-16C_50), la même opération faite par l'appli sur le même état de départ donne le même fichier octet pour octet, et le palonnier que DCS a réécrit au passage aussi.
 Sur une copie fidèle d'un vrai `Saved Games` (commandes communautaires comprises), réécrire les 57 diffs sans rien retirer laisse les liaisons de 55 périphériques identiques ; les 2 autres ne contenaient que des entrées périmées, leur fichier est supprimé et ils retombent sur les défauts, sans effet en jeu.
+
+Les valeurs qui vont au moteur passent par son entrée standard, un enregistrement par ligne, champs séparés par des tabulations : `engine._loader_input` refuse toute valeur contenant une tabulation ou un retour à la ligne, qui ajouterait ses propres enregistrements (un `install` ailleurs, dont l'interpréteur exécuterait les fichiers Lua).
+Les routes qui reçoivent un nom de module n'acceptent qu'un module configuré, et le serveur refuse toute requête `/api/` marquée `Sec-Fetch-Site: cross-site`, lecture comprise : une page d'un autre site ne doit pas pouvoir lancer le moteur.
 
 `luae.exe` ouvre les fichiers par la bibliothèque C, limitée à 260 caractères sous Windows : un diff au chemin plus long n'est pas lu.
 Le recalcul le prendrait pour un diff absent ; `dcs_config.new_diffs` refuse donc d'écrire quand le diff de l'utilisateur existe et que le moteur ne l'a pas lu.
