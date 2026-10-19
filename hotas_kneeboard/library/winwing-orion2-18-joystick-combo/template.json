@@ -1,7 +1,9 @@
 {
  "format": 1,
  "name": "Orion2 18 Joystick Combo",
- "devices": [],
+ "devices": [
+  "WINWING JOYSTICK BASE2 + F18 GRIP"
+ ],
  "image": "background.svg",
  "size": [
   816.0,

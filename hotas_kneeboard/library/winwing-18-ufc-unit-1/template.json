@@ -1,7 +1,9 @@
 {
  "format": 1,
  "name": "WinWing 18-UFC Unit 1",
- "devices": [],
+ "devices": [
+  "WINWING UFC1"
+ ],
  "image": "background.svg",
  "size": [
   1159.0,

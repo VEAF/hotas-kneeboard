@@ -1,7 +1,10 @@
 {
  "format": 1,
  "name": "Orion2 16EX Throttle Combo",
- "devices": [],
+ "devices": [
+  "WINWING Orion Throttle Base II + TGRIP-F16",
+  "WINWING THROTTLE BASE2 + TGRIP-F16"
+ ],
  "image": "background.svg",
  "size": [
   1157.0,

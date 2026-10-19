@@ -3,7 +3,8 @@
  "name": "MFD Unit1",
  "devices": [
   "WINWING MFD1-L",
-  "WINWING MFD1-R"
+  "WINWING MFD1-R",
+  "WINWING MFD1-C"
  ],
  "image": "background.svg",
  "size": [

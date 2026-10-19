@@ -3,7 +3,10 @@
  "name": "WINWING Orion Throttle Base II + F15EX HANDLE L + F15EX HANDLE R",
  "devices": [
   "WINCTRL Orion Throttle Base II + F15EX HANDLE L + F15 HANDLE R",
-  "WINWING Orion Throttle Base II + F15EX HANDLE L + F15EX HANDLE R"
+  "WINWING Orion Throttle Base II + F15EX HANDLE L + F15EX HANDLE R",
+  "WINWING Orion Throttle Base II + F15EX HANDLE L + F15 HANDLE R",
+  "WINWING THROTTLE BASE2 + F15EX HANDLE L + F15 HANDLE R",
+  "WINWING THROTTLE BASE2 + F15EX HANDLE L + F15EX HANDLE R"
  ],
  "image": "background.svg",
  "size": [

@@ -1,7 +1,9 @@
 {
  "format": 1,
  "name": "PCR Panel of Combat Ready",
- "devices": [],
+ "devices": [
+  "WINWING F18 COMBAT READY PANEL"
+ ],
  "image": "background.svg",
  "size": [
   1157.0,
