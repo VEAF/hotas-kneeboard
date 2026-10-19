@@ -16,11 +16,13 @@ hotas_kneeboard/          serveur FastAPI (127.0.0.1 seulement)
   generic_buttons.py      retrait en une fois des boutons génériques des périphériques sans boutons (même schéma)
   lua_tables.py + lua/    lecture et écriture des fichiers Lua de DCS, avec le sérialiseur du jeu
   settings.py             réglages (%APPDATA%/HOTAS Kneeboard/settings.json)
+  i18n.py + locales/      messages du serveur en français et en anglais
   app.py                  routes HTTP
   library/                les gabarits livrés
 web/                      interface Vue 3 + TypeScript + Vite + PrimeVue + VueUse
   src/render/             construction des pages en SVG (écran, PNG et PDF partent du même SVG)
   src/editor/             éditeur de gabarits
+  src/locales/            textes de l'interface en français et en anglais (src/lib/i18n.ts)
 scripts/                  conversion des gabarits, comparaison avec DCS, vérification des gabarits
 packaging/                construction de l'exe (PyInstaller)
 ```
@@ -88,6 +90,27 @@ uv run python scripts/compare_make_html.py "A-10C II" "F-16C_50"
 
 La dernière ligne est le verdict ; l'export ne couvre que les périphériques branchés au moment où il a été fait.
 
+## Les langues
+
+L'interface, les messages du serveur et la documentation existent en français et en anglais, de la même façon que dans VEAF-Mission-Creation-Tools.
+Les noms de commande, eux, viennent des fichiers `l10n` de DCS (réglage « Langue des commandes ») et ne passent pas par là.
+
+- **Les textes** sont dans des catalogues JSON plats, un par langue : `web/src/locales/<langue>.json` pour l'interface, `hotas_kneeboard/locales/<langue>.json` pour le serveur.
+  Une clé pointée (`settings.title`), des paramètres entre accolades (`{device}`) ; un pluriel est une paire `<clé>.one` / `<clé>.other` (en français, zéro est au singulier).
+  L'anglais est la référence : une clé absente d'un autre catalogue retombe sur l'anglais, puis sur la clé elle-même.
+- **Dans l'interface**, `t('clé', { paramètres })` et `tn('clé', nombre)` (`web/src/lib/i18n.ts`) ; un texte qui contient du balisage (un `<code>`, un lien) passe par le composant `Tr`, qui place chaque emplacement nommé là où la traduction met `{nom}`.
+  `lang` est réactif : ce qui le lit se redessine quand la langue change.
+- **La langue de l'interface** est un réglage (`ui_language` : `fr`, `en`, ou `null` pour celle du navigateur), appliqué tout de suite ; une copie dans le `localStorage` évite d'afficher l'autre langue le temps de lire les réglages.
+- **Le serveur** répond dans la langue de la requête : l'interface envoie la sienne dans `Accept-Language`, et `i18n.LanguageMiddleware` la pose pour la durée de la requête (un `ContextVar`, vu aussi des routes synchrones).
+  Hors requête (la console de l'exe), c'est `HOTAS_KNEEBOARD_LANG`, sinon la langue d'affichage de Windows, sinon l'anglais.
+  `t("clé", nom=valeur)` dans `hotas_kneeboard/i18n.py`.
+- **Les pages du kneeboard** parlent la langue des commandes, pas celle de l'interface (`pageLanguage`) : en français quand DCS est en français, en anglais sinon, pour qu'une page ne mélange pas deux langues.
+  C'est vrai aussi des actions de SRS et de VectorXR qui y sont dessinées : l'interface demande `/api/programs` dans cette langue.
+- **Les tests** vérifient que les deux catalogues ont les mêmes clés et les mêmes paramètres, et que chaque clé que le code demande existe (`web/src/lib/__tests__/i18n.test.ts`, `tests/test_i18n.py`).
+  Les tests Python lisent les messages en français (`tests/conftest.py`), `test_i18n.py` vérifie l'anglais.
+
+Un texte nouveau va dans les deux catalogues, dans le même mouvement que le code ; un texte en dur dans un composant ou un message d'erreur est un oubli.
+
 ## Commandes
 
 Python (avec [uv](https://docs.astral.sh/uv/)) :
@@ -131,13 +154,23 @@ Il produit `dist/HOTAS-Kneeboard.exe`.
 ## Le site de documentation
 
 La documentation est publiée sur <https://veaf.github.io/hotas-kneeboard/> (GitHub Pages du dépôt, branche `gh-pages`) avec MkDocs Material et mike, comme celle de VEAF-Mission-Creation-Tools.
-La page d'accueil est le `README.md`, repris tel quel au moment du build (`scripts/mkdocs_hooks.py`) ; les pages sont celles de `docs/`, sauf `docs/agents/`, qui s'adresse aux sessions Claude.
+Les pages sont celles de `docs/`, sauf `docs/agents/`, qui s'adresse aux sessions Claude.
+
+Elle est en français et en anglais, avec le plugin mkdocs-static-i18n, comme VMCT :
+
+- `page.md` est la page française (la langue par défaut, à la racine du site), `page.en.md` la page anglaise (sous `en/`) ; une page nouvelle s'écrit dans les deux langues et va dans le `nav` de `mkdocs.yml`, écrit en anglais, avec sa traduction dans `nav_translations`.
+- Une image `nom.en.png` remplace `nom.png` sur le site anglais ; sans elle, le site anglais montre l'image française.
+- Le `README.md` contient l'anglais puis le français, à partir de `<a id="fr"></a>` ; au moment du build, `scripts/mkdocs_hooks.py` en fait les deux pages d'accueil, `docs/index.en.md` et `docs/index.md` (ignorées par git).
+- Les liens d'une page anglaise visent les pages anglaises (`guide-utilisateur.en.md`) : ils marchent ainsi sur GitHub comme sur le site.
+
+La publication :
 
 - Une poussée vers `develop` publie la version « dev » ; tant qu'aucune release n'est sortie, l'adresse du site ouvre celle-là.
 - Une release (poussée vers `main`) publie la version de `pyproject.toml` et la marque « latest », que l'adresse du site ouvre ensuite.
   C'est la poussée vers `main` qui déclenche, pas le tag `vX.Y.Z` : `release.yml` crée le tag avec le jeton de GitHub Actions, et un événement fait avec ce jeton ne lance aucun autre workflow.
 - Chaque PR construit le site avec `--strict` : un lien vers une page absente ou une ancre qui n'existe pas fait échouer la CI.
   Les ancres sont celles de GitHub, accents compris (`#vérifier-la-numérotation-sur-le-périphérique`) : un lien marche sur les deux.
+  Chaque langue a les siennes, tirées de ses titres (`#check-the-numbering-on-the-device` en anglais) ; `--strict` attrape un lien qu'un titre retouché a cassé.
   Un lien vers un fichier hors du site (`CHANGELOG.md`, `docs/agents/`) s'écrit en adresse GitHub complète.
 
 Voir le site en local, rechargé à chaque modification :
@@ -150,17 +183,20 @@ uv run --group docs mkdocs serve
 
 Les images de `docs/images/` sont prises dans l'application elle-même par `scripts/doc_screenshots.py`, qui pilote l'Edge installé avec Playwright.
 Le script ne fait que regarder : il ouvre les écrans et les fenêtres, lance les aperçus (« Chercher »), et ne clique sur rien qui écrive dans DCS.
-Il coche quand même le palonnier dans « Périphériques sans boutons », ce qui écrit les réglages de l'application : on le lance donc sur une application démarrée avec un `HOTAS_KNEEBOARD_DATA` jetable, dans un premier terminal :
+Il règle la langue de l'interface et des commandes, et coche le palonnier dans « Périphériques sans boutons », ce qui écrit les réglages de l'application : on le lance donc sur une application démarrée avec un `HOTAS_KNEEBOARD_DATA` jetable, dans un premier terminal :
 
 ```powershell
 $env:HOTAS_KNEEBOARD_DATA = "$env:TEMP\hk-shots"; uv run hotas-kneeboard --port 8654 --no-browser
 ```
 
-puis, dans un second terminal :
+puis, dans un second terminal, les captures françaises, puis les anglaises :
 
 ```powershell
 $env:HOTAS_KNEEBOARD_DATA = "$env:TEMP\hk-shots"; uv run --with playwright python scripts/doc_screenshots.py
+$env:HOTAS_KNEEBOARD_DATA = "$env:TEMP\hk-shots"; uv run --with playwright python scripts/doc_screenshots.py --lang en
 ```
+
+- `--lang en` écrit `nom.en.png` à côté de chaque `nom.png`, l'interface et les commandes en anglais ; le script trouve les boutons par leur texte dans le catalogue de l'interface, qu'un libellé retouché ne casse donc pas.
 
 - Les images montrent les périphériques du PC qui les prend : le script choisit l'A-10C II, le manche WinWing Orion et le palonnier T-Pendular ; ailleurs, changer `MODULE`, `STICK` et `RUDDER` en tête du script.
 - Le nom de l'utilisateur Windows et le dossier jetable sont remplacés à l'écran par ceux d'un pilote ordinaire (`C:\Users\Pilote`, `%APPDATA%\HOTAS Kneeboard`).
@@ -185,7 +221,7 @@ Le suivi suit l'organisation de VEAF-Mission-Creation-Tools, avec des tickets Gi
 
 ## Règles du dépôt
 
-- L'interface et la documentation sont en français ; le code et ses commentaires en anglais.
+- L'interface, les messages du serveur et la documentation sont en français et en anglais (voir [Les langues](#les-langues)) ; le code et ses commentaires en anglais.
 - Les noms de commande affichés sont ceux du jeu, traduits ; ne jamais afficher les noms bruts des fichiers Lua.
 - Les gabarits gardent leur crédit et leur licence.
 - Le serveur n'accepte que les hôtes `127.0.0.1` et `localhost`, et refuse les écritures venues d'un autre site.

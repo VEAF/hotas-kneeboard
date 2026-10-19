@@ -18,7 +18,7 @@ Même organisation que VEAF-Mission-Creation-Tools (VMCT), avec des tickets GitH
 
 - `develop` est la branche par défaut et reçoit le travail ; `main` ne reçoit que des releases.
 - Un lot = une branche `feature/<LOT-ID>`, `fix/<LOT-ID>` ou `chore/<LOT-ID>` créée depuis `develop`, **une seule PR** vers `develop` pour tout le lot, qui ferme ses tickets et le lot (`Closes #…`).
-- Une release = une PR de `develop` vers `main`, qui monte la version dans `pyproject.toml` et `hotas_kneeboard/__init__.py` (les deux doivent être égales), passe la section `[Unreleased]` de `CHANGELOG.md` sous le numéro de version, refait les captures de la doc si l'interface a changé (`scripts/doc_screenshots.py`), et réécrit `RELEASE_NOTES.md` (titre `# HOTAS Kneeboard — X.Y.Z`, en français, pour les pilotes, sur le modèle de VMCT ; à faire valider par David). À la fusion, `.github/workflows/release.yml` construit l'exe sous Windows et publie la release `vX.Y.Z` ; une fusion sans changement de version ne publie rien.
+- Une release = une PR de `develop` vers `main`, qui monte la version dans `pyproject.toml` et `hotas_kneeboard/__init__.py` (les deux doivent être égales), passe la section `[Unreleased]` de `CHANGELOG.md` sous le numéro de version, refait les captures de la doc si l'interface a changé (`scripts/doc_screenshots.py`, en français puis `--lang en`), et réécrit `RELEASE_NOTES.md` (titre `# HOTAS Kneeboard — X.Y.Z`, en français, pour les pilotes, sur le modèle de VMCT ; à faire valider par David). À la fusion, `.github/workflows/release.yml` construit l'exe sous Windows et publie la release `vX.Y.Z` ; une fusion sans changement de version ne publie rien.
 - La CI (`ci.yml`) tourne sur chaque PR et sur les poussées vers `develop` et `main`.
 
 ## Démarche par défaut
@@ -39,9 +39,10 @@ Pour chaque demande, dans l'ordre :
 
 ## Documentation
 
-- `README.md` et `docs/` (guide d'utilisation, éditeur de gabarits, gabarits, développement) sont en français ; l'internationalisation de l'interface et de la doc viendra plus tard.
-- Un changement visible de l'utilisateur met à jour la page de `docs/` qui en parle, dans le même mouvement.
-- Le site <https://veaf.github.io/hotas-kneeboard/> est construit par MkDocs Material + mike (`mkdocs.yml`, `.github/workflows/docs.yml`) : « dev » à chaque poussée vers `develop`, la version et « latest » à chaque release ; l'accueil est le README (`scripts/mkdocs_hooks.py`), `docs/agents/` en est exclu.
+- `README.md` et `docs/` (guide d'utilisation, éditeur de gabarits, gabarits, développement) sont en français et en anglais, comme VMCT : le README contient l'anglais puis le français (à partir de `<a id="fr"></a>`), chaque page existe en `page.md` (français, langue par défaut du site) et `page.en.md`, et les liens d'une page anglaise visent les pages anglaises.
+  Une page nouvelle s'écrit dans les deux langues et va dans le `nav` de `mkdocs.yml`, écrit en anglais, avec sa ligne dans `nav_translations` ; une capture anglaise s'appelle `nom.en.png`.
+- Un changement visible de l'utilisateur met à jour la page de `docs/` qui en parle, dans les deux langues, dans le même mouvement.
+- Le site <https://veaf.github.io/hotas-kneeboard/> est construit par MkDocs Material + mike (`mkdocs.yml`, `.github/workflows/docs.yml`) : « dev » à chaque poussée vers `develop`, la version et « latest » à chaque release ; l'accueil est le README, coupé en ses deux langues au build (`scripts/mkdocs_hooks.py`, qui écrit `docs/index.md` et `docs/index.en.md`, ignorés par git), `docs/agents/` en est exclu.
   La CI construit le site avec `--strict` : un lien vers un fichier hors du site (`CHANGELOG.md`, `docs/agents/`) s'écrit en adresse GitHub complète, et une page nouvelle s'ajoute au `nav` de `mkdocs.yml`.
   Vérifier : `uv run --group docs mkdocs build --strict`.
 
@@ -64,6 +65,7 @@ Pour chaque demande, dans l'ordre :
   - `hat_views.py` : retrait en une fois des 8 vues génériques du chapeau (`common_joystick_binding.lua`), reconnues au couple (hash, touche) ; par défaut les périphériques où l'utilisateur n'a rien mis sur le chapeau (liaisons `from_diff` du moteur), options « tous les périphériques » et « tous les modules installés » (le moteur calcule alors aussi les périphériques sans diff : enregistrements `device` et `scope installed`) ; une sauvegarde, puis relecture.
   - `generic_buttons.py` : retrait en une fois des boutons génériques (base `default.lua`, ni de l'utilisateur ni du module pour ce périphérique) des périphériques marqués sans boutons (`Settings.buttonless_devices`), sur le modèle de `hat_views.py` ; une liaison à numéro `iCommand` inconnu n'est pas retirable (`unknown`, `removable`).
   - `kneeboard.py` : écriture des PNG dans `Saved Games/DCS/Kneeboard/<type d'unité>/`, fichiers `HOTAS - <profil> - <nn> <titre>.png` ; un export ne remplace que les pages du même profil (deux postes d'un avion partagent le dossier).
+  - `i18n.py` + `locales/` : les messages du serveur, dans la langue de la requête (`Accept-Language`, que l'interface envoie), comme le `i18n.py` de VMCT ; hors requête, `HOTAS_KNEEBOARD_LANG`, sinon la langue de Windows, sinon l'anglais.
   - `app.py` : n'accepte que les hôtes `127.0.0.1`/`localhost` et refuse les écritures d'une autre origine (DNS rebinding).
 - `web/` : l'interface Vue 3 + TypeScript + Vite + PrimeVue + VueUse. `src/render/` construit les pages en SVG (affichage, PNG et PDF partent du même SVG). `src/editor/` : l'éditeur de gabarit (état et historique annuler/rétablir dans `state.ts`, écoute des manettes dans `gamepad.ts`). `npm run build` écrit dans `hotas_kneeboard/web/` (ignoré par git).
 - `scripts/convert_jd_templates.py` + `jd_templates.json` : conversion des SVG draw.io de Joystick Diagrams. `scripts/compare_make_html.py` : comparaison des pages avec l'export MAKE HTML de DCS. `scripts/doc_screenshots.py` : les captures de `docs/images/`, prises dans l'application en lecture seule (marche à suivre dans `docs/developpement.md`).
@@ -103,5 +105,8 @@ Une seule étiquette de statut (⬜ ready · 🔄 in-progress · 🧑 waiting-hu
 
 - Le moteur doit rester identique à l'export MAKE HTML : tout changement de `effective_bindings.lua` ou `pages.py` se vérifie avec `compare_make_html.py`.
 - Les noms de commande affichés sont ceux du jeu, traduits ; ne pas comparer ni afficher les noms bruts du Lua.
-- L'interface est en français, le code et les commentaires en anglais.
+- L'interface et les messages du serveur sont en français et en anglais : catalogues JSON plats `web/src/locales/<langue>.json` (`t()`, `tn()`, composant `Tr`) et `hotas_kneeboard/locales/<langue>.json` (`i18n.t()`), l'anglais en référence ; le détail est dans `docs/developpement.md`, section « Les langues ».
+  Tout texte nouveau va dans les deux catalogues, dans le même mouvement que le code ; les tests vérifient que les catalogues ont les mêmes clés et que chaque clé demandée existe.
+  Les pages du kneeboard parlent la langue des commandes (`pageLanguage`), pas celle de l'interface.
+- Le code et les commentaires sont en anglais.
 - Les gabarits gardent leur crédit et leur licence (`credits` du JSON, ligne de crédit sur la page).

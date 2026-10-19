@@ -47,7 +47,7 @@ En bas à droite, le zoom : page entière, toute la largeur, plus ou moins (ou C
 
 La ligne entre deux colonnes se glisse pour élargir ou rétrécir la colonne des modules ou celle des périphériques ; l'application s'en souvient, et un double-clic sur la ligne remet la largeur par défaut.
 
-Dans la barre du haut, le livre ouvre cette documentation, celle de ta version de l'application, dans un nouvel onglet ; la fenêtre des raccourcis (`?`) y mène aussi.
+Dans la barre du haut, le livre ouvre cette documentation, celle de ta version de l'application et dans la langue de l'interface, dans un nouvel onglet ; la fenêtre des raccourcis (`?`) y mène aussi.
 
 ## Lire une page
 
@@ -225,8 +225,11 @@ Ils sont enregistrés dans `%APPDATA%\HOTAS Kneeboard\settings.json` ; le chemin
 
 **Général.**
 
+- La langue de l'interface : celle du navigateur par défaut (le français si ton navigateur est en français, l'anglais sinon), ou le français ou l'anglais au choix.
+  Elle s'applique tout de suite, aux menus comme aux messages de l'application, et à la documentation qu'ouvre le livre.
 - Les dossiers de DCS : vides, ils sont trouvés automatiquement.
 - La langue des commandes : celle du jeu par défaut, ou une autre langue livrée avec DCS.
+  Les mots que l'application écrit elle-même sur les pages (« relâché : », la ligne de crédit du gabarit, l'en-tête d'une page en liste) suivent cette langue : en français quand les commandes sont en français, en anglais sinon, pour qu'une page ne mélange pas deux langues.
 - La hauteur des pages kneeboard.
 - La découpe en deux pages des dessins qui ont une ligne de découpe.
 

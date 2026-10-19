@@ -1,5 +1,5 @@
 site_name: HOTAS Kneeboard
-site_description: Pages de kneeboard et fiches à imprimer pour DCS World, dessinées sur tes périphériques
+site_description: DCS World kneeboard pages and printable sheets, drawn on your own devices
 site_url: https://veaf.github.io/hotas-kneeboard/
 repo_url: https://github.com/VEAF/hotas-kneeboard
 repo_name: VEAF/hotas-kneeboard
@@ -16,20 +16,19 @@ hooks:
 
 theme:
   name: material
-  language: fr
   palette:
     - scheme: default
       primary: indigo
       accent: indigo
       toggle:
         icon: material/brightness-7
-        name: Passer en thème sombre
+        name: Switch to dark mode
     - scheme: slate
       primary: indigo
       accent: indigo
       toggle:
         icon: material/brightness-4
-        name: Passer en thème clair
+        name: Switch to light mode
   features:
     - navigation.sections
     - navigation.top
@@ -49,16 +48,56 @@ markdown_extensions:
   - tables
   - pymdownx.superfences
 
+# French and English, as VEAF-Mission-Creation-Tools: page.md is French (the default, at the root of
+# the site), page.en.md English (under en/); a picture.en.png takes the place of picture.png on the
+# English site. The nav is written in English, nav_translations gives its French.
+plugins:
+  - search:
+      lang:
+        - fr
+        - en
+  - i18n:
+      docs_structure: suffix
+      languages:
+        - locale: fr
+          default: true
+          name: Français
+          build: true
+          site_description: Pages de kneeboard et fiches à imprimer pour DCS World, dessinées sur tes périphériques
+          theme:
+            palette:
+              - scheme: default
+                primary: indigo
+                accent: indigo
+                toggle:
+                  icon: material/brightness-7
+                  name: Passer en thème sombre
+              - scheme: slate
+                primary: indigo
+                accent: indigo
+                toggle:
+                  icon: material/brightness-4
+                  name: Passer en thème clair
+          nav_translations:
+            Home: Accueil
+            User guide: Guide d'utilisation
+            Template editor: Éditeur de gabarits
+            Templates: Gabarits
+            Development: Développement
+        - locale: en
+          name: English
+          build: true
+
 extra:
   version:
     provider: mike
 
 nav:
-  - Accueil: index.md
-  - Guide d'utilisation: guide-utilisateur.md
-  - Éditeur de gabarits: editeur-de-gabarits.md
-  - Gabarits: gabarits.md
-  - Développement: developpement.md
+  - Home: index.md
+  - User guide: guide-utilisateur.md
+  - Template editor: editeur-de-gabarits.md
+  - Templates: gabarits.md
+  - Development: developpement.md
 
 # every warning (a broken link or anchor) fails the build in CI
 validation:
