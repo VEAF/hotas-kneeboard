@@ -71,6 +71,8 @@ SRS_ACTIONS = {
 _SWITCH = re.compile(r"^Switch(\d+)$")
 _CAMEL = re.compile(r"(?<=[a-z0-9])(?=[A-Z])")
 _VECTORXR_BUTTON = re.compile(r"^button-(\d+)$")
+# "DCS - snapviews": on a DCS page, the program's name says nothing
+_DCS_PREFIX = re.compile(r"^\s*DCS\s*[-–—:]\s*", re.IGNORECASE)
 
 
 @dataclass(frozen=True)
@@ -199,6 +201,12 @@ def _vectorxr_action(path: list, data: dict) -> str:
         return "Overlay : " + _CAMEL.sub(" ", keys[2]).lower().removesuffix(" binding")
     module = keys[1] if len(keys) > 1 and keys[0] == "modules" else keys[0]
     label = {"pivotxr": "PivotXR", "depthxr": "DepthXR", "quadviews": "Quad views"}.get(module, module)
+    if "profiles" in keys:
+        # several profiles of a module may be in use in DCS: say which one
+        profile = _get(data, path[: path.index("profiles") + 2]) or {}
+        name = _DCS_PREFIX.sub("", str(profile.get("name") or "")).strip()
+        if name:
+            label = f"{label} {name}"
     if "quickViews" in keys:
         index = path[path.index("quickViews") + 1]
         view = _get(data, path[: path.index("quickViews") + 2]) or {}
@@ -221,7 +229,11 @@ def _get(data, path: list):
 
 def read_vectorxr(path: Path) -> list[ProgramBinding]:
     """Device bindings anywhere in VectorXR's settings. Only what is in use in DCS counts: a
-    module or a profile switched off, a profile of another program, are left out."""
+    profile switched off, a profile of another program, are left out.
+
+    A module's own ``enabled`` (or the overlay's) is the state it was left in, not whether its buttons work: a module
+    switched on and off in flight by its ``toggleEnabled`` binding is saved off half the time, and
+    the reference PC uses its PivotXR profiles with the module saved off."""
     data = json.loads(path.read_text(encoding="utf-8"))
     dcs_apps = {
         a.get("id")
@@ -232,7 +244,9 @@ def read_vectorxr(path: Path) -> list[ProgramBinding]:
 
     def walk(node, where: list) -> None:
         if isinstance(node, dict):
-            if node.get("enabled") is False:
+            # a module, or the overlay (core.osd): saved on or off, see above
+            feature = len(where) == 2 and where[0] in ("modules", "core")
+            if node.get("enabled") is False and not feature:
                 return
             # a profile of another program: its bindings are not used in DCS
             apps = node.get("applicationIds")

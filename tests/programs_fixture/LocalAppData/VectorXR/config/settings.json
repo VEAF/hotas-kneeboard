@@ -19,7 +19,7 @@
   "applications": [{ "id": "dcs", "name": "DCS", "enabled": true, "match": { "exe": "DCS.exe" } }],
   "modules": {
     "pivotxr": {
-      "enabled": true,
+      "enabled": false,
       "profiles": [
         {
           "name": "DCS - snapviews",
@@ -36,9 +36,32 @@
                 "activationBindings": [
                   { "binding": { "type": "device", "deviceGuid": "{d281fb60-b9ad-11f0-8001-444553540000}", "inputPath": "button-54", "inputLabel": "Button 54" } }
                 ]
+              },
+              {
+                "id": "b",
+                "name": "Left MFD",
+                "activationBindings": [
+                  { "binding": { "type": "device", "deviceGuid": "{d281fb60-b9ad-11f0-8001-444553540000}", "inputPath": "button-52", "inputLabel": "Button 52" } }
+                ]
               }
             ]
           }
+        },
+        {
+          "name": "DCS - enhanced motion",
+          "enabled": true,
+          "applicationIds": ["dcs"],
+          "activationBindings": [
+            { "behavior": "toggle", "binding": { "type": "device", "deviceGuid": "{d281fb60-b9ad-11f0-8001-444553540000}", "inputPath": "button-53", "inputLabel": "Button 53" } }
+          ]
+        },
+        {
+          "name": "DCS - switched off",
+          "enabled": false,
+          "applicationIds": ["dcs"],
+          "setOriginBindings": [
+            { "type": "device", "deviceGuid": "{d281fb60-b9ad-11f0-8001-444553540000}", "inputPath": "button-61", "inputLabel": "Button 61" }
+          ]
         },
         {
           "name": "Another game",
