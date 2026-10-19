@@ -225,6 +225,14 @@ function setTemplate(d: Device, templateId: string | null): void {
   changeSettings({ device_templates })
 }
 
+/** Back to the template the device's name matches: forget the choice made by hand */
+function resetTemplate(d: Device): void {
+  if (!state.settings || state.settings.device_templates[d.name] === undefined) return
+  const device_templates = { ...state.settings.device_templates }
+  delete device_templates[d.name]
+  changeSettings({ device_templates })
+}
+
 function moveDevice(profileName: string, from: number, to: number): void {
   const p = profiles.value.find((x) => x.name === profileName)
   if (!p || !state.settings || from === to) return
@@ -304,12 +312,17 @@ async function saveSrsDir(srs_dir: string | null): Promise<void> {
   state.programs = await api.programs()
 }
 
+/** The name a module shows (DCS's), its folder name staying the key of everything */
+function profileLabel(profileName: string): string {
+  return profiles.value.find((p) => p.name === profileName)?.display_name || profileName
+}
+
 async function pagesOf(profileName: string, d: Device): Promise<Page[]> {
   const id = templateIdFor(d)
   const [m, template] = await Promise.all([getMeasurer(), id ? loadTemplate(id) : Promise.resolve(null)])
   const marks = marksFor(d.guid, programBindings(profileName), state.settings?.hidden_programs ?? [])
   return devicePages(
-    { profile: profileName, device: d, template, measurer: m, fontCss: FONT_CSS, programs: { marks, styles: styles.value } },
+    { profile: profileLabel(profileName), device: d, template, measurer: m, fontCss: FONT_CSS, programs: { marks, styles: styles.value } },
     state.settings?.layer_mode ?? 'merge',
     state.settings?.split_wide ?? true,
   )
@@ -332,6 +345,7 @@ export function useStore() {
     busy,
     profiles,
     profile,
+    profileLabel,
     devices,
     device,
     hiddenCount,
@@ -340,12 +354,14 @@ export function useStore() {
     setHidden,
     load,
     changeSettings,
+    flushSettings,
     saveReading,
     orderedDevices,
     isExported,
     templateIdFor,
     toggleExported,
     setTemplate,
+    resetTemplate,
     moveDevice,
     pagesOf,
     modulePages,

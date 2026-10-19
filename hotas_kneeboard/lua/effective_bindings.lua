@@ -13,8 +13,9 @@
 --   install <DCS install>        saved <Saved Games/DCS>      casefold <1 if paths ignore case>
 --   profile <unit name>          (one line per profile to compute)
 --   dir <directory>              followed by one "entry <name>" line per directory entry
---   remove <profile> <device> <hash> <key> <reformers>
---                                a key binding to remove (reformers comma-separated, may be empty):
+--   remove <profile> <device> <hash> <key> <reformers> [<kind>]
+--                                a binding to remove, a key one unless kind is "axis" (reformers
+--                                comma-separated, may be empty):
 --                                the output then holds "rewrites", the new diff of each device
 --                                concerned, as DCS would save it (see diffAfterRemovals)
 --   device <full name>           a joystick computed in every requested unit profile even without
@@ -47,10 +48,13 @@ do
 		elseif kind == 'dir' then currentDir = {} listings[value] = currentDir
 		elseif kind == 'entry' and currentDir then table.insert(currentDir, value)
 		elseif kind == 'remove' then
-			local profile, device, hash, key, reformers = value:match('^(.-)\t(.-)\t(.-)\t(.-)\t(.*)$')
+			local fields = {}
+			for field in (value .. '\t'):gmatch('([^\t]*)\t') do table.insert(fields, field) end
+			local profile, device, hash, key, reformers, bindingKind = unpack(fields)
 			local list = {}
 			for r in (reformers or ''):gmatch('[^,]+') do table.insert(list, r) end
-			table.insert(removals, {profile = profile, device = device, hash = hash, key = key, reformers = list})
+			table.insert(removals, {profile = profile, device = device, hash = hash, key = key, reformers = list,
+				kind = bindingKind == 'axis' and 'axis' or 'key'})
 		end
 	end
 	if not (DCS_ROOT and SAVED_GAMES) then
@@ -469,8 +473,18 @@ local function moduleInputProfiles(modDir)
 	return declared, flyables
 end
 
+-- The name DCS shows for a profile in its controls screen ("AH-64D Pilot" for the folder
+-- AH-64D_BLK_II_PLT): the string its folder's name.lua returns, untranslated; nil without one
+local function profileDisplayName(folder, profile)
+	local f = loadChunk(folder .. 'name.lua')
+	if not f then return nil end
+	setfenv(f, {_ = function(s) return s end})
+	local ok, name = pcall(f, profile)
+	if ok and type(name) == 'string' and name ~= '' then return name end
+end
+
 -- Profiles of the install: unit name -> {folder = profile folder, unit = is a unit profile,
--- unitType = see unitTypeOf, nil for a built-in profile}.
+-- unitType = see unitTypeOf, nil for a built-in profile, displayName = see profileDisplayName}.
 -- The unit name, stripped of the characters a file name cannot hold, is the profile's folder in
 -- Saved Games/DCS/Config/Input/.
 local function listProfiles()
@@ -478,7 +492,8 @@ local function listProfiles()
 	local function add(unitName, folder, unit, unitType)
 		local userName = unitName:gsub('[%*/%?<>|\\:"]', '')
 		if not result[userName] then
-			result[userName] = {folder = folder, unit = unit, unitType = unitType}
+			result[userName] = {folder = folder, unit = unit, unitType = unitType,
+				displayName = profileDisplayName(folder)}
 			seenFolders[folder] = true
 		end
 	end
@@ -641,14 +656,25 @@ local function deviceBindings(baseFolder, userFolder, deviceName, unitProfile)
 		table.insert(unmatched, u)
 	end
 
-	-- combos the user's diff adds or changes: placed by the user (not by a diff shipped with the module)
-	local fromDiff = {}
-	for _, kind in ipairs({'key', 'axis'}) do
-		for hash, d in pairs(userDiff and userDiff[kind .. 'Diffs'] or {}) do
-			for _, field in ipairs({'added', 'changed'}) do
-				for _, combo in ipairs(d[field] or {}) do fromDiff[hash .. '|' .. comboHash(combo)] = true end
+	-- combos a diff adds or changes, by hash and combo
+	local function placedBy(d)
+		local placed = {}
+		for _, kind in ipairs({'key', 'axis'}) do
+			for hash, entry in pairs(d and d[kind .. 'Diffs'] or {}) do
+				for _, field in ipairs({'added', 'changed'}) do
+					for _, combo in ipairs(entry[field] or {}) do placed[hash .. '|' .. comboHash(combo)] = true end
+				end
 			end
 		end
+		return placed
+	end
+	-- the diff shipped with the module for this device: DCS copies it into the user's at the first
+	-- save, so what it places is the module's, even found in the user's file
+	local shipped = placedBy(loadDiffFile(baseFolder .. templateName(deviceName) .. '.diff.lua'))
+	-- placed by the user: in the user's diff, and not one the module ships
+	local fromDiff = {}
+	for id in pairs(placedBy(userDiff)) do
+		if not shipped[id] then fromDiff[id] = true end
 	end
 
 	local bindings, seen = {}, {}
@@ -668,6 +694,9 @@ local function deviceBindings(baseFolder, userFolder, deviceName, unitProfile)
 						command = c.name,
 						category = categoryOf(c),
 						from_diff = fromDiff[id] or nil,
+						-- placed for this very device by the module (its diff), not by the profile of
+						-- any joystick
+						from_module_diff = (not fromDiff[id] and shipped[id]) or nil,
 					})
 				end
 			end
@@ -825,16 +854,19 @@ local function diffAfterRemovals(baseFolder, userFolder, deviceName, unitProfile
 	if err then return nil, err end
 	-- counted once per binding: a module may declare a command twice (same hash), both lose the combo
 	local removed, counted = 0, {}
-	for _, c in ipairs(effective.keyCommands or {}) do
-		local hash = hashOf(c, KEY_HASH)
-		for _, r in ipairs(toRemove) do
-			local i = r.hash == hash and findCombo(c.combos, r)
-			if i then
-				table.remove(c.combos, i)
-				local id = hash .. '|' .. comboHash(r)
-				if not counted[id] then
-					counted[id] = true
-					removed = removed + 1
+	for _, kind in ipairs({'key', 'axis'}) do
+		local commands, spec = effective[kind .. 'Commands'], kind == 'key' and KEY_HASH or AXIS_HASH
+		for _, c in ipairs(commands or {}) do
+			local hash = hashOf(c, spec)
+			for _, r in ipairs(toRemove) do
+				local i = r.kind == kind and r.hash == hash and findCombo(c.combos, r)
+				if i then
+					table.remove(c.combos, i)
+					local id = kind .. '|' .. hash .. '|' .. comboHash(r)
+					if not counted[id] then
+						counted[id] = true
+						removed = removed + 1
+					end
 				end
 			end
 		end
@@ -874,7 +906,7 @@ local result = {}
 for _, name in ipairs(requested) do
 	local profile = profiles[name]
 	local entry = {found = profile ~= nil, profile_folder = profile and profile.folder,
-		unit_type = profile and profile.unitType, devices = {}}
+		unit_type = profile and profile.unitType, display_name = profile and profile.displayName, devices = {}}
 	local userFolder = SAVED_GAMES .. 'Config/Input/' .. name .. '/joystick/'
 	local present = {} -- devices with a diff file here, in lower case: a GUID's case may differ
 	for _, file in ipairs(listDir(userFolder)) do

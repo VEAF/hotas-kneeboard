@@ -1,6 +1,7 @@
 <script setup lang="ts">
 // Changes to DCS's own controls files (Saved Games\DCS\Config\Input): devices disabled in DCS,
-// devices DCS no longer sees, modifiers on a renamed device, the generic hat views removed in bulk, and the backups made before
+// devices DCS no longer sees, modifiers on a renamed device, the generic hat views and the buttons of a
+// device without any removed in bulk, and the backups made before
 // each change, listed and restorable.
 
 import { computed, ref, watch } from 'vue'
@@ -14,6 +15,8 @@ import { useStore } from '../lib/store'
 import type {
   DcsBackupsResponse,
   DcsDevicesResponse,
+  GenericButtonsDevice,
+  GenericButtonsPreview,
   HatViewsDevice,
   HatViewsPreview,
   HatViewsResult,
@@ -246,10 +249,100 @@ async function removeHat() {
   }
 }
 
+// --- devices without any button (pedals): the buttons DCS gives them, removed in bulk -----------
+// the user marks them (DCS writes nowhere how many buttons a device has); the preview is on demand
+const deviceNames = computed(() => [...new Set(knownDevices.value.map((d) => d.name))].sort((a, b) => a.localeCompare(b)))
+const isButtonless = (name: string) => !!store.state.settings?.buttonless_devices.some((d) => d.toLowerCase() === name.toLowerCase())
+const generic = ref<GenericButtonsPreview | null>(null)
+const genericError = ref('')
+const genericLoading = ref(false)
+const genericAllModules = ref(false)
+const genericConfirming = ref(false)
+const genericResult = ref<HatViewsResult | null>(null)
+
+function setButtonless(name: string, on: boolean) {
+  const others = (store.state.settings?.buttonless_devices ?? []).filter((d) => d.toLowerCase() !== name.toLowerCase())
+  store.changeSettings({ buttonless_devices: on ? [...others, name] : others })
+  generic.value = null
+  genericConfirming.value = false
+}
+
+async function loadGeneric() {
+  genericLoading.value = true
+  genericError.value = ''
+  genericConfirming.value = false
+  try {
+    await store.flushSettings()
+    generic.value = await api.genericButtons(genericAllModules.value)
+  } catch (e) {
+    generic.value = null
+    genericError.value = (e as Error).message
+  } finally {
+    genericLoading.value = false
+  }
+}
+watch(genericAllModules, () => {
+  if (generic.value) loadGeneric()
+})
+
+const genericOk = (d: GenericButtonsDevice) => d.modules.filter((m) => !m.error)
+const genericTotals = computed(() => {
+  const modules = (generic.value?.devices ?? []).flatMap(genericOk)
+  return {
+    buttons: modules.reduce((n, m) => n + m.bindings.length, 0),
+    files: modules.length,
+    created: modules.filter((m) => m.new_file).length,
+  }
+})
+
+async function removeGeneric() {
+  genericConfirming.value = false
+  working.value = 'generic'
+  try {
+    await store.flushSettings()
+    const result = await api.removeGenericButtons(genericAllModules.value)
+    genericResult.value = result
+    const removed = result.written.reduce((n, w) => n + w.removed, 0)
+    const differ = result.differences.length > 0
+    toast.add({
+      severity: differ ? 'warn' : 'success',
+      summary: differ ? 'Boutons retirés, avec des écarts' : 'Boutons génériques retirés',
+      detail: `${plural(removed, 'liaison retirée', 'liaisons retirées')}` + (differ ? ' : voir le détail dans la fenêtre' : ", relu et conforme à l'aperçu"),
+      life: 8000,
+    })
+    forgetHatPreview()
+    await Promise.all([load(), store.load(true), loadGeneric()])
+  } catch (e) {
+    toast.add({ severity: 'error', summary: 'Retrait impossible', detail: (e as Error).message, life: 10000 })
+    await load()
+  } finally {
+    working.value = ''
+  }
+}
+
+async function undoGeneric() {
+  if (!genericResult.value) return
+  const id = genericResult.value.backup.id
+  working.value = id
+  try {
+    await api.restoreDcsBackup(id)
+    genericResult.value = null
+    toast.add({ severity: 'success', summary: 'Retrait annulé', detail: "Les commandes de DCS sont revenues à leur état d'avant.", life: 5000 })
+    forgetHatPreview()
+    await Promise.all([load(), store.load(true), loadGeneric()])
+  } catch (e) {
+    toast.add({ severity: 'error', summary: 'Annulation impossible', detail: (e as Error).message, life: 10000 })
+  } finally {
+    working.value = ''
+  }
+}
+
 watch(visible, (open) => {
   confirming.value = null
   forgetting.value = null
   hatResult.value = null
+  genericResult.value = null
+  generic.value = null
   forgetHatPreview()
   if (open) load()
 })
@@ -506,6 +599,75 @@ async function restore(id: string) {
 
       <section>
         <div class="head">
+          <h3 class="eyebrow">Périphériques sans boutons</h3>
+          <Button size="small" severity="secondary" icon="pi pi-search" :label="generic ? 'Relire' : 'Chercher'" :loading="genericLoading" :disabled="!!working || !store.state.settings?.buttonless_devices.length" @click="loadGeneric" />
+        </div>
+        <p class="intro">
+          Quand un module n'a rien prévu pour un périphérique, DCS lui donne les boutons de « n'importe quel joystick » : un palonnier reçoit un tir d'arme sur le bouton 2, une direction de roulette sur le 4…
+          Coche les périphériques qui n'ont ni bouton ni chapeau ; leurs boutons génériques sont retirés dans chaque module. Ce que tu y as mis toi-même, ce que le module prévoit pour ce périphérique et les axes restent.
+        </p>
+        <ul class="rows marks">
+          <li v-for="name in deviceNames" :key="name">
+            <label><Checkbox :model-value="isButtonless(name)" binary :disabled="!!working" @update:model-value="setButtonless(name, $event)" /> {{ name }}</label>
+          </li>
+        </ul>
+        <div class="options">
+          <label><Checkbox v-model="genericAllModules" binary :disabled="!!working || genericLoading" /> Tous les modules installés, pas seulement ceux où le périphérique est configuré (crée un fichier par module)</label>
+        </div>
+        <p v-if="genericError" class="warn" role="alert">{{ genericError }}</p>
+        <template v-if="generic">
+          <ul v-if="generic.devices.length" class="rows devices">
+            <li v-for="d in generic.devices" :key="d.device">
+              <span class="dev">
+                <span class="t">{{ d.name }}</span>
+                <span class="s">{{ guid(d.device) }} · {{ plural(genericOk(d).reduce((n, m) => n + m.bindings.length, 0), 'bouton') }} dans {{ plural(genericOk(d).length, 'module') }}</span>
+                <details>
+                  <summary>Modules</summary>
+                  <ul class="modules">
+                    <li v-for="m in d.modules" :key="m.profile">
+                      {{ m.profile }} · {{ m.bindings.map((b) => `${b.key.replace('JOY_', '')} ${b.command}`).join(', ') }}<template v-if="m.new_file"> · nouveau fichier</template><template v-if="m.error"> · ignoré : {{ m.error }}</template>
+                      <span v-if="m.unknown.length" class="s why">
+                        Non retirables, numéro de commande de DCS inconnu de l'application : {{ m.unknown.map((b) => `${b.key.replace('JOY_', '')} ${b.command}`).join(', ') }} ; à retirer dans l'écran des commandes du jeu.
+                      </span>
+                    </li>
+                  </ul>
+                </details>
+              </span>
+            </li>
+          </ul>
+          <p v-else class="intro">Aucun bouton générique sur ces périphériques dans {{ genericAllModules ? 'les modules installés' : 'les modules où ils sont configurés' }}.</p>
+          <div v-if="generic.devices.length" class="head">
+            <span class="intro">{{ plural(genericTotals.buttons, 'liaison') }} à retirer dans {{ plural(genericTotals.files, 'fichier') }}<template v-if="genericTotals.created">, dont {{ plural(genericTotals.created, 'créé', 'créés') }}</template>.</span>
+            <span class="act">
+              <template v-if="genericConfirming">
+                <Button size="small" severity="danger" label="Retirer" @click="removeGeneric" />
+                <Button size="small" text label="Annuler" @click="genericConfirming = false" />
+              </template>
+              <Button
+                v-else
+                size="small"
+                icon="pi pi-eraser"
+                label="Retirer…"
+                :loading="working === 'generic'"
+                :disabled="!!working || !genericTotals.buttons || data?.dcs_running !== false"
+                @click="genericConfirming = true"
+              />
+            </span>
+          </div>
+          <p v-if="genericConfirming" class="intro">Une seule sauvegarde est faite avant ; les commandes sont relues après l'écriture.</p>
+        </template>
+        <div v-if="genericResult" class="result" role="status">
+          <p v-if="!genericResult.differences.length">Relu après l'écriture : conforme à l'aperçu.</p>
+          <template v-else>
+            <p><i class="pi pi-exclamation-triangle" /> Relu après l'écriture, des écarts avec l'aperçu :</p>
+            <ul><li v-for="(text, i) in genericResult.differences" :key="i">{{ text }}</li></ul>
+          </template>
+          <p><Button size="small" severity="secondary" outlined label="Annuler ce retrait" :loading="working === genericResult.backup.id" :disabled="!!working" @click="undoGeneric" /></p>
+        </div>
+      </section>
+
+      <section>
+        <div class="head">
           <h3 class="eyebrow">Sauvegardes</h3>
           <Button size="small" severity="secondary" icon="pi pi-save" label="Sauvegarder maintenant" :loading="working === 'backup'" :disabled="!!working" @click="backupNow" />
         </div>
@@ -551,6 +713,9 @@ async function restore(id: string) {
 h3 { margin: 0; }
 .rows { list-style: none; margin: 0 0 8px; padding: 0; border: 1px solid var(--line); border-radius: 6px; max-height: 50vh; overflow: auto; }
 .rows li { display: grid; grid-template-columns: 150px minmax(0, 1fr) auto auto; gap: 10px; align-items: center; padding: 5px 10px; border-bottom: 1px solid var(--line); }
+.rows.marks { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 0 12px; padding: 6px 8px; }
+.rows.marks li { display: block; border: 0; padding: 3px 0; }
+.rows.marks label { display: flex; align-items: center; gap: 8px; cursor: pointer; }
 .rows li:last-child { border-bottom: 0; }
 .when { font-variant-numeric: tabular-nums; }
 .reason { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink-2); }

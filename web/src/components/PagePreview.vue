@@ -10,8 +10,10 @@ import { editor, fromTemplate, newDraft, open } from '../editor/state'
 import type { Page } from '../render/page'
 import type { LayerMode } from '../lib/types'
 import OtherProgramsDialog from './OtherProgramsDialog.vue'
+import BindingsDialog from './BindingsDialog.vue'
 
 const programsOpen = ref(false)
+const bindingsOpen = ref(false)
 
 const store = useStore()
 const { state } = store
@@ -92,15 +94,34 @@ const zoomLabel = computed(() => {
 
 // PrimeVue's Select shows an empty string as "nothing selected": "no template" needs a value
 const NO_TEMPLATE = '-'
+const AUTOMATIC = '*'
+const templateName = (id: string | null | undefined) => state.templates.find((t) => t.id === id)?.name
+/** The template the device's DCS name matches, if any */
+const autoName = computed(() => templateName(store.device.value?.auto_template_id))
+
 const templateOptions = computed(() => [
+  // the way back to the automatic match, which a choice by hand hides
+  { label: `Automatique : ${autoName.value ?? 'page liste, aucun gabarit reconnu'}`, value: AUTOMATIC },
   { label: 'Aucun : page liste', value: NO_TEMPLATE },
   ...[...state.templates].sort((a, b) => a.name.localeCompare(b.name)).map((t) => ({ label: t.name, value: t.id })),
 ])
 
-const templateId = computed({
-  get: () => (store.device.value ? (store.templateIdFor(store.device.value) ?? NO_TEMPLATE) : NO_TEMPLATE),
-  set: (value: string) => store.device.value && store.setTemplate(store.device.value, value === NO_TEMPLATE ? null : value),
+/** The template the page uses */
+const templateId = computed(() => (store.device.value ? (store.templateIdFor(store.device.value) ?? NO_TEMPLATE) : NO_TEMPLATE))
+
+/** What the list shows: "Automatique : …" until a template is chosen by hand */
+const selection = computed({
+  get: () => (automatic.value ? AUTOMATIC : templateId.value),
+  set: (value: string) => {
+    const d = store.device.value
+    if (!d) return
+    if (value === AUTOMATIC) store.resetTemplate(d)
+    else store.setTemplate(d, value === NO_TEMPLATE ? null : value)
+  },
 })
+const selectionTitle = computed(() =>
+  templateId.value === NO_TEMPLATE ? 'Aucun gabarit : page liste' : (templateName(templateId.value) ?? ''),
+)
 
 const layerMode = computed({
   get: () => state.settings?.layer_mode ?? 'merge',
@@ -119,6 +140,13 @@ const unchecked = computed(() => {
 const automatic = computed(() => {
   const d = store.device.value
   return !!d && state.settings?.device_templates[d.name] === undefined
+})
+
+/** Chosen by hand, and not the template the device's name matches: the stick drawn as a throttle */
+const manualHint = computed(() => {
+  const d = store.device.value
+  if (!d || automatic.value || !d.auto_template_id || templateId.value === d.auto_template_id) return null
+  return `Choisi à la main, pour ce périphérique dans tous les modules. Le gabarit reconnu par son nom est « ${autoName.value} » : clique pour y revenir.`
 })
 
 /** The editor, on this device's template (or a new one for it) */
@@ -203,9 +231,15 @@ watch(
       </div>
       <div v-if="store.device.value" class="controls">
         <label class="ctl">
-          <span class="eyebrow">Gabarit<template v-if="automatic && templateId !== NO_TEMPLATE"> auto</template></span>
+          <span class="eyebrow">
+            Gabarit<template v-if="automatic && templateId !== NO_TEMPLATE"> auto</template>
+            <button v-if="manualHint" type="button" class="pill warn manual" v-tooltip.bottom="manualHint" @click="selection = AUTOMATIC">
+              choix manuel
+            </button>
+          </span>
           <Select
-            v-model="templateId"
+            v-model="selection"
+            v-tooltip.bottom="selectionTitle"
             :options="templateOptions"
             option-label="label"
             option-value="value"
@@ -231,6 +265,14 @@ watch(
           v-tooltip.bottom="'Boutons utilisés par SRS, VectorXR ou un logiciel saisi à la main'"
           @click="programsOpen = true"
         />
+        <Button
+          size="small"
+          severity="secondary"
+          icon="pi pi-list"
+          label="Liaisons"
+          v-tooltip.bottom="'Toutes les liaisons de ce périphérique dans ce module, pour en retirer de DCS'"
+          @click="bindingsOpen = true"
+        />
         <label class="ctl">
           <span class="eyebrow">Calques</span>
           <SelectButton
@@ -245,6 +287,7 @@ watch(
         </label>
       </div>
       <OtherProgramsDialog v-model:visible="programsOpen" />
+      <BindingsDialog v-model:visible="bindingsOpen" />
     </header>
     <div class="stage-wrap">
       <div ref="stage" class="stage" :class="{ single: pages.length === 1, paired: columns === 2 }" @wheel="onWheel">
@@ -276,7 +319,9 @@ watch(
 .title h2 { font-size: 22px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .controls { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
 .ctl { display: flex; flex-direction: column; gap: 3px; }
-.tpl-select { width: 230px; max-width: 100%; }
+/* wide enough to tell "… Warthog - Joystick" from "… Warthog - Throttle" */
+.tpl-select { width: 320px; max-width: 100%; }
+.manual { margin-left: 6px; cursor: pointer; background: transparent; }
 .stage-wrap { flex: 1; min-height: 0; position: relative; display: flex; }
 .stage-wrap > .stage { flex: 1; }
 /* floating over the page, bottom right: takes no height from it */

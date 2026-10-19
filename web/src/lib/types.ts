@@ -24,7 +24,8 @@ export interface Device {
 }
 
 export interface Profile {
-  name: string
+  name: string // the folder in Saved Games\DCS\Config\Input: the key of settings and kneeboard files
+  display_name: string // what DCS shows in its controls screen ("AH-64D Pilot"), else the folder
   unit_type: string | null
   found: boolean
   devices: Device[]
@@ -81,6 +82,7 @@ export interface Settings {
   device_order: Record<string, string[]>
   /** device names (without GUID) hidden in every module */
   hidden_devices: string[]
+  buttonless_devices: string[] // names without GUID: axes only (pedals), their generic buttons removable
   layer_mode: LayerMode
   page_height: number
   /** drawings whose template has a cut line (split_at) become several pages */
@@ -212,4 +214,54 @@ export interface DcsBackupsResponse {
   folder: string
   dcs_running: boolean | null // null: could not be checked
   backups: DcsBackup[]
+}
+
+/** One binding of a device in a module, as DCS's files name it (GET /api/dcs-config/bindings) */
+export interface BindingRef {
+  kind: 'key' | 'axis'
+  hash: string // the command's, as DCS hashes it
+  key: string // JOY_BTN1, JOY_X…
+  reformers: string[] // the modifiers held with it
+}
+
+export interface DeviceBinding extends BindingRef {
+  command: string // translated as the game shows it
+  category: string | null
+  // placed by the user; by the module for this very device; by the module's profile of any joystick
+  origin: 'user' | 'device' | 'generic'
+  removable: boolean // false: an engine command whose number is unknown, its removal cannot be written
+}
+
+export interface DeviceBindingsResponse {
+  profile: string
+  device: string
+  editable: boolean // false for a module not installed: nothing to compute the diff from
+  bindings: DeviceBinding[]
+}
+
+export interface BindingsRemoved {
+  backup: DcsBackup
+  removed: number
+  asked: number
+}
+
+/** The buttons DCS gives a device marked as having none (GET /api/dcs-config/generic-buttons) */
+export interface GenericButtonsDevice {
+  device: string // full name, with its GUID
+  name: string
+  modules: {
+    profile: string
+    unit_type: string | null
+    file: string
+    bindings: { hash: string; key: string; reformers: string[]; command: string }[]
+    unknown: { key: string; command: string }[] // generic too, but not removable (engine command number unknown)
+    new_file: boolean
+    error: string | null
+  }[]
+}
+
+export interface GenericButtonsPreview {
+  all_modules: boolean
+  marked: string[]
+  devices: GenericButtonsDevice[]
 }

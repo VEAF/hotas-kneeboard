@@ -7,8 +7,10 @@ import base64
 import binascii
 import logging
 import threading
+from collections import Counter
 from collections.abc import Callable
 from pathlib import Path
+from typing import Literal
 from urllib.parse import urlsplit
 
 from fastapi import FastAPI, HTTPException, Request
@@ -31,12 +33,15 @@ from .dcs_config import (
     fix_modifiers,
     forget_device,
     modifier_issues,
+    remove_bindings,
     restore,
     restore_modifiers,
     seen_devices,
     set_device_disabled,
 )
 from .engine import EffectiveBindingsError, list_user_profiles, load_effective_bindings
+from .generic_buttons import is_generic_base, removable, remove_generic_buttons
+from .generic_buttons import plan as generic_buttons_plan
 from .hat_views import plan as hat_views_plan
 from .hat_views import remove_hat_views
 from .kneeboard import KneeboardError, write_pages
@@ -84,6 +89,25 @@ class DeviceForget(BaseModel):
 class HatViewsRemoval(BaseModel):
     devices: list[str]  # full names, with their GUID
     every_device: bool = False
+    all_modules: bool = False
+
+
+class BindingRef(BaseModel):
+    """One binding, as the engine names it: the command's hash and the combo"""
+
+    kind: Literal["key", "axis"]
+    hash: str
+    key: str
+    reformers: list[str] = []
+
+
+class BindingsRemoval(BaseModel):
+    profile: str  # the folder in Saved Games/DCS/Config/Input
+    device: str  # full name, with its GUID: the diff file's name
+    bindings: list[BindingRef]
+
+
+class GenericButtonsRemoval(BaseModel):
     all_modules: bool = False
 
 
@@ -166,12 +190,39 @@ class Bindings:
             profiles.append(
                 {
                     "name": name,
+                    "display_name": translate(entry["display_name"]) if entry.get("display_name") else None,
                     "unit_type": entry.get("unit_type"),
                     "found": entry["found"],
                     "devices": devices,
                 }
             )
+        for profile, label in zip(profiles, profile_labels(profiles), strict=True):
+            profile["display_name"] = label
+        # in the order of the names shown, which the module list and "all the modules" follow
+        profiles.sort(key=lambda p: p["display_name"].casefold())
         return {"profiles": profiles, "error": None}
+
+
+def binding_origin(binding: dict, generic_base: bool) -> str:
+    """ "user": the user placed it; "device": the module placed it for this very device (its profile
+    for the device, or the diff it ships for it); "generic": the module's profile of any joystick
+    (the Gun Trigger on button 1 of a throttle), often a binding to remove"""
+    if binding.get("from_diff"):
+        return "user"
+    if binding.get("from_module_diff") or not generic_base:
+        return "device"
+    return "generic"
+
+
+def profile_labels(profiles: list[dict]) -> list[str]:
+    """The name each profile shows: DCS's (its folder's name.lua), else its folder's; two profiles
+    of the same name (an old folder DCS kept, "Mi-24P Pilot" and "Mi-24P_pilot") say their folder"""
+    names = [p.get("display_name") or p["name"] for p in profiles]
+    counts = Counter(n.casefold() for n in names)
+    return [
+        f"{label} ({p['name']})" if counts[label.casefold()] > 1 and label != p["name"] else label
+        for label, p in zip(names, profiles, strict=True)
+    ]
 
 
 def create_app(
@@ -193,10 +244,14 @@ def create_app(
 
     @app.middleware("http")
     async def same_origin_writes(request: Request, call_next):
+        refused = JSONResponse({"detail": "requête d'un autre site refusée"}, status_code=403)
         origin = request.headers.get("origin")
         if request.method not in ("GET", "HEAD", "OPTIONS") and origin:
             if urlsplit(origin).hostname not in LOCAL_HOSTS:
-                return JSONResponse({"detail": "requête d'un autre site refusée"}, status_code=403)
+                return refused
+        # a read too runs the engine: a page of another site may send it, without seeing the answer
+        if request.url.path.startswith("/api/") and request.headers.get("sec-fetch-site") == "cross-site":
+            return refused
         return await call_next(request)
 
     def current_dirs() -> dict:
@@ -466,6 +521,110 @@ def create_app(
             # even a write stopped halfway may have changed files
             bindings.invalidate()
         return result
+
+    @app.get("/api/dcs-config/generic-buttons")
+    def get_generic_buttons(all_modules: bool = False) -> dict:
+        """Preview: the buttons DCS gives the devices marked as having none, and where"""
+        install, saved = install_and_saved()
+        names = store.load().buttonless_devices
+        try:
+            devices = generic_buttons_plan(
+                install, saved, names, all_modules=all_modules, lua_interpreter=lua_interpreter
+            )
+        except DcsConfigError as error:
+            raise HTTPException(422, str(error)) from error
+        translate = command_translator(install, current_dirs()["language"])
+        for d in devices:
+            for m in d["modules"]:
+                for b in m["bindings"]:
+                    b["command"] = translate(b["command"])
+        return {"all_modules": all_modules, "marked": names, "devices": devices}
+
+    @app.post("/api/dcs-config/generic-buttons")
+    def post_generic_buttons(body: GenericButtonsRemoval) -> dict:
+        install, saved = install_and_saved()
+        try:
+            result = remove_generic_buttons(
+                install,
+                saved,
+                backups,
+                store.load().buttonless_devices,
+                all_modules=body.all_modules,
+                is_running=is_dcs_running,
+                lua_interpreter=lua_interpreter,
+            )
+        except DcsConfigError as error:
+            raise HTTPException(409, str(error)) from error
+        finally:
+            # even a write stopped halfway may have changed files
+            bindings.invalidate()
+        return result
+
+    @app.get("/api/dcs-config/bindings")
+    def get_device_bindings(profile: str, device: str) -> dict:
+        """Every binding of a device in a module, one row each, for the user to pick what to remove,
+        with its origin (see ``binding_origin``)"""
+        install, saved = install_and_saved()
+        # only a module the user configured: the name goes to the engine
+        if profile not in list_user_profiles(saved):
+            raise HTTPException(404, f"Module inconnu : {profile!r}")
+        try:
+            result = load_effective_bindings(install, saved, [profile], lua_interpreter)
+        except EffectiveBindingsError as error:
+            raise HTTPException(422, f"Lecture des liaisons impossible : {error}") from error
+        entry = result["profiles"].get(profile) or {}
+        found = next((d for d in entry.get("devices", []) if d["name"].lower() == device.lower()), None)
+        if found is None:
+            raise HTTPException(404, f"{device} n'est pas configuré dans {profile}")
+        translate = command_translator(install, current_dirs()["language"])
+        generic_base = is_generic_base(found.get("base_file"))
+        return {
+            "profile": profile,
+            "device": found["name"],
+            # a device DCS knows only by its diff (module not installed): nothing to compute from
+            "editable": found.get("source") == "effective",
+            "bindings": [
+                {
+                    "kind": b["kind"],
+                    "hash": b["hash"],
+                    "key": b["key"],
+                    "reformers": b.get("reformers") or [],
+                    "command": translate(b["command"]),
+                    "category": b.get("category"),
+                    "origin": binding_origin(b, generic_base),
+                    # an engine command whose number is unknown: its removal cannot be written
+                    "removable": removable(b),
+                }
+                for b in found["bindings"]
+            ],
+        }
+
+    @app.post("/api/dcs-config/bindings/remove")
+    def post_remove_bindings(body: BindingsRemoval) -> dict:
+        install, saved = install_and_saved()
+        if not body.bindings:
+            raise HTTPException(422, "Aucune liaison à retirer")
+        if body.profile not in list_user_profiles(saved):
+            raise HTTPException(404, f"Module inconnu : {body.profile!r}")
+        removals = [{"profile": body.profile, "device": body.device, **b.model_dump()} for b in body.bindings]
+        count = len(body.bindings)
+        try:
+            backup, rewrites = remove_bindings(
+                install,
+                saved,
+                backups,
+                removals,
+                f"retrait de {count} liaison{'s' if count > 1 else ''} : {body.device} ({body.profile})",
+                is_running=is_dcs_running,
+                lua_interpreter=lua_interpreter,
+            )
+        except DcsConfigError as error:
+            raise HTTPException(409, str(error)) from error
+        finally:
+            # even a write stopped halfway may have changed files
+            bindings.invalidate()
+        removed = sum(r["removed"] or 0 for r in rewrites)
+        return {"backup": backup.as_dict(), "removed": removed, "asked": count}
 
     @app.get("/api/dcs-config/modifiers")
     def get_modifiers() -> dict:

@@ -44,6 +44,9 @@ class Settings:
     # device names (without GUID) hidden in every module: not listed, not exported (a vJoy, a
     # device unplugged for good)
     hidden_devices: list[str] = field(default_factory=list)
+    # device names (without GUID) with no button nor hat, axes only (pedals): the buttons DCS gives
+    # them from the profile of any joystick are offered for removal (generic_buttons.py)
+    buttonless_devices: list[str] = field(default_factory=list)
     # modifier layers on the same page as the base layer, or one page per layer
     layer_mode: str = "merge"
     # height of the kneeboard PNG, in pixels; the width follows the page's proportions
@@ -107,6 +110,11 @@ class Settings:
             isinstance(self.hidden_devices, list) and all(isinstance(d, str) for d in self.hidden_devices)
         ):
             raise ValueError("hidden_devices : liste de noms de périphériques attendue")
+        if not (
+            isinstance(self.buttonless_devices, list)
+            and all(isinstance(d, str) for d in self.buttonless_devices)
+        ):
+            raise ValueError("buttonless_devices : liste de noms de périphériques attendue")
         self._validate_programs()
 
     def _validate_programs(self) -> None:

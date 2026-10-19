@@ -24,8 +24,10 @@ Sinon, elle écrit seulement les pages du kneeboard, et ses propres réglages da
 Trois colonnes, de gauche à droite.
 
 **Modules.**
-Chaque profil de commandes que tu as configuré dans DCS (un avion, un hélicoptère, la couche d'interface…).
-Sous le nom, le dossier kneeboard de l'avion ; à droite, le nombre de périphériques exportés sur le nombre de périphériques montrés.
+Chaque profil de commandes que tu as configuré dans DCS (un avion, un hélicoptère, la couche d'interface…), sous le nom que lui donne l'écran des commandes du jeu (« AH-64D Pilot », « F/A-18C »), dans l'ordre alphabétique.
+Sous le nom, le dossier du profil dans `Saved Games\DCS\Config\Input` quand il est différent (`AH-64D_BLK_II_PLT`), et le dossier kneeboard de l'avion ; à droite, le nombre de périphériques exportés sur le nombre de périphériques montrés.
+Deux profils du même nom (DCS garde parfois l'ancien dossier d'un module renommé, comme `Mi-24P Pilot` et `Mi-24P_pilot`) sont départagés par leur dossier, entre parenthèses.
+Le filtre cherche dans le nom, le dossier et le type d'avion.
 Un module que DCS ne trouve pas dans ton installation est marqué « module non installé » : seules tes modifications sont connues, pas ses défauts.
 
 **Périphériques.**
@@ -37,7 +39,13 @@ L'œil, au survol d'une ligne, cache le périphérique dans tous les modules (vo
 **La page.**
 La page telle qu'elle sera dans le kneeboard, ajustée à l'espace disponible.
 Au-dessus : le gabarit utilisé (trouvé automatiquement, ou choisi à la main dans la liste, et alors mémorisé), le bouton pour le **créer** ou le **modifier** dans l'éditeur, l'affichage des calques.
+Un choix à la main vaut pour ce périphérique dans tous les modules ; la première entrée de la liste, **Automatique**, nomme le gabarit reconnu par le nom du périphérique et y revient.
+Quand le gabarit choisi à la main n'est pas celui-là (le manche dessiné avec l'image de la manette des gaz), la pastille **choix manuel** le signale : son infobulle nomme le gabarit reconnu, un clic y revient.
 En bas à droite, le zoom : page entière, toute la largeur, plus ou moins (ou Ctrl+molette).
+
+La ligne entre deux colonnes se glisse pour élargir ou rétrécir la colonne des modules ou celle des périphériques ; l'application s'en souvient, et un double-clic sur la ligne remet la largeur par défaut.
+
+Dans la barre du haut, le livre ouvre cette documentation, celle de ta version de l'application, dans un nouvel onglet ; la fenêtre des raccourcis (`?`) y mène aussi.
 
 ## Lire une page
 
@@ -68,7 +76,9 @@ Ils sont sur toutes les pages, même avec « Par calque » : ces logiciels ignor
   Chaque avion a son profil SRS : celui du module est trouvé par son nom (« F-16 » pour « F-16C_50 », « A-10C » pour « A-10C II »), sinon c'est le profil `default`.
   Le bouton **Autres logiciels**, en haut de la page, permet d'en choisir un autre pour ce module, ou aucun ; le choix est mémorisé.
 - **VectorXR** est lu directement aussi, et ses boutons valent pour tous les modules.
-  Seul ce qui sert dans DCS compte : un module de VectorXR éteint, ou un profil d'un autre jeu, n'apparaît pas.
+  Seul ce qui sert dans DCS compte : un profil désactivé, ou un profil d'un autre jeu, n'apparaît pas.
+  Un module de VectorXR enregistré éteint (PivotXR, DepthXR…) garde ses boutons : il se rallume en vol, et ses profils DCS servent quand même.
+  L'étiquette nomme le profil quand il y en a plusieurs (« PivotXR snapviews : vue Right MFD »).
 - **Un autre logiciel** se saisit à la main, depuis **Autres logiciels** : le nom du logiciel, le bouton (dans la liste, ou en appuyant dessus avec **Identifier**) et ce qu'il fait.
   Les entrées se modifient et se suppriment au même endroit.
 
@@ -89,9 +99,17 @@ Dans les réglages, l'onglet **Autres logiciels** indique le dossier de SRS (tro
 Les pages apparaissent dans le kneeboard de cet avion à la mission suivante.
 Leur hauteur se règle dans les réglages (1024 pixels par défaut) ; la largeur suit les proportions du dessin.
 
+**Tous les modules d'un coup** : la flèche à côté de **Kneeboard**, puis **Tous les modules** (ou Maj+E).
+Chaque avion de la liste qui a au moins un périphérique coché reçoit ses pages, comme si tu l'exportais à la main ; les profils qui ne sont pas des avions (Default, UiLayer) sont sautés.
+Une fenêtre montre où en est l'export (« Module 7 sur 20 », le nom du module, une barre) ; il faut compter une dizaine de secondes pour une vingtaine de modules.
+**Arrêter** s'arrête à la fin du module en cours : les modules déjà écrits le restent, et le message de fin dit combien ne l'ont pas été.
+Si un module échoue, les autres continuent, et le message de fin dit lequel et pourquoi.
+
 ### En PDF
 
 **PDF** (ou Ctrl+P) télécharge un PDF des mêmes pages, une page A4 par page, à environ 200 points par pouce.
+La flèche à côté, **Tous les modules** (ou Maj+P), en fait un seul PDF, `HOTAS - tous les modules.pdf`, module après module dans l'ordre de la liste, avec les mêmes avions que pour le kneeboard ; chaque page porte le nom de son module en en-tête.
+La même fenêtre montre la progression ; **Arrêter** n'écrit alors aucun PDF, un PDF d'une partie des modules passerait pour le tout.
 
 ## Commandes DCS
 
@@ -152,6 +170,35 @@ Avec TrackIR ou la VR, elles ne servent à rien et encombrent les pages ; la sec
 - Les fichiers sont réécrits comme DCS les enregistre : une entrée devenue sans effet (un réglage par défaut qui a changé depuis une mise à jour du module) disparaît, comme quand tu enregistres dans le jeu.
   Un fichier qui ne garde plus aucune différence avec les réglages par défaut est supprimé, comme le fait DCS : le périphérique n'apparaît alors plus dans ce module de l'application, ce n'est pas une perte.
 - Pour revenir en arrière, restaure la sauvegarde « avant le retrait des vues du chapeau » dans la liste des sauvegardes.
+
+### Périphériques sans boutons
+
+Quand un module n'a rien prévu pour un périphérique, DCS lui donne les liaisons de « n'importe quel joystick » : un palonnier reçoit un tir d'arme sur le bouton 2, une direction de roulette sur le 4, un recentrage de vue sur le 5… boutons qu'il n'a pas.
+DCS n'écrit nulle part combien de boutons a un périphérique : c'est toi qui le dis.
+
+1. Coche, dans la liste, les périphériques qui n'ont ni bouton ni chapeau (le palonnier) ; l'application s'en souvient.
+2. **Chercher** : l'aperçu donne, par périphérique et par module, les boutons génériques qui partiraient.
+3. **Retirer…** puis **Retirer** : une seule sauvegarde avant, les commandes relues après l'écriture et comparées à l'aperçu ; **Annuler ce retrait** restaure la sauvegarde.
+
+Seules partent les liaisons de bouton et de chapeau qui viennent de ce profil générique : ce que tu as mis toi-même sur le périphérique, ce que le module prévoit pour ce matériel précis, et tous les axes restent.
+Une liaison dont l'application ne connaît pas le numéro de commande de DCS (le tir secondaire et la tourelle de Combined Arms) ne peut pas être retirée d'ici : l'aperçu la montre à part, retire-la dans l'écran des commandes du jeu.
+Par défaut, seuls les modules où le périphérique est configuré sont touchés ; l'option « Tous les modules installés » crée un fichier dans chacun, pour qu'un nouvel avion soit déjà propre.
+
+### Retirer des liaisons
+
+Le bouton **Liaisons**, au-dessus de la page, liste toutes les liaisons du périphérique dans ce module : l'entrée (« Bouton 1 », « Axe Z »), le modificateur s'il y en a, la commande, et son origine.
+- « ta config » : tu l'as posée dans l'écran des commandes de DCS ;
+- « défaut pour ce périphérique » : le module la prévoit pour ce périphérique précis (le Warthog dans l'A-10C, par exemple), y compris dans le fichier qu'il livre et que DCS recopie dans le tien ;
+- « défaut générique » : le module n'a rien prévu pour ce périphérique, et DCS lui donne ce qu'il donne à n'importe quel joystick.
+
+Les défauts génériques sont souvent à retirer : c'est là qu'on voit un bouton qui fait deux choses sans le savoir, un « Engine Stop Right » à toi et le « Gun Trigger » que l'A-10C met sur le bouton 1 de tout joystick, ou les gaz sur l'axe Z d'un manche.
+
+1. Coche les liaisons à retirer (boutons, chapeaux ou axes) ; le filtre cherche dans l'entrée et la commande.
+2. **Supprimer (n)**, puis **Retirer** pour confirmer.
+3. Les pages se relisent sans elles. **Annuler**, dans la même fenêtre, restaure la sauvegarde faite juste avant.
+
+Comme pour le reste de cette fenêtre, DCS doit être fermé, et tout `Config\Input` est sauvegardé avant ; le fichier du périphérique est réécrit comme DCS l'enregistre, une liaison par défaut retirée y figurant comme retirée.
+Le retrait ne vaut que pour ce module : la même commande reste dans les autres.
 
 ## Réglages
 

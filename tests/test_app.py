@@ -3,7 +3,7 @@ import base64
 import pytest
 from fastapi.testclient import TestClient
 
-from hotas_kneeboard.app import create_app
+from hotas_kneeboard.app import create_app, profile_labels
 from hotas_kneeboard.kneeboard import PNG_SIGNATURE
 from hotas_kneeboard.settings import Settings, SettingsStore
 from hotas_kneeboard.templates import TemplateLibrary
@@ -45,6 +45,24 @@ def test_bindings_give_pages_with_their_template(client):
     assert stick["dcs_disabled"] is False
     assert stick["inputs"]["JOY_BTN8"][""]["text"] == "Gear Up / Down"
     assert stick["inputs"]["JOY_BTN4"]["JOY_BTN5"]["text"] == "Master Arm"
+    # DCS's name of the profile, else its folder's
+    assert fake["display_name"] == "Fake Plane"
+    assert profiles["MissingPlane"]["display_name"] == "MissingPlane"
+
+
+def test_profile_labels_say_the_folder_of_namesakes():
+    profiles = [
+        {"name": "Mi-24P Pilot", "display_name": "Mi-24P Pilot"},  # an old folder DCS kept
+        {"name": "Mi-24P_pilot", "display_name": "Mi-24P Pilot"},
+        {"name": "FA-18C_hornet", "display_name": "F/A-18C"},
+        {"name": "OH-58D Pilot", "display_name": None},
+    ]
+    assert profile_labels(profiles) == [
+        "Mi-24P Pilot",
+        "Mi-24P Pilot (Mi-24P_pilot)",
+        "F/A-18C",
+        "OH-58D Pilot",
+    ]
 
 
 def test_hidden_devices_are_saved(client):
@@ -116,6 +134,33 @@ def test_requests_from_another_site_are_refused(client):
     assert allowed.status_code == 200
 
 
+def test_reads_from_another_site_are_refused(client):
+    # a read runs the engine: a page of another site must not set it off
+    assert client.get("/api/bindings", headers={"sec-fetch-site": "cross-site"}).status_code == 403
+    assert client.get("/api/bindings", headers={"sec-fetch-site": "same-origin"}).status_code == 200
+    # the page itself, typed in the address bar
+    assert client.get("/", headers={"sec-fetch-site": "none"}).status_code != 403
+
+
+def test_device_bindings_only_for_a_configured_module(client):
+    # its name goes to the engine: a line break would add records of its own
+    bad = "FakePlane\ninstall\tC:/elsewhere"
+    response = client.get("/api/dcs-config/bindings", params={"profile": bad, "device": STICK})
+    assert response.status_code == 404
+    removal = {"profile": bad, "device": STICK, "bindings": [{"kind": "key", "hash": "h", "key": "JOY_BTN1"}]}
+    assert client.post("/api/dcs-config/bindings/remove", json=removal).status_code == 404
+
+
+def test_the_engine_refuses_a_value_that_would_add_records():
+    from hotas_kneeboard.engine import EffectiveBindingsError, _loader_input
+
+    for value in ("A\ninstall\tX", "A\tB", "A\rB"):
+        with pytest.raises(EffectiveBindingsError):
+            _loader_input("i", "s", [value])
+    with pytest.raises(EffectiveBindingsError):
+        _loader_input("i\nscope\tinstalled", "s", ["A"])
+
+
 @pytest.mark.parametrize(
     "changes",
     [
@@ -180,4 +225,11 @@ def test_programs_are_read_for_each_module(client, monkeypatch):
     data = client.get("/api/programs").json()
     assert data["problems"] == []
     assert data["srs"]["matched"]["FakePlane"] == "default"
-    assert [b["input"] for b in data["vectorxr"]["bindings"]] == ["JOY_BTN55", "JOY_BTN51", "JOY_BTN54"]
+    assert [b["input"] for b in data["vectorxr"]["bindings"]] == [
+        "JOY_BTN55",
+        "JOY_BTN51",
+        "JOY_BTN54",
+        "JOY_BTN52",
+        "JOY_BTN53",
+        "JOY_BTN70",
+    ]

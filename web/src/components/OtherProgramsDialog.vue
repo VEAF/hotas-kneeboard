@@ -160,7 +160,7 @@ onBeforeUnmount(stopListening)
       </p>
 
       <label class="field" for="srs-profile">
-        <span class="eyebrow">Profil SRS pour {{ profileName }}</span>
+        <span class="eyebrow">Profil SRS pour {{ store.profile.value?.display_name ?? profileName }}</span>
         <Select v-if="state.programs?.srs.profiles.length" input-id="srs-profile" v-model="srsChoice" :options="srsOptions" option-label="label" option-value="value" />
         <small v-else>SRS introuvable : indique son dossier dans les réglages, onglet « Autres logiciels ».</small>
       </label>

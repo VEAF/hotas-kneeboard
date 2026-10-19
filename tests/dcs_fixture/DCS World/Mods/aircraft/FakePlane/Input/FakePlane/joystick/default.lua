@@ -10,6 +10,8 @@ local res = {
 		{combos = {{key = 'JOY_BTN8'}, {key = 'G', reformers = {'LShift'}}}, down = 3006, cockpit_device_id = 16, value_down = 1.0, name = _('Gear Up'), category = _('Gear')},
 		{combos = {{key = 'JOY_BTN8_OFF'}}, down = 3007, cockpit_device_id = 16, value_down = 1.0, name = _('Gear Down'), category = _('Gear')},
 		{combos = {{key = 'JOY_BTN6'}}, down = 3005, cockpit_device_id = 13, value_down = 1.0, name = _('Sensor Select'), category = _('Sensors')},
+		-- an engine command no diff names: its number cannot be learned, a removal not written
+		{combos = {{key = 'JOY_BTN7'}}, pressed = iCommandUnknownForTests, name = _('Unknown Command'), category = _('Misc')},
 	},
 	axisCommands = {
 		{combos = defaultDeviceAssignmentFor('roll'), action = iCommandPlaneRoll, name = _('Roll')},

@@ -18,7 +18,7 @@ Même organisation que VEAF-Mission-Creation-Tools (VMCT), avec des tickets GitH
 
 - `develop` est la branche par défaut et reçoit le travail ; `main` ne reçoit que des releases.
 - Un lot = une branche `feature/<LOT-ID>`, `fix/<LOT-ID>` ou `chore/<LOT-ID>` créée depuis `develop`, **une seule PR** vers `develop` pour tout le lot, qui ferme ses tickets et le lot (`Closes #…`).
-- Une release = une PR de `develop` vers `main`, qui monte la version dans `pyproject.toml` et `hotas_kneeboard/__init__.py` (les deux doivent être égales) et passe la section `[Unreleased]` de `CHANGELOG.md` sous le numéro de version. À la fusion, `.github/workflows/release.yml` construit l'exe sous Windows et publie la release `vX.Y.Z` ; une fusion sans changement de version ne publie rien.
+- Une release = une PR de `develop` vers `main`, qui monte la version dans `pyproject.toml` et `hotas_kneeboard/__init__.py` (les deux doivent être égales), passe la section `[Unreleased]` de `CHANGELOG.md` sous le numéro de version, et réécrit `RELEASE_NOTES.md` (titre `# HOTAS Kneeboard — X.Y.Z`, en français, pour les pilotes, sur le modèle de VMCT ; à faire valider par David). À la fusion, `.github/workflows/release.yml` construit l'exe sous Windows et publie la release `vX.Y.Z` ; une fusion sans changement de version ne publie rien.
 - La CI (`ci.yml`) tourne sur chaque PR et sur les poussées vers `develop` et `main`.
 
 ## Démarche par défaut
@@ -49,7 +49,8 @@ Pour chaque demande, dans l'ordre :
 
 - `hotas_kneeboard/` : le serveur FastAPI.
   - `engine.py` + `lua/effective_bindings.lua` : le moteur, repris de VEAF/joystick-diagrams-dcs-world-plugin. Il exécute le Lua avec l'interpréteur de DCS (`bin/luae.exe`) : défauts du module + diff de l'utilisateur, comme `Scripts/Input/Data.lua`.
-    Il sait aussi recalculer le diff d'un périphérique après retrait de liaisons de touche, comme DCS l'écrit en enregistrant (`saveDeviceProfile`) ; `dcs_config.remove_bindings` écrit le résultat.
+    Il sait aussi recalculer le diff d'un périphérique après retrait de liaisons, touches ou axes, comme DCS l'écrit en enregistrant (`saveDeviceProfile`) ; `dcs_config.remove_bindings` écrit le résultat.
+    Il donne le nom DCS de chaque profil (`name.lua`), et l'origine de chaque liaison (`from_diff`, `from_module_diff`, `base_file` : la tienne, celle du module pour ce périphérique, ou celle de « n'importe quel joystick »). Toute valeur qui lui est passée refuse tabulation et retour à la ligne (`_loader_input`).
   - `pages.py` : regroupement par entrée et par calque de modificateurs, appariement des positions relâchées `_OFF`.
   - `dcs.py` : détection de l'install, de Saved Games et de la langue ; traduction des noms de commande par `l10n/<langue>/LC_MESSAGES/input.mo`, comme le jeu.
   - `templates.py` : format des gabarits (docstring) et bibliothèque : gabarits livrés (`library/`, les 45 convertis, à ne pas éditer à la main) puis ceux de l'utilisateur (`%APPDATA%/HOTAS Kneeboard/templates/`), qui passent devant ; enregistrement, suppression, export et import en un fichier zip.
@@ -61,6 +62,7 @@ Pour chaque demande, dans l'ordre :
   - `lua_tables.py` + `lua/lua_tables.lua` : lecture et écriture des fichiers Lua de DCS ; l'écriture passe par le `Scripts/Serializer.lua` du jeu (`serialize_sorted`, fins de ligne LF), pour écrire octet pour octet ce que DCS écrirait.
     Les tests utilisent une copie de remplacement dans la fixture (`tests/dcs_fixture/DCS World/Scripts/Serializer.lua`, le fichier d'ED n'est pas redistribuable), comparée au vrai quand `DCS_TEST_LUA` pointe dans une install.
   - `hat_views.py` : retrait en une fois des 8 vues génériques du chapeau (`common_joystick_binding.lua`), reconnues au couple (hash, touche) ; par défaut les périphériques où l'utilisateur n'a rien mis sur le chapeau (liaisons `from_diff` du moteur), options « tous les périphériques » et « tous les modules installés » (le moteur calcule alors aussi les périphériques sans diff : enregistrements `device` et `scope installed`) ; une sauvegarde, puis relecture.
+  - `generic_buttons.py` : retrait en une fois des boutons génériques (base `default.lua`, ni de l'utilisateur ni du module pour ce périphérique) des périphériques marqués sans boutons (`Settings.buttonless_devices`), sur le modèle de `hat_views.py` ; une liaison à numéro `iCommand` inconnu n'est pas retirable (`unknown`, `removable`).
   - `kneeboard.py` : écriture des PNG dans `Saved Games/DCS/Kneeboard/<type d'unité>/`, fichiers `HOTAS - <profil> - <nn> <titre>.png` ; un export ne remplace que les pages du même profil (deux postes d'un avion partagent le dossier).
   - `app.py` : n'accepte que les hôtes `127.0.0.1`/`localhost` et refuse les écritures d'une autre origine (DNS rebinding).
 - `web/` : l'interface Vue 3 + TypeScript + Vite + PrimeVue + VueUse. `src/render/` construit les pages en SVG (affichage, PNG et PDF partent du même SVG). `src/editor/` : l'éditeur de gabarit (état et historique annuler/rétablir dans `state.ts`, écoute des manettes dans `gamepad.ts`). `npm run build` écrit dans `hotas_kneeboard/web/` (ignoré par git).

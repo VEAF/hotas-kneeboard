@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import Dialog from 'primevue/dialog'
 import { SHORTCUTS } from '../lib/shortcuts'
+import { docUrl } from '../lib/docs'
+import { useStore } from '../lib/store'
 
 const visible = defineModel<boolean>('visible', { required: true })
+const { state } = useStore()
 </script>
 
 <template>
@@ -15,6 +18,10 @@ const visible = defineModel<boolean>('visible', { required: true })
         </tr>
       </tbody>
     </table>
+    <p class="doc">
+      <i class="pi pi-book" />
+      Tout le reste est dans la <a :href="docUrl(state.version)" target="_blank" rel="noopener">documentation</a>.
+    </p>
   </Dialog>
 </template>
 
@@ -23,4 +30,5 @@ const visible = defineModel<boolean>('visible', { required: true })
 .keys td { padding: 6px 4px; border-bottom: 1px solid var(--line); }
 .keys td:first-child { white-space: nowrap; width: 1%; padding-right: 16px; }
 .keys kbd + kbd { margin-left: 4px; }
+.doc { margin: 14px 4px 0; display: flex; align-items: center; gap: 8px; }
 </style>

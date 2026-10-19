@@ -5,6 +5,25 @@ Chaque lot ajoute ses entrées à la fin de `[Unreleased]` ; une release les pas
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-19
+
+### Ajouté
+
+- Lien vers la documentation de ta version dans la barre du haut et dans la fenêtre des raccourcis.
+- Export de tous les modules d'un coup, vers leur kneeboard (Maj+E) ou en un seul PDF (Maj+P), depuis la flèche à côté de chaque bouton d'export : les avions qui ont un périphérique coché, avec une fenêtre de progression qui permet d'arrêter ; un module en échec n'arrête pas les autres.
+- Les modules portent le nom de l'écran des commandes de DCS (« AH-64D Pilot » au lieu de `AH-64D_BLK_II_PLT`), dans la liste et en en-tête des pages, triés par ce nom ; le dossier du profil reste affiché dessous.
+- Les colonnes des modules et des périphériques se redimensionnent en glissant la ligne qui les sépare ; double-clic pour revenir à la largeur par défaut.
+- Retrait de liaisons de DCS depuis l'application (bouton **Liaisons** au-dessus de la page) : boutons, chapeaux et axes d'un périphérique dans un module, avec leur origine (ta config ou défaut du module) ; DCS fermé, sauvegarde avant, fichier réécrit comme DCS l'enregistre, **Annuler** dans la même fenêtre (FEAT-REMOVE-DCS-BINDINGS, #53).
+- Fenêtre **Liaisons** : l'origine distingue le défaut prévu pour ce périphérique du défaut générique, ce que DCS donne à tout joystick dont le module n'a pas de profil (la gâchette canon sur le bouton 1 d'un throttle), souvent à retirer ; une liaison du fichier que le module livre pour le périphérique, recopié par DCS dans le tien, n'est plus comptée comme la tienne.
+- Fenêtre « Commandes DCS », **Périphériques sans boutons** : tu coches ceux qui n'en ont pas (un palonnier), et les boutons que DCS leur donne depuis le profil de « n'importe quel joystick » sont retirés de tous leurs modules, ou de tous les modules installés ; tes liaisons, celles prévues pour ce périphérique et les axes restent ; aperçu, une sauvegarde, relecture, annulation.
+
+### Corrigé
+
+- Boutons VectorXR manquants : les profils PivotXR (vues rapides, recentrage, activation) n'apparaissaient pas quand le module était enregistré éteint, alors qu'ils servent en vol ; l'étiquette nomme maintenant le profil (« PivotXR snapviews : vue Right MFD »).
+- Un gabarit choisi à la main par erreur (le manche Warthog dessiné avec l'image de sa manette des gaz, signalé par un pilote) se voit et se défait : entrée **Automatique** en tête de la liste, qui nomme le gabarit reconnu, pastille « choix manuel » quand le choix diffère de celui-ci, liste plus large et nom complet en infobulle.
+- Sécurité : un nom de module ou de périphérique contenant une tabulation ou un retour à la ligne est refusé avant d'aller au moteur, qui aurait pu lire d'autres dossiers et y exécuter des fichiers Lua ; les liaisons d'un périphérique ne se lisent que pour un module configuré, et une requête venue d'un autre site est refusée, lecture comprise.
+- « Retrait impossible : command not identified » en retirant les boutons d'un périphérique dans tous les modules installés : une liaison dont l'application ne connaît pas le numéro de commande de DCS (le tir secondaire et la tourelle de Combined Arms, `ground_unit`) faisait tout refuser ; elle est maintenant montrée à part, à retirer dans le jeu, et le reste se retire.
+
 ## [0.1.0] - 2026-10-19
 
 Première version publiée.
