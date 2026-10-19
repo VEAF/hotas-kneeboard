@@ -12,6 +12,7 @@ import Tab from 'primevue/tab'
 import TabPanels from 'primevue/tabpanels'
 import TabPanel from 'primevue/tabpanel'
 import { useStore } from '../lib/store'
+import { PROGRAM_COLORS } from '../render/programs'
 
 const visible = defineModel<boolean>('visible', { required: true })
 const store = useStore()
@@ -38,8 +39,26 @@ const hiddenTotal = computed(() => store.allDevices.value.filter((d) => store.is
 const saving = ref(false)
 const error = ref('')
 
+// --- other programs ------------------------------------------------------------------------------
+const srsDir = ref('')
+const srsSaving = ref(false)
+const srsError = ref('')
+async function saveSrsDir() {
+  srsSaving.value = true
+  srsError.value = ''
+  try {
+    await store.saveSrsDir(srsDir.value.trim() || null)
+  } catch (e) {
+    srsError.value = (e as Error).message
+  } finally {
+    srsSaving.value = false
+  }
+}
+
 watch(visible, (open) => {
   if (!open || !state.settings) return
+  srsDir.value = state.settings.srs_dir ?? ''
+  srsError.value = ''
   install.value = state.settings.dcs_install_dir ?? ''
   savedGames.value = state.settings.saved_games_dir ?? ''
   pageHeight.value = state.settings.page_height
@@ -78,6 +97,7 @@ async function save() {
       <TabList>
         <Tab value="general">Général</Tab>
         <Tab value="devices">Périphériques<span v-if="hiddenTotal" class="tab-count">{{ hiddenTotal }} caché{{ hiddenTotal > 1 ? 's' : '' }}</span></Tab>
+        <Tab value="programs">Autres logiciels</Tab>
       </TabList>
       <TabPanels>
         <TabPanel value="general">
@@ -133,6 +153,55 @@ async function save() {
             </div>
           </div>
         </TabPanel>
+        <TabPanel value="programs">
+          <div class="form">
+            <p class="intro">
+              Les boutons que d'autres logiciels utilisent s'affichent sur les pages, chacun dans sa couleur. SRS et VectorXR sont lus directement, sans jamais modifier leurs réglages ;
+              les autres se saisissent depuis la page d'un périphérique, bouton « Autres logiciels ».
+            </p>
+            <form class="field" @submit.prevent="saveSrsDir">
+              <label class="eyebrow" for="srs-dir">Dossier de SRS</label>
+              <div class="with-button">
+                <InputText id="srs-dir" v-model="srsDir" :placeholder="state.programs?.srs.folder ?? 'non trouvé'" fluid />
+                <Button type="submit" size="small" label="Appliquer" :loading="srsSaving" />
+              </div>
+              <small>
+                Vide : trouvé dans le registre Windows, sinon dans Program Files<template v-if="state.programs?.srs.folder">
+                  ({{ state.programs.srs.profiles.length }} profils dans {{ state.programs.srs.folder }})</template>.
+              </small>
+            </form>
+            <p class="intro">
+              VectorXR :
+              <template v-if="state.programs?.vectorxr.file">{{ state.programs.vectorxr.bindings.length }} bouton{{ state.programs.vectorxr.bindings.length > 1 ? 's' : '' }} lu{{ state.programs.vectorxr.bindings.length > 1 ? 's' : '' }} dans <code>{{ state.programs.vectorxr.file }}</code> (les modules éteints ne comptent pas).</template>
+              <template v-else>pas installé.</template>
+            </p>
+            <p v-for="problem in [...(state.programs?.problems ?? []), ...(srsError ? [srsError] : [])]" :key="problem" class="error">{{ problem }}</p>
+            <div class="device-list">
+              <div v-for="p in store.programNames.value" :key="p" class="program-row">
+                <Checkbox :input-id="`program-${p}`" :model-value="store.isProgramShown(p)" binary @update:model-value="(v: boolean) => store.setProgramShown(p, v)" />
+                <label class="device-name" :for="`program-${p}`">
+                  <span class="tag" :style="{ background: store.programStyles.value.get(p)?.color }">{{ store.programStyles.value.get(p)?.tag }}</span>
+                  {{ p }}
+                </label>
+                <div class="swatches" role="radiogroup" :aria-label="`Couleur de ${p}`">
+                  <button
+                    v-for="c in PROGRAM_COLORS"
+                    :key="c"
+                    type="button"
+                    class="swatch"
+                    :class="{ on: store.programStyles.value.get(p)?.color === c }"
+                    :style="{ background: c }"
+                    role="radio"
+                    :aria-checked="store.programStyles.value.get(p)?.color === c"
+                    :aria-label="c"
+                    @click="store.setProgramColor(p, c)"
+                  />
+                </div>
+              </div>
+              <p v-if="!store.programNames.value.length" class="intro">Aucun logiciel : ni SRS ni VectorXR trouvés, rien de saisi à la main.</p>
+            </div>
+          </div>
+        </TabPanel>
       </TabPanels>
     </Tabs>
     <p class="file">Réglages enregistrés dans <code>{{ state.settingsFile }}</code></p>
@@ -157,5 +226,13 @@ async function save() {
 .check { display: flex; gap: 10px; align-items: center; cursor: pointer; }
 .check small { color: var(--ink-3); }
 .check.immediate { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); }
+.with-button { display: flex; gap: 8px; align-items: center; }
+.program-row { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 7px 10px; border-bottom: 1px solid var(--line); }
+.program-row:last-child { border-bottom: 0; }
+.program-row .device-name { cursor: pointer; display: flex; gap: 8px; align-items: center; }
+.tag { color: #fff; font: 700 11px var(--f-mono); border-radius: 3px; padding: 1px 5px; }
+.swatches { display: flex; gap: 4px; }
+.swatch { width: 18px; height: 18px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; padding: 0; }
+.swatch.on { border-color: var(--ink); box-shadow: 0 0 0 1px var(--panel); }
 .file { margin: 14px 0 0; font-size: 12px; color: var(--ink-3); overflow-wrap: anywhere; }
 </style>

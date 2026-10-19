@@ -20,6 +20,7 @@ from .dcs import command_translator, resolve_dirs
 from .engine import EffectiveBindingsError, list_user_profiles, load_effective_bindings
 from .kneeboard import KneeboardError, write_pages
 from .pages import build_page, split_device_name
+from .programs import read_programs
 from .settings import Settings, SettingsStore, data_dir
 from .templates import BUNDLED_DIR, IMAGE_TYPES, TemplateError, TemplateLibrary, slug
 
@@ -176,6 +177,15 @@ def create_app(
         if refresh:
             library.reload()
         return bindings.get(current_dirs(), library, refresh)
+
+    @app.get("/api/programs")
+    def get_programs() -> dict:
+        """Buttons other programs use (SRS, VectorXR, entered by hand); read each time: cheap, and
+        the user may change them while the app runs"""
+        dirs = current_dirs()
+        saved = dirs["saved_games_dir"]
+        profiles = list_user_profiles(Path(saved)) if saved else []
+        return read_programs(store.load().srs_dir, profiles)
 
     @app.get("/api/templates")
     def list_templates() -> list[dict]:

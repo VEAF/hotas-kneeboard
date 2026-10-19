@@ -13,6 +13,7 @@ Un projet de la [VEAF](https://www.veaf.org), sous licence GPL v2.
   Vérifié identique à l'export « MAKE HTML » de DCS sur l'A-10C II et le F-16C.
 - **Lisible d'un coup d'œil** : un interrupteur à deux positions tient sur une seule étiquette (« LG Handle - UP / DN ») ; les calques de modificateurs (un « Paddle » par exemple) apparaissent en couleur dans la même étiquette, ou sur une page par calque.
 - **Rien ne se perd** : une commande liée à une entrée qui n'a pas de case sur le dessin est listée sous le dessin ; un périphérique sans dessin a une page en liste.
+- **Les autres logiciels aussi** : les boutons que SRS (par avion) et VectorXR utilisent sont lus directement et dessinés dans leur couleur ; ceux d'un autre logiciel (VoiceAttack, OpenKneeboard…) se saisissent à la main.
 - **Vers le kneeboard en un clic** : les pages arrivent dans `Saved Games\DCS\Kneeboard\<avion>\` et tu les retrouves en vol.
 - **PDF** de toutes les pages d'un module.
 - **45 dessins de périphériques** repris de [Joystick Diagrams](https://github.com/Rexeh/joystick-diagrams) (Thrustmaster, WinWing, Virpil, VKB, Saitek, CH…), et un **éditeur** pour dessiner ceux qui manquent ou corriger les autres.

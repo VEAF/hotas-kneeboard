@@ -13,6 +13,10 @@ _logger = logging.getLogger(__name__)
 
 APP_NAME = "HOTAS Kneeboard"
 LAYER_MODES = ("merge", "split")
+COLOR = re.compile(r"#[0-9a-fA-F]{6}")
+INPUT = re.compile(r"JOY_[A-Z0-9_]+")
+# device_name: shown in the list of entries when the device is not plugged
+PROGRAM_BINDING_KEYS = {"program", "device_guid", "device_name", "input", "action"}
 
 
 def data_dir() -> Path:
@@ -46,6 +50,14 @@ class Settings:
     page_height: int = 1024
     # drawings whose template has a cut line (split_at) become several pages (kneeboard, PDF)
     split_wide: bool = True
+    # other programs' buttons (programs.py): SRS install folder (None: registry, then Program
+    # Files), DCS profile -> SRS profile chosen by the user ("" = none), entries made by hand,
+    # programs not shown, colour of each program
+    srs_dir: str | None = None
+    srs_profiles: dict[str, str] = field(default_factory=dict)
+    program_bindings: list[dict] = field(default_factory=list)
+    hidden_programs: list[str] = field(default_factory=list)
+    program_colors: dict[str, str] = field(default_factory=dict)
 
     @classmethod
     def from_dict(cls, data: dict) -> "Settings":
@@ -95,6 +107,34 @@ class Settings:
             isinstance(self.hidden_devices, list) and all(isinstance(d, str) for d in self.hidden_devices)
         ):
             raise ValueError("hidden_devices : liste de noms de périphériques attendue")
+        self._validate_programs()
+
+    def _validate_programs(self) -> None:
+        """Other programs' buttons"""
+        if self.srs_dir is not None and not isinstance(self.srs_dir, str):
+            raise ValueError("srs_dir : texte attendu")
+        if self.srs_dir and (self.srs_dir.startswith(("\\\\", "//")) or "://" in self.srs_dir):
+            raise ValueError("srs_dir : un dossier de ce PC est attendu, pas un chemin réseau")
+        if not _is_map(self.srs_profiles, lambda v: isinstance(v, str)):
+            raise ValueError("srs_profiles : module -> profil SRS attendu")
+        if not (
+            isinstance(self.hidden_programs, list) and all(isinstance(p, str) for p in self.hidden_programs)
+        ):
+            raise ValueError("hidden_programs : liste de logiciels attendue")
+        if not _is_map(self.program_colors, lambda v: isinstance(v, str) and bool(COLOR.fullmatch(v))):
+            raise ValueError("program_colors : logiciel -> couleur #rrggbb attendu")
+        if not isinstance(self.program_bindings, list):
+            raise ValueError("program_bindings : liste attendue")
+        for entry in self.program_bindings:
+            if not (
+                isinstance(entry, dict)
+                and set(entry) == PROGRAM_BINDING_KEYS
+                and all(isinstance(v, str) for v in entry.values())
+                and entry["program"].strip()
+                and entry["action"].strip()
+                and INPUT.fullmatch(entry["input"])
+            ):
+                raise ValueError("program_bindings : logiciel, périphérique, entrée JOY_… et action attendus")
 
     def as_dict(self) -> dict:
         return asdict(self)

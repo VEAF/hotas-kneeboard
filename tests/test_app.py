@@ -169,3 +169,14 @@ def test_template_made_in_the_editor_is_matched_and_shared(client):
     assert client.delete("/api/templates/fake-stick").status_code == 422  # bundled
     bad = client.post("/api/templates", json=body | {"image_name": "x.exe"})
     assert bad.status_code == 422
+
+
+def test_programs_are_read_for_each_module(client, monkeypatch):
+    from .test_programs import FIXTURE, SRS_DIR
+
+    monkeypatch.setenv("LOCALAPPDATA", str(FIXTURE / "LocalAppData"))
+    assert client.put("/api/settings", json={"srs_dir": str(SRS_DIR)}).status_code == 200
+    data = client.get("/api/programs").json()
+    assert data["problems"] == []
+    assert data["srs"]["matched"]["FakePlane"] == "default"
+    assert [b["input"] for b in data["vectorxr"]["bindings"]] == ["JOY_BTN55", "JOY_BTN51", "JOY_BTN54"]

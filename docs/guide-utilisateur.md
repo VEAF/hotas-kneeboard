@@ -58,6 +58,22 @@ En bas à droite, le zoom : page entière, toute la largeur, plus ou moins (ou C
 - **Un périphérique sans gabarit** a une page en liste : l'entrée (« Bouton 14 », « Hat 1 ↑ », « Axe X »), puis la commande.
   Si la liste est longue, elle continue sur une page suivante.
 
+## Les boutons des autres logiciels
+
+Un bouton peut servir à autre chose qu'à DCS : l'alternat de SRS, l'overlay de VectorXR, une commande vocale de VoiceAttack.
+Ces boutons apparaissent sur les pages, à côté des commandes DCS, chaque logiciel dans sa couleur et avec sa pastille (« SRS », « VXR » pour VectorXR) ; la légende est au bas de la page.
+Ils sont sur toutes les pages, même avec « Par calque » : ces logiciels ignorent les modificateurs de DCS.
+
+- **SRS** est lu directement, sans jamais toucher à ses réglages.
+  Chaque avion a son profil SRS : celui du module est trouvé par son nom (« F-16 » pour « F-16C_50 », « A-10C » pour « A-10C II »), sinon c'est le profil `default`.
+  Le bouton **Autres logiciels**, en haut de la page, permet d'en choisir un autre pour ce module, ou aucun ; le choix est mémorisé.
+- **VectorXR** est lu directement aussi, et ses boutons valent pour tous les modules.
+  Seul ce qui sert dans DCS compte : un module de VectorXR éteint, ou un profil d'un autre jeu, n'apparaît pas.
+- **Un autre logiciel** se saisit à la main, depuis **Autres logiciels** : le nom du logiciel, le bouton (dans la liste, ou en appuyant dessus avec **Identifier**) et ce qu'il fait.
+  Les entrées se modifient et se suppriment au même endroit.
+
+Dans les réglages, l'onglet **Autres logiciels** indique le dossier de SRS (trouvé dans le registre Windows, à indiquer s'il ne l'est pas), ce qui a été lu, et permet de cacher un logiciel des pages ou de changer sa couleur.
+
 ## Exporter
 
 ### Vers le kneeboard
@@ -94,6 +110,9 @@ Tous les périphériques vus dans tes modules, avec le nombre de modules où ils
 Décoche un périphérique pour le cacher partout : un vJoy, un périphérique débranché pour de bon, un doublon fantôme.
 Un périphérique caché disparaît des listes, des compteurs et des exports, dans tous les modules ; c'est appliqué tout de suite.
 « N cachés : Afficher », au bas de la liste des périphériques, les montre de nouveau (grisés) ; l'œil ou la touche `H` les cache ou les montre un par un.
+
+**Autres logiciels.**
+Le dossier de SRS, les logiciels montrés sur les pages et leur couleur : voir [les boutons des autres logiciels](#les-boutons-des-autres-logiciels).
 
 Le reste est mémorisé au fil de l'eau : périphériques exportés, ordre des pages, gabarit choisi à la main, affichage des calques, zoom, thème clair ou sombre.
 
