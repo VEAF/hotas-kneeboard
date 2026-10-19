@@ -920,8 +920,15 @@ Ils sont sur toutes les pages, même avec « Par calque » : ces logiciels ignor
 </ul>
 <p>Les pages apparaissent dans le kneeboard de cet avion à la mission suivante.
 Leur hauteur se règle dans les réglages (1024 pixels par défaut) ; la largeur suit les proportions du dessin.</p>
+<p><strong>Tous les modules d'un coup</strong> : la flèche à côté de <strong>Kneeboard</strong>, puis <strong>Tous les modules</strong> (ou Maj+E).
+Chaque avion de la liste qui a au moins un périphérique coché reçoit ses pages, comme si tu l'exportais à la main ; les profils qui ne sont pas des avions (Default, UiLayer) sont sautés.
+Une fenêtre montre où en est l'export (« Module 7 sur 20 », le nom du module, une barre) ; il faut compter une dizaine de secondes pour une vingtaine de modules.
+<strong>Arrêter</strong> s'arrête à la fin du module en cours : les modules déjà écrits le restent, et le message de fin dit combien ne l'ont pas été.
+Si un module échoue, les autres continuent, et le message de fin dit lequel et pourquoi.</p>
 <h3 id="en-pdf">En PDF<a class="headerlink" href="#en-pdf" title="Permanent link">&para;</a></h3>
-<p><strong>PDF</strong> (ou Ctrl+P) télécharge un PDF des mêmes pages, une page A4 par page, à environ 200 points par pouce.</p>
+<p><strong>PDF</strong> (ou Ctrl+P) télécharge un PDF des mêmes pages, une page A4 par page, à environ 200 points par pouce.
+La flèche à côté, <strong>Tous les modules</strong> (ou Maj+P), en fait un seul PDF, <code>HOTAS - tous les modules.pdf</code>, module après module dans l'ordre de la liste, avec les mêmes avions que pour le kneeboard ; chaque page porte le nom de son module en en-tête.
+La même fenêtre montre la progression ; <strong>Arrêter</strong> n'écrit alors aucun PDF, un PDF d'une partie des modules passerait pour le tout.</p>
 <h2 id="commandes-dcs">Commandes DCS<a class="headerlink" href="#commandes-dcs" title="Permanent link">&para;</a></h2>
 <p>Le bouton à curseurs, en haut, ouvre la fenêtre <strong>Commandes DCS</strong> : ce que l'application peut changer dans tes commandes, et les sauvegardes qu'elle fait avant.</p>
 <ul>
