@@ -6,6 +6,7 @@ import type { Box, Device, Label, Template } from '../lib/types'
 import { BASE_LAYER, compareInputs, inputName, layerColor, layerLabel, layerTags } from './inputs'
 import { fitTexts, LABEL_FONT, LABEL_WEIGHT, wrap, type Measurer } from './text'
 import type { ProgramMarks, ProgramStyle } from './programs'
+import { tIn, type Lang } from '../lib/i18n'
 
 export interface Page {
   title: string
@@ -26,6 +27,8 @@ export interface PageContext {
   fontCss?: string
   /** buttons other programs use on this device, and how each program is drawn */
   programs?: { marks: ProgramMarks; styles: Map<string, ProgramStyle> }
+  /** the language of the page's own words: the commands' (pageLanguage); English when not told */
+  lang?: Lang
 }
 
 interface Entry {
@@ -46,23 +49,23 @@ export function esc(text: string): string {
   return text.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!)
 }
 
-function entryText(label: Label): { text: string; released: boolean } {
+function entryText(label: Label, language: Lang): { text: string; released: boolean } {
   if (label.pressed.length === 0 && label.released.length > 0) {
-    return { text: `relâché : ${label.text}`, released: true }
+    return { text: tIn(language, 'page.released', { text: label.text }), released: true }
   }
   return { text: label.text, released: false }
 }
 
 /** Entries of each bound input, in layer order, filtered on one layer if asked; then what other
  * programs do with it, whatever the layer (they do not know DCS's modifiers) */
-export function entriesByInput(device: Device, layer: string | null, marks: ProgramMarks = {}): Map<string, Entry[]> {
+export function entriesByInput(device: Device, layer: string | null, marks: ProgramMarks = {}, language: Lang = 'en'): Map<string, Entry[]> {
   const result = new Map<string, Entry[]>()
   const keys = new Set([...Object.keys(device.inputs), ...Object.keys(marks)])
   for (const key of [...keys].sort(compareInputs)) {
     const labels = device.inputs[key] ?? {}
     const entries: Entry[] = device.layers
       .filter((l) => l in labels && (layer === null || l === layer))
-      .map((l) => ({ layer: l, ...entryText(labels[l]) }))
+      .map((l) => ({ layer: l, ...entryText(labels[l], language) }))
     for (const mark of marks[key] ?? []) entries.push({ layer: BASE_LAYER, text: mark.action, released: false, program: mark.program })
     if (entries.length) result.set(key, entries)
   }
@@ -205,8 +208,9 @@ function emptyBox(box: Box): string {
   )
 }
 
-/** Lines "Bouton 30 · Throttle - OFF / IDLE" for the bound inputs the drawing has no box for */
+/** Lines "Button 30 · Throttle - OFF / IDLE" for the bound inputs the drawing has no box for */
 function offTemplateBand(
+  language: Lang,
   entries: [string, Entry[]][],
   top: number,
   width: number,
@@ -222,7 +226,7 @@ function offTemplateBand(
   const columnWidth = (width - 2 * margin - columnGap) / 2
   const nameWidth = 62
   const rows = entries.flatMap(([key, list]) =>
-    list.map((entry, i) => ({ name: i === 0 ? inputName(key) : '', entry })),
+    list.map((entry, i) => ({ name: i === 0 ? inputName(key, language) : '', entry })),
   )
   const laidOut = rows.map((row) => ({
     ...row,
@@ -239,7 +243,7 @@ function offTemplateBand(
   let svg =
     `<line x1="${margin}" y1="${top + 6}" x2="${width - margin}" y2="${top + 6}" stroke="#c9ced5"/>` +
     `<text x="${margin}" y="${top + 20}" font-size="11" fill="${MUTED}" font-weight="700" letter-spacing="0.6">` +
-    `HORS GABARIT — liées dans DCS, sans case sur le dessin</text>`
+    `${esc(tIn(language, 'page.off_template'))}</text>`
   let height = 0
   columns.forEach((column, c) => {
     const x = margin + c * (columnWidth + columnGap)
@@ -264,13 +268,14 @@ function offTemplateBand(
 }
 
 function footer(ctx: PageContext, top: number, width: number, legend: Legend, part?: string): string {
-  const left = [ctx.profile, ctx.device.name, ctx.layer !== null ? `calque ${layerLabel(ctx.layer)}` : null, part]
+  const language = ctx.lang ?? 'en'
+  const left = [ctx.profile, ctx.device.name, ctx.layer !== null ? tIn(language, 'page.layer', { layer: layerLabel(ctx.layer, language) }) : null, part]
     .filter(Boolean)
     .join(' · ')
   const layers = ctx.layer === null ? [...legend.tags].map(([layer, tag]) => `${tag} = ${layer}`) : []
   const programs = [...legend.programs].map(([program, style]) => (style.tag === program ? program : `${style.tag} = ${program}`))
   const legendText = [...layers, ...programs].join('   ')
-  const credits = ctx.template ? creditLine(ctx.template.data) : ''
+  const credits = ctx.template ? creditLine(ctx.template.data, language) : ''
   return (
     `<text x="16" y="${top + 18}" font-size="12" fill="${INK}">${esc(left)}` +
     (legendText ? `<tspan fill="${MUTED}" dx="14">${esc(legendText)}</tspan>` : '') +
@@ -281,10 +286,10 @@ function footer(ctx: PageContext, top: number, width: number, legend: Legend, pa
   )
 }
 
-export function creditLine(template: Template): string {
+export function creditLine(template: Template, language: Lang = 'en'): string {
   const author = template.credits?.author
   if (!author) return ''
-  return `Gabarit : ${author}${template.credits.license ? `, ${template.credits.license}` : ''}`
+  return tIn(language, 'page.credits', { author }) + (template.credits.license ? `, ${template.credits.license}` : '')
 }
 
 const FOOTER_HEIGHT = 28
@@ -306,7 +311,8 @@ export function diagramPages(ctx: PageContext, splitWide: boolean): Page[] {
   const [width, height] = template.data.size
   const legend = legendOf(ctx)
   const showChips = ctx.layer === null
-  const entries = entriesByInput(ctx.device, ctx.layer, ctx.programs?.marks)
+  const language = ctx.lang ?? 'en'
+  const entries = entriesByInput(ctx.device, ctx.layer, ctx.programs?.marks, language)
   let body = `<image x="0" y="0" width="${width}" height="${height}" href="${template.image}" preserveAspectRatio="xMidYMid meet"/>`
   const off: [string, Entry[]][] = []
   for (const [key, input] of Object.entries(template.data.inputs)) {
@@ -328,7 +334,7 @@ export function diagramPages(ctx: PageContext, splitWide: boolean): Page[] {
   body += labels.filter((l) => l.grown).map((l) => l.svg).join('')
   const cuts = splitWide ? cutsOf(template.data) : []
   if (!cuts.length) {
-    const band = offTemplateBand(off, height, width, legend, ctx.measurer, showChips)
+    const band = offTemplateBand(language, off, height, width, legend, ctx.measurer, showChips)
     const total = height + band.height + FOOTER_HEIGHT
     const svg = svgOpen(width, total, ctx) + body + band.svg + footer(ctx, height + band.height, width, legend) + '</svg>'
     return [{ title: pageTitle(ctx), width, height: total, svg }]
@@ -340,7 +346,7 @@ export function diagramPages(ctx: PageContext, splitWide: boolean): Page[] {
   return parts.map(([from, to], index) => {
     const partWidth = to - from
     const last = index === parts.length - 1
-    const band = last ? offTemplateBand(off, height, partWidth, legend, ctx.measurer, showChips) : { svg: '', height: 0 }
+    const band = last ? offTemplateBand(language, off, height, partWidth, legend, ctx.measurer, showChips) : { svg: '', height: 0 }
     const total = height + band.height + FOOTER_HEIGHT
     const part = `${index + 1}/${parts.length}`
     const svg =
@@ -365,9 +371,10 @@ export function listPages(ctx: PageContext): Page[] {
   const textWidth = LIST_WIDTH - textX - margin
   const top = 104
   const bottom = LIST_HEIGHT - FOOTER_HEIGHT - 16
-  const rows = [...entriesByInput(ctx.device, ctx.layer, ctx.programs?.marks)].flatMap(([key, list]) =>
+  const language = ctx.lang ?? 'en'
+  const rows = [...entriesByInput(ctx.device, ctx.layer, ctx.programs?.marks, language)].flatMap(([key, list]) =>
     list.map((entry, i) => ({
-      name: i === 0 ? inputName(key) : '',
+      name: i === 0 ? inputName(key, language) : '',
       entry,
       first: i === 0,
       lines: wrap(entry.text, size, textWidth, ctx.measurer, chipWidth(entry, size, legend, showChips)),
@@ -381,11 +388,11 @@ export function listPages(ctx: PageContext): Page[] {
     const heading =
       `<text x="${margin}" y="56" font-size="28" font-weight="700" fill="${INK}">${esc(ctx.device.name)}</text>` +
       `<text x="${margin}" y="80" font-size="13" fill="${MUTED}">` +
-      `${esc(ctx.profile)} · pas de gabarit pour ce périphérique : liste des commandes` +
-      `${index ? ` (suite ${index + 1})` : ''}</text>` +
+      `${esc(ctx.profile)} · ${esc(tIn(language, 'page.no_template'))}` +
+      `${index ? ` ${esc(tIn(language, 'page.continued', { n: index + 1 }))}` : ''}</text>` +
       `<line x1="${margin}" y1="90" x2="${LIST_WIDTH - margin}" y2="90" stroke="${INK}" stroke-width="1.5"/>`
     pages.push({
-      title: index ? `${pageTitle(ctx)} (suite ${index + 1})` : pageTitle(ctx),
+      title: index ? `${pageTitle(ctx)} ${tIn(language, 'page.continued', { n: index + 1 })}` : pageTitle(ctx),
       width: LIST_WIDTH,
       height: LIST_HEIGHT,
       svg: svgOpen(LIST_WIDTH, LIST_HEIGHT, ctx) + heading + body + footer(ctx, LIST_HEIGHT - FOOTER_HEIGHT, LIST_WIDTH, legend) + '</svg>',

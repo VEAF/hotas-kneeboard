@@ -21,6 +21,8 @@ import type { Profile } from './lib/types'
 import SplitButton from 'primevue/splitbutton'
 import { useStore } from './lib/store'
 import { pagePngBase64, pagesPdf } from './render/export'
+import { lang, t, tn } from './lib/i18n'
+import { usePrimeVue } from 'primevue/config'
 
 const store = useStore()
 const { state, busy } = store
@@ -29,6 +31,18 @@ const modules = ref<InstanceType<typeof ModuleList> | null>(null)
 const settingsOpen = ref(false)
 const helpOpen = ref(false)
 const dcsConfigOpen = ref(false)
+// PrimeVue's own words (an empty list, a filter without result) follow the interface's language
+const primevue = usePrimeVue()
+watchEffect(() => {
+  Object.assign(primevue.config.locale ?? {}, {
+    emptyMessage: t('primevue.empty'),
+    emptyFilterMessage: t('primevue.empty_filter'),
+    emptySearchMessage: t('primevue.empty_filter'),
+    emptySelectionMessage: t('primevue.empty_selection'),
+    searchMessage: t('primevue.search'),
+    selectionMessage: t('primevue.selection'),
+  })
+})
 const theme = useLocalStorage<'dark' | 'light'>('hotas-kneeboard-theme', 'dark')
 // on <html>, not on the app: PrimeVue puts dialogs, menus and tooltips at the end of <body>
 watchEffect(() => {
@@ -44,8 +58,8 @@ const canKneeboard = computed(() => !!store.profile.value?.unit_type && exported
 const kneeboardHint = computed(() => {
   const p = store.profile.value
   if (!p) return ''
-  if (!p.unit_type) return "Ce profil n'est pas un avion : pas de kneeboard"
-  return `Écrit les pages dans Saved Games\\DCS\\Kneeboard\\${p.unit_type}\\`
+  if (!p.unit_type) return t('app.kneeboard.not_aircraft')
+  return t('app.kneeboard.writes_to', { unit: p.unit_type })
 })
 
 onMounted(() => store.load())
@@ -119,12 +133,12 @@ async function exportKneeboard() {
     const result = await writeKneeboardOf(p)
     toast.add({
       severity: 'success',
-      summary: `${result.written.length} pages dans le kneeboard ${p.unit_type}`,
-      detail: result.folder + (result.removed.length ? ` — ${result.removed.length} anciennes pages retirées` : ''),
+      summary: tn('app.kneeboard.written', result.written.length, { unit: p.unit_type }),
+      detail: result.folder + (result.removed.length ? ` — ${tn('app.kneeboard.removed', result.removed.length)}` : ''),
       life: 6000,
     })
   } catch (e) {
-    toast.add({ severity: 'error', summary: 'Export kneeboard impossible', detail: (e as Error).message, life: 10000 })
+    toast.add({ severity: 'error', summary: t('app.kneeboard.failed'), detail: (e as Error).message, life: 10000 })
   } finally {
     busy.value = ''
   }
@@ -138,7 +152,7 @@ async function exportKneeboardAll() {
   const failures: ModuleFailure[] = []
   let pages = 0
   let tried = 0
-  progress.value = { title: 'Kneeboard de tous les modules', done: 0, total: list.length, module: '', stopping: false }
+  progress.value = { title: t('app.kneeboard.all_title'), done: 0, total: list.length, module: '', stopping: false }
   try {
     for (const p of list) {
       if (progress.value.stopping) break
@@ -155,11 +169,11 @@ async function exportKneeboardAll() {
     progress.value = null
   }
   const done = tried - failures.length
-  const stopped = tried < list.length ? ` (arrêté : ${list.length - tried} non exportés)` : ''
+  const stopped = tried < list.length ? ` ${t('app.kneeboard.stopped', { n: list.length - tried })}` : ''
   toast.add({
     severity: failures.length ? (done ? 'warn' : 'error') : stopped ? 'info' : 'success',
-    summary: `Kneeboard : ${pages} pages, ${done} module${done > 1 ? 's' : ''} sur ${list.length}${stopped}`,
-    detail: failures.length ? `Échec :\n${failuresDetail(failures)}` : 'Saved Games\\DCS\\Kneeboard\\, un dossier par avion',
+    summary: t('app.kneeboard.all_done', { pages, done, total: list.length }) + stopped,
+    detail: failures.length ? `${t('app.export.failure')}\n${failuresDetail(failures)}` : t('app.kneeboard.all_folder'),
     life: failures.length ? 15000 : 6000,
   })
 }
@@ -171,9 +185,9 @@ async function exportPdf() {
   try {
     const pages = await store.modulePages(p)
     await pagesPdf(pages, `HOTAS - ${p.name}.pdf`)
-    toast.add({ severity: 'success', summary: `PDF de ${p.name} : ${pages.length} pages`, detail: 'Dans le dossier des téléchargements du navigateur.', life: 5000 })
+    toast.add({ severity: 'success', summary: tn('app.pdf.written', pages.length, { module: p.name }), detail: t('app.pdf.where'), life: 5000 })
   } catch (e) {
-    toast.add({ severity: 'error', summary: 'PDF impossible', detail: (e as Error).message, life: 10000 })
+    toast.add({ severity: 'error', summary: t('app.pdf.failed'), detail: (e as Error).message, life: 10000 })
   } finally {
     busy.value = ''
   }
@@ -184,7 +198,7 @@ async function exportPdfAll() {
   const list = allModules.value
   if (!list.length || busy.value) return
   busy.value = 'pdf'
-  progress.value = { title: 'PDF de tous les modules', done: 0, total: list.length, module: '', stopping: false }
+  progress.value = { title: t('app.pdf.all_title'), done: 0, total: list.length, module: '', stopping: false }
   try {
     const pages = []
     for (const p of list) {
@@ -193,20 +207,20 @@ async function exportPdfAll() {
       progress.value.done++
       // stopped: no PDF at all, a part of the modules would pass for all of them
       if (progress.value.stopping) {
-        toast.add({ severity: 'info', summary: 'PDF de tous les modules arrêté', detail: 'Aucun fichier écrit.', life: 5000 })
+        toast.add({ severity: 'info', summary: t('app.pdf.all_stopped'), detail: t('app.pdf.no_file'), life: 5000 })
         return
       }
     }
-    progress.value.module = 'Écriture du PDF…'
-    await pagesPdf(pages, 'HOTAS - tous les modules.pdf')
+    progress.value.module = t('app.pdf.writing')
+    await pagesPdf(pages, `HOTAS - ${t('app.pdf.all_file')}.pdf`)
     toast.add({
       severity: 'success',
-      summary: `PDF de ${list.length} modules : ${pages.length} pages`,
-      detail: 'Dans le dossier des téléchargements du navigateur.',
+      summary: t('app.pdf.all_written', { modules: list.length, pages: pages.length }),
+      detail: t('app.pdf.where'),
       life: 5000,
     })
   } catch (e) {
-    toast.add({ severity: 'error', summary: 'PDF impossible', detail: (e as Error).message, life: 10000 })
+    toast.add({ severity: 'error', summary: t('app.pdf.failed'), detail: (e as Error).message, life: 10000 })
   } finally {
     busy.value = ''
     progress.value = null
@@ -215,22 +229,22 @@ async function exportPdfAll() {
 
 const allHint = computed(() =>
   allModules.value.length
-    ? `${allModules.value.length} modules : les avions qui ont un périphérique coché`
-    : 'Aucun avion avec un périphérique coché',
+    ? t('app.export.all_hint', { n: allModules.value.length })
+    : t('app.export.all_none'),
 )
 const pdfReady = computed(() => !!store.profile.value && exportedCount.value > 0 && !busy.value)
 const kneeboardMenu = computed(() => [
-  { label: 'Ce module (Ctrl+E)', icon: 'pi pi-send', disabled: !canKneeboard.value, command: exportKneeboard },
-  { label: `Tous les modules (Maj+E) — ${allHint.value}`, icon: 'pi pi-clone', disabled: !allModules.value.length || !!busy.value, command: exportKneeboardAll },
+  { label: t('app.kneeboard.this_module'), icon: 'pi pi-send', disabled: !canKneeboard.value, command: exportKneeboard },
+  { label: `${t('app.kneeboard.all_modules')} — ${allHint.value}`, icon: 'pi pi-clone', disabled: !allModules.value.length || !!busy.value, command: exportKneeboardAll },
 ])
 const pdfMenu = computed(() => [
-  { label: 'Ce module (Ctrl+P)', icon: 'pi pi-file-pdf', disabled: !pdfReady.value, command: exportPdf },
-  { label: `Tous les modules, un seul PDF (Maj+P) — ${allHint.value}`, icon: 'pi pi-clone', disabled: !allModules.value.length || !!busy.value, command: exportPdfAll },
+  { label: t('app.pdf.this_module'), icon: 'pi pi-file-pdf', disabled: !pdfReady.value, command: exportPdf },
+  { label: `${t('app.pdf.all_modules')} — ${allHint.value}`, icon: 'pi pi-clone', disabled: !allModules.value.length || !!busy.value, command: exportPdfAll },
 ])
 
 async function refresh() {
   await store.load(true)
-  if (!state.error) toast.add({ severity: 'info', summary: 'Fichiers de DCS relus', life: 2500 })
+  if (!state.error) toast.add({ severity: 'info', summary: t('app.reloaded'), life: 2500 })
 }
 
 // --- keyboard ------------------------------------------------------------------------------
@@ -329,13 +343,13 @@ onKeyStroke((event) => {
         </template>
       </span>
       <span class="spacer" />
-      <Button v-if="state.view === 'pages'" icon="pi pi-pencil" text rounded aria-label="Éditeur de gabarit" v-tooltip.bottom="'Éditeur de gabarit'" @click="openEditor" />
-      <Button icon="pi pi-refresh" text rounded aria-label="Relire les fichiers de DCS (F5)" v-tooltip.bottom="'Relire les fichiers de DCS (F5)'" :loading="state.loading" @click="refresh" />
-      <Button icon="pi pi-sliders-h" text rounded aria-label="Commandes DCS : périphériques, vues du chapeau, sauvegardes" v-tooltip.bottom="'Commandes DCS : périphériques, vues du chapeau, sauvegardes'" @click="dcsConfigOpen = true" />
-      <Button icon="pi pi-cog" text rounded aria-label="Réglages" v-tooltip.bottom="'Réglages'" @click="settingsOpen = true" />
-      <Button :icon="theme === 'dark' ? 'pi pi-sun' : 'pi pi-moon'" text rounded aria-label="Thème clair ou sombre" v-tooltip.bottom="'Thème clair / sombre'" @click="theme = theme === 'dark' ? 'light' : 'dark'" />
-      <Button icon="pi pi-question-circle" text rounded aria-label="Raccourcis clavier (?)" v-tooltip.bottom="'Raccourcis clavier (?)'" @click="helpOpen = true" />
-      <Button as="a" :href="docUrl(state.version)" target="_blank" rel="noopener" icon="pi pi-book" text rounded aria-label="Documentation" v-tooltip.bottom="'Documentation (nouvel onglet)'" />
+      <Button v-if="state.view === 'pages'" icon="pi pi-pencil" text rounded :aria-label="t('app.bar.editor')" v-tooltip.bottom="t('app.bar.editor')" @click="openEditor" />
+      <Button icon="pi pi-refresh" text rounded :aria-label="t('app.bar.reload')" v-tooltip.bottom="t('app.bar.reload')" :loading="state.loading" @click="refresh" />
+      <Button icon="pi pi-sliders-h" text rounded :aria-label="t('app.bar.dcs_config')" v-tooltip.bottom="t('app.bar.dcs_config')" @click="dcsConfigOpen = true" />
+      <Button icon="pi pi-cog" text rounded :aria-label="t('app.bar.settings')" v-tooltip.bottom="t('app.bar.settings')" @click="settingsOpen = true" />
+      <Button :icon="theme === 'dark' ? 'pi pi-sun' : 'pi pi-moon'" text rounded :aria-label="t('app.bar.theme')" v-tooltip.bottom="t('app.bar.theme')" @click="theme = theme === 'dark' ? 'light' : 'dark'" />
+      <Button icon="pi pi-question-circle" text rounded :aria-label="t('app.bar.shortcuts')" v-tooltip.bottom="t('app.bar.shortcuts')" @click="helpOpen = true" />
+      <Button as="a" :href="docUrl(state.version, lang)" target="_blank" rel="noopener" icon="pi pi-book" text rounded :aria-label="t('app.bar.doc')" v-tooltip.bottom="t('app.bar.doc_tip')" />
       <div v-if="state.view === 'pages'" class="exports">
         <SplitButton
           label="PDF"
@@ -345,8 +359,8 @@ onKeyStroke((event) => {
           :model="pdfMenu"
           :disabled="!!busy || (!pdfReady && !allModules.length)"
           :button-props="{ disabled: !pdfReady }"
-          :menu-button-props="{ 'aria-label': 'Autres exports PDF' }"
-          v-tooltip.bottom="'PDF du module, une page par périphérique coché (Ctrl+P) ; la flèche : tous les modules'"
+          :menu-button-props="{ 'aria-label': t('app.pdf.more') }"
+          v-tooltip.bottom="t('app.pdf.tip')"
           @click="exportPdf"
         />
         <SplitButton
@@ -355,8 +369,8 @@ onKeyStroke((event) => {
           :model="kneeboardMenu"
           :disabled="!!busy || (!canKneeboard && !allModules.length)"
           :button-props="{ disabled: !canKneeboard }"
-          :menu-button-props="{ 'aria-label': 'Autres exports kneeboard' }"
-          v-tooltip.bottom="`${kneeboardHint} (Ctrl+E) ; la flèche : tous les modules`"
+          :menu-button-props="{ 'aria-label': t('app.kneeboard.more') }"
+          v-tooltip.bottom="t('app.kneeboard.tip', { hint: kneeboardHint })"
           @click="exportKneeboard"
         />
       </div>
@@ -365,13 +379,13 @@ onKeyStroke((event) => {
     <div v-if="state.error" class="banner" role="alert">
       <i class="pi pi-exclamation-triangle" />
       <span>{{ state.error }}</span>
-      <Button label="Réglages" size="small" text @click="settingsOpen = true" />
-      <Button label="Réessayer" size="small" text @click="refresh" />
+      <Button :label="t('app.bar.settings')" size="small" text @click="settingsOpen = true" />
+      <Button :label="t('app.retry')" size="small" text @click="refresh" />
     </div>
     <div v-else-if="state.bindings?.error" class="banner" role="alert">
       <i class="pi pi-exclamation-triangle" />
       <span>{{ state.bindings.error }}</span>
-      <Button label="Réglages" size="small" text @click="settingsOpen = true" />
+      <Button :label="t('app.bar.settings')" size="small" text @click="settingsOpen = true" />
     </div>
 
     <EditorView v-if="state.view === 'editor'" />
@@ -386,21 +400,21 @@ onKeyStroke((event) => {
         :style="{ left: `${edge}px` }"
         role="separator"
         aria-orientation="vertical"
-        :aria-label="i === 0 ? 'Largeur de la colonne des modules' : 'Largeur de la colonne des périphériques'"
-        title="Glisser pour élargir ou rétrécir ; double-clic : largeur par défaut"
+        :aria-label="i === 0 ? t('app.columns.modules') : t('app.columns.devices')"
+        :title="t('app.columns.tip')"
         @pointerdown="startResize($event, i)"
         @dblclick="resetColumn(i)"
       />
     </main>
 
     <footer v-if="state.view === 'pages'" class="status">
-      <span><kbd>↑</kbd><kbd>↓</kbd> périphérique</span>
-      <span><kbd>PgUp</kbd><kbd>PgDn</kbd> module</span>
-      <span><kbd>Espace</kbd> inclure dans l'export</span>
-      <span><kbd>L</kbd> calques</span>
-      <span><kbd>?</kbd> tous les raccourcis</span>
+      <span><kbd>↑</kbd><kbd>↓</kbd> {{ t('app.status.device') }}</span>
+      <span><kbd>PgUp</kbd><kbd>PgDn</kbd> {{ t('app.status.module') }}</span>
+      <span><kbd>{{ t('keys.space') }}</kbd> {{ t('app.status.export') }}</span>
+      <span><kbd>L</kbd> {{ t('app.status.layers') }}</span>
+      <span><kbd>?</kbd> {{ t('app.status.shortcuts') }}</span>
       <span class="spacer" />
-      <span v-if="state.loading">Lecture des fichiers de DCS…</span>
+      <span v-if="state.loading">{{ t('app.status.reading') }}</span>
       <span v-else-if="store.profile.value?.unit_type">Kneeboard → Saved Games\DCS\Kneeboard\{{ store.profile.value.unit_type }}\</span>
       <span class="version">v{{ state.version }}</span>
     </footer>

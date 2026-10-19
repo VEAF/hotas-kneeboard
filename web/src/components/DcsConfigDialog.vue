@@ -22,6 +22,8 @@ import type {
   HatViewsResult,
   ModifiersResponse,
 } from '../lib/types'
+import { lang, t, tn } from '../lib/i18n'
+import Tr from './Tr'
 
 const visible = defineModel<boolean>('visible', { required: true })
 const store = useStore()
@@ -70,11 +72,11 @@ async function setDisabled(fullName: string, disabled: boolean) {
   try {
     await api.setDeviceDisabled(fullName, disabled)
     forgetHatPreview()
-    toast.add({ severity: 'success', summary: disabled ? 'Périphérique désactivé dans DCS' : 'Périphérique réactivé dans DCS', detail: fullName, life: 4000 })
+    toast.add({ severity: 'success', summary: disabled ? t('dcs.devices.disabled_done') : t('dcs.devices.enabled_done'), detail: fullName, life: 4000 })
     await load()
     await store.load(true)
   } catch (e) {
-    toast.add({ severity: 'error', summary: 'Modification impossible', detail: (e as Error).message, life: 10000 })
+    toast.add({ severity: 'error', summary: t('dcs.change_failed'), detail: (e as Error).message, life: 10000 })
     await load()
   } finally {
     working.value = ''
@@ -90,11 +92,11 @@ async function forget(device: string) {
   try {
     const result = await api.forgetDevice(device)
     forgetHatPreview()
-    toast.add({ severity: 'success', summary: 'Périphérique oublié', detail: `${device} : commandes supprimées dans ${result.profiles.join(', ')}`, life: 6000 })
+    toast.add({ severity: 'success', summary: t('dcs.forget.done'), detail: t('dcs.forget.detail', { device, modules: result.profiles.join(', ') }), life: 6000 })
     await load()
     await store.load(true)
   } catch (e) {
-    toast.add({ severity: 'error', summary: 'Suppression impossible', detail: (e as Error).message, life: 10000 })
+    toast.add({ severity: 'error', summary: t('editor.delete.failed'), detail: (e as Error).message, life: 10000 })
     await load()
   } finally {
     working.value = ''
@@ -109,20 +111,20 @@ async function changeModifiers(what: string, call: () => Promise<{ fixed: unknow
   working.value = what
   try {
     const result = await call()
-    toast.add({ severity: 'success', summary: done, detail: `${result.fixed.length} modificateur(s) renommé(s)`, life: 6000 })
+    toast.add({ severity: 'success', summary: done, detail: tn('dcs.modifiers.renamed', result.fixed.length), life: 6000 })
     await load()
     await store.load(true)
   } catch (e) {
-    toast.add({ severity: 'error', summary: 'Modification impossible', detail: (e as Error).message, life: 10000 })
+    toast.add({ severity: 'error', summary: t('dcs.change_failed'), detail: (e as Error).message, life: 10000 })
     await load()
   } finally {
     working.value = ''
   }
 }
 
-const fixModifiers = () => changeModifiers('modifiers', api.fixModifiers, 'Modificateurs réparés')
+const fixModifiers = () => changeModifiers('modifiers', api.fixModifiers, t('dcs.modifiers.fixed'))
 const restoreModifiers = (profile: string, backup: string) =>
-  changeModifiers(`modifiers:${profile}`, () => api.restoreModifiers(profile, backup), `modifiers.lua de ${profile} ramené`)
+  changeModifiers(`modifiers:${profile}`, () => api.restoreModifiers(profile, backup), t('dcs.modifiers.restored', { profile }))
 
 // --- the 8 generic hat views, removed in bulk ------------------------------------------------------
 // computed on demand: reading every module takes a few seconds
@@ -187,13 +189,12 @@ const hatTotals = computed(() => {
     created: modules.filter((m) => m.new_file).length,
   }
 })
-const plural = (n: number, word: string, many = `${word}s`) => `${n} ${n > 1 ? many : word}`
 const hatSummary = (d: HatViewsDevice) => {
   const ok = hatOk(d)
   const created = ok.filter((m) => m.new_file).length
   return (
-    `${plural(ok.reduce((n, m) => n + m.views.length, 0), 'vue')} dans ${plural(ok.length, 'module')}` +
-    (created ? ` (${plural(created, 'nouveau fichier', 'nouveaux fichiers')})` : '')
+    t('dcs.in', { what: tn('dcs.views', ok.reduce((n, m) => n + m.views.length, 0)), where: tn('settings.devices.modules', ok.length) }) +
+    (created ? ` (${tn('dcs.new_files', created)})` : '')
   )
 }
 
@@ -205,9 +206,9 @@ function comparedWithPreview(result: HatViewsResult, shown: HatViewsDevice[]): H
   for (const d of shown) {
     for (const m of hatOk(d)) {
       const w = written.get(`${m.profile}\t${m.file.toLowerCase()}`)
-      if (!w) differences.push(`${m.file} (${m.profile}) : prévu à l'aperçu, rien n'a été écrit`)
+      if (!w) differences.push(t('dcs.hat.not_written', { file: m.file, profile: m.profile }))
       else if (w.removed !== m.views.length && w.removed === w.expected)
-        differences.push(`${m.file} (${m.profile}) : ${w.removed} vue(s) retirée(s), ${m.views.length} à l'aperçu`)
+        differences.push(t('dcs.hat.other_count', { file: m.file, profile: m.profile, removed: w.removed, preview: m.views.length }))
     }
   }
   return { ...result, differences }
@@ -234,15 +235,13 @@ async function removeHat() {
     const differ = result.differences.length > 0
     toast.add({
       severity: differ ? 'warn' : 'success',
-      summary: differ ? 'Vues retirées, avec des écarts' : 'Vues du chapeau retirées',
-      detail:
-        `${plural(removed, 'vue retirée', 'vues retirées')} dans ${plural(files, 'fichier')}` +
-        (differ ? ' : voir le détail dans la fenêtre' : ", relu et conforme à l'aperçu"),
+      summary: differ ? t('dcs.hat.done_differ') : t('dcs.hat.done'),
+      detail: t('dcs.in', { what: tn('dcs.views_removed', removed), where: tn('dcs.files', files) }) + (differ ? t('dcs.see_window') : t('dcs.as_previewed')),
       life: 8000,
     })
     await Promise.all([load(), store.load(true), loadHat()])
   } catch (e) {
-    toast.add({ severity: 'error', summary: 'Retrait impossible', detail: (e as Error).message, life: 10000 })
+    toast.add({ severity: 'error', summary: t('dcs.remove_failed'), detail: (e as Error).message, life: 10000 })
     await load()
   } finally {
     working.value = ''
@@ -306,14 +305,14 @@ async function removeGeneric() {
     const differ = result.differences.length > 0
     toast.add({
       severity: differ ? 'warn' : 'success',
-      summary: differ ? 'Boutons retirés, avec des écarts' : 'Boutons génériques retirés',
-      detail: `${plural(removed, 'liaison retirée', 'liaisons retirées')}` + (differ ? ' : voir le détail dans la fenêtre' : ", relu et conforme à l'aperçu"),
+      summary: differ ? t('dcs.generic.done_differ') : t('dcs.generic.done'),
+      detail: tn('dcs.bindings_removed', removed) + (differ ? t('dcs.see_window') : t('dcs.as_previewed')),
       life: 8000,
     })
     forgetHatPreview()
     await Promise.all([load(), store.load(true), loadGeneric()])
   } catch (e) {
-    toast.add({ severity: 'error', summary: 'Retrait impossible', detail: (e as Error).message, life: 10000 })
+    toast.add({ severity: 'error', summary: t('dcs.remove_failed'), detail: (e as Error).message, life: 10000 })
     await load()
   } finally {
     working.value = ''
@@ -327,11 +326,11 @@ async function undoGeneric() {
   try {
     await api.restoreDcsBackup(id)
     genericResult.value = null
-    toast.add({ severity: 'success', summary: 'Retrait annulé', detail: "Les commandes de DCS sont revenues à leur état d'avant.", life: 5000 })
+    toast.add({ severity: 'success', summary: t('dcs.undo.done'), detail: t('dcs.undo.detail'), life: 5000 })
     forgetHatPreview()
     await Promise.all([load(), store.load(true), loadGeneric()])
   } catch (e) {
-    toast.add({ severity: 'error', summary: 'Annulation impossible', detail: (e as Error).message, life: 10000 })
+    toast.add({ severity: 'error', summary: t('dcs.undo.failed'), detail: (e as Error).message, life: 10000 })
   } finally {
     working.value = ''
   }
@@ -348,17 +347,18 @@ watch(visible, (open) => {
 })
 
 const date = (iso: string) =>
-  new Date(iso).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'medium' })
-const size = (bytes: number) => (bytes < 1024 * 1024 ? `${Math.max(1, Math.round(bytes / 1024))} Ko` : `${(bytes / 1024 / 1024).toFixed(1)} Mo`)
+  new Date(iso).toLocaleString(lang.value === 'fr' ? 'fr-FR' : 'en-GB', { dateStyle: 'short', timeStyle: 'medium' })
+const size = (bytes: number) =>
+  bytes < 1024 * 1024 ? t('dcs.size.kb', { n: Math.max(1, Math.round(bytes / 1024)) }) : t('dcs.size.mb', { n: (bytes / 1024 / 1024).toFixed(1) })
 
 async function backupNow() {
   working.value = 'backup'
   try {
     const backup = await api.createDcsBackup()
-    toast.add({ severity: 'success', summary: 'Sauvegarde faite', detail: `${backup.files} fichiers, ${size(backup.size)}`, life: 4000 })
+    toast.add({ severity: 'success', summary: t('dcs.backup.done'), detail: `${tn('dcs.files', backup.files)}, ${size(backup.size)}`, life: 4000 })
     await load()
   } catch (e) {
-    toast.add({ severity: 'error', summary: 'Sauvegarde impossible', detail: (e as Error).message, life: 10000 })
+    toast.add({ severity: 'error', summary: t('dcs.backup.failed'), detail: (e as Error).message, life: 10000 })
   } finally {
     working.value = ''
   }
@@ -373,14 +373,14 @@ async function restore(id: string) {
     hatResult.value = null
     toast.add({
       severity: 'success',
-      summary: 'Commandes DCS restaurées',
-      detail: "L'état d'avant est lui-même sauvegardé, en tête de liste.",
+      summary: t('dcs.restore.done'),
+      detail: t('dcs.restore.detail'),
       life: 6000,
     })
     await load()
     await store.load(true)
   } catch (e) {
-    toast.add({ severity: 'error', summary: 'Restauration impossible', detail: (e as Error).message, life: 10000 })
+    toast.add({ severity: 'error', summary: t('dcs.restore.failed'), detail: (e as Error).message, life: 10000 })
     await load()
   } finally {
     working.value = ''
@@ -389,38 +389,34 @@ async function restore(id: string) {
 </script>
 
 <template>
-  <Dialog v-model:visible="visible" modal header="Commandes DCS" :style="{ width: 'min(720px, 94vw)' }">
+  <Dialog v-model:visible="visible" modal :header="t('dcs.title')" :style="{ width: 'min(720px, 94vw)' }">
     <div class="body">
       <p class="intro">
-        Avant chaque modification des commandes de DCS, l'application sauvegarde tout le dossier
-        <code>Saved Games\DCS\Config\Input</code>. Les 20 dernières sauvegardes sont gardées.
+        <Tr k="dcs.intro"><template #folder><code>Saved Games\DCS\Config\Input</code></template></Tr>
       </p>
 
       <p v-if="data?.dcs_running" class="warn" role="alert">
-        <i class="pi pi-exclamation-triangle" /> DCS est lancé : ferme-le pour restaurer ou modifier ses commandes, il réécrit ces fichiers en enregistrant.
+        <i class="pi pi-exclamation-triangle" /> {{ t('dcs.running') }}
       </p>
       <p v-else-if="data && data.dcs_running === null" class="warn" role="alert">
-        <i class="pi pi-exclamation-triangle" /> Impossible de savoir si DCS est lancé : les modifications seront refusées.
+        <i class="pi pi-exclamation-triangle" /> {{ t('dcs.running_unknown') }}
       </p>
       <p v-if="error" class="warn" role="alert">{{ error }}</p>
 
-      <p v-if="devicesError" class="warn" role="alert">Périphériques désactivés illisibles : {{ devicesError }}</p>
+      <p v-if="devicesError" class="warn" role="alert">{{ t('dcs.devices.unreadable', { error: devicesError }) }}</p>
       <section v-if="devices">
-        <h3 class="eyebrow">Périphériques désactivés dans DCS</h3>
-        <p class="intro">
-          Un périphérique désactivé est ignoré par DCS, dans tous les modules ; ses commandes sont gardées et reviennent à la réactivation.
-          C'est le réglage « Désactiver » de l'écran des commandes du jeu.
-        </p>
+        <h3 class="eyebrow">{{ t('dcs.devices.title') }}</h3>
+        <p class="intro">{{ t('dcs.devices.intro') }}</p>
         <ul class="rows devices">
           <li v-for="d in knownDevices" :key="d.fullName">
             <span class="dev">
               <span class="t">{{ d.name }}</span>
-              <span class="s">{{ guid(d.fullName) }}{{ d.seen ? ' · vu par DCS récemment' : '' }}</span>
+              <span class="s">{{ guid(d.fullName) }}{{ d.seen ? ` · ${t('dcs.devices.seen')}` : '' }}</span>
             </span>
             <ToggleSwitch
               :model-value="d.disabled"
               :disabled="!!working || data?.dcs_running !== false"
-              :aria-label="`Désactiver ${d.name} dans DCS`"
+              :aria-label="t('dcs.devices.disable', { name: d.name })"
               @update:model-value="setDisabled(d.fullName, $event)"
             />
           </li>
@@ -428,33 +424,30 @@ async function restore(id: string) {
       </section>
 
       <section v-if="devices">
-        <h3 class="eyebrow">Périphériques absents</h3>
-        <p v-if="!devices.seen.length" class="intro">
-          Le journal de DCS ne nomme aucun périphérique : impossible de dire lesquels sont absents. Lance DCS une fois, périphériques branchés.
-        </p>
+        <h3 class="eyebrow">{{ t('dcs.absent.title') }}</h3>
+        <p v-if="!devices.seen.length" class="intro">{{ t('dcs.absent.no_log') }}</p>
         <template v-else>
           <p class="intro">
-            Ces périphériques ont des commandes enregistrées, mais DCS ne les a pas vus lors de ses deux derniers lancements<template v-if="devices.log_date"> (journal écrit le {{ date(devices.log_date) }})</template>.
-            Débranchés ce jour-là, ou partis pour de bon : à toi de voir.
-            « Oublier » supprime leurs commandes dans tous les modules, après une sauvegarde.
+            {{ t('dcs.absent.intro') }}<template v-if="devices.log_date"> {{ t('dcs.absent.log_date', { date: date(devices.log_date) }) }}</template>.
+            {{ t('dcs.absent.intro2') }}
           </p>
           <ul v-if="devices.absent.length" class="rows devices">
             <li v-for="d in devices.absent" :key="d.device">
               <span class="dev">
                 <span class="t">{{ d.device.replace(/\s*\{[^}]*\}$/, '') }}</span>
-                <span class="s">{{ guid(d.device) }} · {{ d.profiles.length }} module{{ d.profiles.length > 1 ? 's' : '' }} : {{ d.profiles.join(', ') }}</span>
+                <span class="s">{{ guid(d.device) }} · {{ tn('settings.devices.modules', d.profiles.length) }}{{ t('common.colon') }}{{ d.profiles.join(', ') }}</span>
               </span>
               <span class="act">
                 <template v-if="forgetting === d.device">
-                  <Button size="small" severity="danger" label="Oublier" @click="forget(d.device)" />
-                  <Button size="small" text label="Annuler" @click="forgetting = null" />
+                  <Button size="small" severity="danger" :label="t('dcs.forget.label')" @click="forget(d.device)" />
+                  <Button size="small" text :label="t('common.cancel')" @click="forgetting = null" />
                 </template>
                 <Button
                   v-else
                   size="small"
                   text
                   icon="pi pi-trash"
-                  label="Oublier…"
+                  :label="t('dcs.forget.ask')"
                   :loading="working === `forget:${d.device}`"
                   :disabled="!!working || data?.dcs_running !== false"
                   @click="forgetting = d.device"
@@ -462,19 +455,15 @@ async function restore(id: string) {
               </span>
             </li>
           </ul>
-          <p v-else class="intro">Aucun : DCS a vu tous les périphériques qui ont des commandes.</p>
+          <p v-else class="intro">{{ t('dcs.absent.none') }}</p>
         </template>
       </section>
 
-      <p v-if="modifiersError" class="warn" role="alert">Modificateurs illisibles : {{ modifiersError }}</p>
+      <p v-if="modifiersError" class="warn" role="alert">{{ t('dcs.modifiers.unreadable', { error: modifiersError }) }}</p>
       <section v-if="modifiers && (modifiers.issues.length || modifiers.deleted.length)">
-        <h3 class="eyebrow">Modificateurs</h3>
+        <h3 class="eyebrow">{{ t('dcs.modifiers.title') }}</h3>
         <template v-if="modifiers.issues.length">
-          <p class="intro">
-            Ces modificateurs nomment leur périphérique sous un ancien nom : son pilote l'a renommé, le GUID est le même.
-            DCS les ignore, et les liaisons qui s'en servent s'affichent mais ne marchent pas en jeu.
-            « Réparer » leur donne le nom que DCS utilise maintenant, dans tous les modules, après une sauvegarde.
-          </p>
+          <p class="intro">{{ t('dcs.modifiers.intro') }}</p>
           <ul class="rows devices">
             <li v-for="i in modifiers.issues" :key="`${i.profile}/${i.modifier}`">
               <span class="dev">
@@ -489,7 +478,7 @@ async function restore(id: string) {
             <Button
               size="small"
               icon="pi pi-wrench"
-              label="Réparer"
+              :label="t('dcs.modifiers.fix')"
               :loading="working === 'modifiers'"
               :disabled="!fixable.length || !!working || data?.dcs_running !== false"
               @click="fixModifiers"
@@ -497,21 +486,18 @@ async function restore(id: string) {
           </div>
         </template>
         <template v-if="modifiers.deleted.length">
-          <p class="intro">
-            Ces modules n'ont plus de fichier de modificateurs : DCS le supprime quand il n'y reste que les réglages par défaut, ce qui arrive quand il ignore un modificateur.
-            Une sauvegarde l'a encore ; il revient avec les noms de périphériques réparés. Si tu l'as supprimé toi-même, laisse-le.
-          </p>
+          <p class="intro">{{ t('dcs.modifiers.deleted') }}</p>
           <ul class="rows devices">
             <li v-for="d in modifiers.deleted" :key="d.profile">
               <span class="dev">
                 <span class="t">{{ d.profile }}</span>
-                <span class="s">sauvegarde du {{ date(d.created) }}</span>
+                <span class="s">{{ t('dcs.modifiers.backup_of', { date: date(d.created) }) }}</span>
               </span>
               <Button
                 size="small"
                 text
                 icon="pi pi-replay"
-                label="Ramener"
+                :label="t('dcs.modifiers.restore')"
                 :loading="working === `modifiers:${d.profile}`"
                 :disabled="!!working || data?.dcs_running !== false"
                 @click="restoreModifiers(d.profile, d.backup)"
@@ -523,16 +509,15 @@ async function restore(id: string) {
 
       <section>
         <div class="head">
-          <h3 class="eyebrow">Vues du chapeau</h3>
-          <Button size="small" severity="secondary" icon="pi pi-search" :label="hat ? 'Relire' : 'Chercher'" :loading="hatLoading" :disabled="!!working" @click="loadHat" />
+          <h3 class="eyebrow">{{ t('dcs.hat.title') }}</h3>
+          <Button size="small" severity="secondary" icon="pi pi-search" :label="hat ? t('dcs.read_again') : t('dcs.search')" :loading="hatLoading" :disabled="!!working" @click="loadHat" />
         </div>
         <p class="intro">
-          Tous les modules mettent les 8 vues lentes (« View Up slow »…) sur le premier chapeau de chaque périphérique, même un palonnier, un ICP ou un MFD.
-          Avec TrackIR ou la VR, elles ne servent à rien et encombrent les pages. Seules ces 8 liaisons par défaut sont retirées ; ce que tu as mis toi-même sur un chapeau reste.
+          {{ t('dcs.hat.intro') }}
         </p>
         <div class="options">
-          <label><Checkbox v-model="everyDevice" binary :disabled="!!working || hatLoading" /> Tous les périphériques, chapeaux utilisés compris</label>
-          <label><Checkbox v-model="allModules" binary :disabled="!!working || hatLoading" /> Tous les modules installés, pas seulement ceux que tu as configurés (crée un fichier par module)</label>
+          <label><Checkbox v-model="everyDevice" binary :disabled="!!working || hatLoading" /> {{ t('dcs.hat.every_device') }}</label>
+          <label><Checkbox v-model="allModules" binary :disabled="!!working || hatLoading" /> {{ t('dcs.hat.all_modules') }}</label>
         </div>
         <p v-if="hatError" class="warn" role="alert">{{ hatError }}</p>
         <template v-if="hat">
@@ -542,69 +527,66 @@ async function restore(id: string) {
                 :model-value="hatSelectable(d) && hatChosen.has(d.device)"
                 binary
                 :disabled="!hatSelectable(d) || !!working"
-                :aria-label="`Retirer les vues du chapeau de ${d.device}`"
+                :aria-label="t('dcs.hat.remove_of', { device: d.device })"
                 @update:model-value="toggleHat(d.device, $event)"
               />
               <span class="dev">
                 <span class="t">{{ d.device.replace(/\s*\{[^}]*\}$/, '') }}</span>
                 <span class="s">{{ guid(d.device) }} · {{ hatSummary(d) }}</span>
                 <span v-if="!d.hat_only_views" class="s why">
-                  Chapeau utilisé ({{ d.own_hat.map((o) => `${o.command} en ${o.key.replace('JOY_BTN_', '')}, ${o.profile}`).join(' ; ') }}{{ d.own_hat_count > d.own_hat.length ? '…' : '' }})<template v-if="!everyDevice"> : coche « Tous les périphériques » pour en retirer quand même les vues par défaut</template>
+                  {{ t('dcs.hat.used', { list: d.own_hat.map((o) => t('dcs.hat.used_item', { command: o.command, key: o.key.replace('JOY_BTN_', ''), profile: o.profile })).join(t('dcs.list_sep')) + (d.own_hat_count > d.own_hat.length ? '…' : '') }) }}<template v-if="!everyDevice">{{ t('dcs.hat.used_hint') }}</template>
                 </span>
                 <details v-if="hatSelectable(d)">
-                  <summary>Modules</summary>
+                  <summary>{{ t('modules.title') }}</summary>
                   <ul class="modules">
                     <li v-for="m in d.modules" :key="m.profile">
-                      {{ m.profile }} · {{ plural(m.views.length, 'vue') }}<template v-if="m.new_file"> · nouveau fichier</template><template v-if="m.error"> · ignoré : {{ m.error }}</template>
+                      {{ m.profile }} · {{ tn('dcs.views', m.views.length) }}<template v-if="m.new_file"> · {{ t('dcs.new_file') }}</template><template v-if="m.error"> · {{ t('dcs.ignored', { error: m.error }) }}</template>
                     </li>
                   </ul>
                 </details>
               </span>
             </li>
           </ul>
-          <p v-else class="intro">Aucun périphérique ne porte ces vues dans {{ allModules ? 'les modules installés' : 'les modules configurés' }}.</p>
+          <p v-else class="intro">{{ allModules ? t('dcs.hat.none_installed') : t('dcs.hat.none_configured') }}</p>
           <div v-if="hat.devices.length" class="head">
-            <span class="intro">{{ plural(hatTotals.views, 'vue') }} à retirer dans {{ plural(hatTotals.files, 'fichier') }}<template v-if="hatTotals.created">, dont {{ plural(hatTotals.created, 'créé', 'créés') }}</template>.</span>
+            <span class="intro">{{ t('dcs.to_remove', { what: tn('dcs.views', hatTotals.views), where: tn('dcs.files', hatTotals.files) }) }}<template v-if="hatTotals.created">{{ tn('dcs.created', hatTotals.created) }}</template>.</span>
             <span class="act">
               <template v-if="hatConfirming">
-                <Button size="small" severity="danger" label="Retirer" @click="removeHat" />
-                <Button size="small" text label="Annuler" @click="hatConfirming = false" />
+                <Button size="small" severity="danger" :label="t('dcs.remove')" @click="removeHat" />
+                <Button size="small" text :label="t('common.cancel')" @click="hatConfirming = false" />
               </template>
               <Button
                 v-else
                 size="small"
                 icon="pi pi-eraser"
-                label="Retirer…"
+                :label="t('dcs.remove_ask')"
                 :loading="working === 'hat'"
                 :disabled="!!working || !hatTotals.views || data?.dcs_running !== false"
                 @click="hatConfirming = true"
               />
             </span>
           </div>
-          <p v-if="hatConfirming" class="intro">Une seule sauvegarde est faite avant, restaurable ci-dessous ; les commandes sont relues après l'écriture.</p>
+          <p v-if="hatConfirming" class="intro">{{ t('dcs.hat.confirm') }}</p>
         </template>
         <div v-if="hatResult" class="result" role="status">
-          <p v-if="!hatResult.differences.length">Relu après l'écriture : conforme à l'aperçu.</p>
+          <p v-if="!hatResult.differences.length">{{ t('dcs.result.ok') }}</p>
           <template v-else>
-            <p><i class="pi pi-exclamation-triangle" /> Relu après l'écriture, des écarts avec l'aperçu :</p>
+            <p><i class="pi pi-exclamation-triangle" /> {{ t('dcs.result.differ') }}</p>
             <ul><li v-for="(text, i) in hatResult.differences" :key="i">{{ text }}</li></ul>
           </template>
           <p v-if="hatResult.written.some((w) => w.deleted)">
-            Fichier supprimé, comme DCS le fait quand il ne reste aucune différence avec les réglages par défaut :
-            {{ hatResult.written.filter((w) => w.deleted).map((w) => `${w.device} (${w.profile})`).join(', ') }}.
-            Ce périphérique n'apparaît plus dans ces modules de l'application : ce n'est pas une perte.
+            {{ t('dcs.result.deleted', { files: hatResult.written.filter((w) => w.deleted).map((w) => `${w.device} (${w.profile})`).join(', ') }) }}
           </p>
         </div>
       </section>
 
       <section>
         <div class="head">
-          <h3 class="eyebrow">Périphériques sans boutons</h3>
-          <Button size="small" severity="secondary" icon="pi pi-search" :label="generic ? 'Relire' : 'Chercher'" :loading="genericLoading" :disabled="!!working || !store.state.settings?.buttonless_devices.length" @click="loadGeneric" />
+          <h3 class="eyebrow">{{ t('dcs.generic.title') }}</h3>
+          <Button size="small" severity="secondary" icon="pi pi-search" :label="generic ? t('dcs.read_again') : t('dcs.search')" :loading="genericLoading" :disabled="!!working || !store.state.settings?.buttonless_devices.length" @click="loadGeneric" />
         </div>
         <p class="intro">
-          Quand un module n'a rien prévu pour un périphérique, DCS lui donne les boutons de « n'importe quel joystick » : un palonnier reçoit un tir d'arme sur le bouton 2, une direction de roulette sur le 4…
-          Coche les périphériques qui n'ont ni bouton ni chapeau ; leurs boutons génériques sont retirés dans chaque module. Ce que tu y as mis toi-même, ce que le module prévoit pour ce périphérique et les axes restent.
+          {{ t('dcs.generic.intro') }}
         </p>
         <ul class="rows marks">
           <li v-for="name in deviceNames" :key="name">
@@ -612,7 +594,7 @@ async function restore(id: string) {
           </li>
         </ul>
         <div class="options">
-          <label><Checkbox v-model="genericAllModules" binary :disabled="!!working || genericLoading" /> Tous les modules installés, pas seulement ceux où le périphérique est configuré (crée un fichier par module)</label>
+          <label><Checkbox v-model="genericAllModules" binary :disabled="!!working || genericLoading" /> {{ t('dcs.generic.all_modules') }}</label>
         </div>
         <p v-if="genericError" class="warn" role="alert">{{ genericError }}</p>
         <template v-if="generic">
@@ -620,14 +602,14 @@ async function restore(id: string) {
             <li v-for="d in generic.devices" :key="d.device">
               <span class="dev">
                 <span class="t">{{ d.name }}</span>
-                <span class="s">{{ guid(d.device) }} · {{ plural(genericOk(d).reduce((n, m) => n + m.bindings.length, 0), 'bouton') }} dans {{ plural(genericOk(d).length, 'module') }}</span>
+                <span class="s">{{ guid(d.device) }} · {{ t('dcs.in', { what: tn('dcs.buttons', genericOk(d).reduce((n, m) => n + m.bindings.length, 0)), where: tn('settings.devices.modules', genericOk(d).length) }) }}</span>
                 <details>
-                  <summary>Modules</summary>
+                  <summary>{{ t('modules.title') }}</summary>
                   <ul class="modules">
                     <li v-for="m in d.modules" :key="m.profile">
-                      {{ m.profile }} · {{ m.bindings.map((b) => `${b.key.replace('JOY_', '')} ${b.command}`).join(', ') }}<template v-if="m.new_file"> · nouveau fichier</template><template v-if="m.error"> · ignoré : {{ m.error }}</template>
+                      {{ m.profile }} · {{ m.bindings.map((b) => `${b.key.replace('JOY_', '')} ${b.command}`).join(', ') }}<template v-if="m.new_file"> · {{ t('dcs.new_file') }}</template><template v-if="m.error"> · {{ t('dcs.ignored', { error: m.error }) }}</template>
                       <span v-if="m.unknown.length" class="s why">
-                        Non retirables, numéro de commande de DCS inconnu de l'application : {{ m.unknown.map((b) => `${b.key.replace('JOY_', '')} ${b.command}`).join(', ') }} ; à retirer dans l'écran des commandes du jeu.
+                        {{ t('dcs.generic.unknown', { list: m.unknown.map((b) => `${b.key.replace('JOY_', '')} ${b.command}`).join(', ') }) }}
                       </span>
                     </li>
                   </ul>
@@ -635,58 +617,58 @@ async function restore(id: string) {
               </span>
             </li>
           </ul>
-          <p v-else class="intro">Aucun bouton générique sur ces périphériques dans {{ genericAllModules ? 'les modules installés' : 'les modules où ils sont configurés' }}.</p>
+          <p v-else class="intro">{{ genericAllModules ? t('dcs.generic.none_installed') : t('dcs.generic.none_configured') }}</p>
           <div v-if="generic.devices.length" class="head">
-            <span class="intro">{{ plural(genericTotals.buttons, 'liaison') }} à retirer dans {{ plural(genericTotals.files, 'fichier') }}<template v-if="genericTotals.created">, dont {{ plural(genericTotals.created, 'créé', 'créés') }}</template>.</span>
+            <span class="intro">{{ t('dcs.to_remove', { what: tn('devices.bindings', genericTotals.buttons), where: tn('dcs.files', genericTotals.files) }) }}<template v-if="genericTotals.created">{{ tn('dcs.created', genericTotals.created) }}</template>.</span>
             <span class="act">
               <template v-if="genericConfirming">
-                <Button size="small" severity="danger" label="Retirer" @click="removeGeneric" />
-                <Button size="small" text label="Annuler" @click="genericConfirming = false" />
+                <Button size="small" severity="danger" :label="t('dcs.remove')" @click="removeGeneric" />
+                <Button size="small" text :label="t('common.cancel')" @click="genericConfirming = false" />
               </template>
               <Button
                 v-else
                 size="small"
                 icon="pi pi-eraser"
-                label="Retirer…"
+                :label="t('dcs.remove_ask')"
                 :loading="working === 'generic'"
                 :disabled="!!working || !genericTotals.buttons || data?.dcs_running !== false"
                 @click="genericConfirming = true"
               />
             </span>
           </div>
-          <p v-if="genericConfirming" class="intro">Une seule sauvegarde est faite avant ; les commandes sont relues après l'écriture.</p>
+          <p v-if="genericConfirming" class="intro">{{ t('dcs.generic.confirm') }}</p>
         </template>
         <div v-if="genericResult" class="result" role="status">
-          <p v-if="!genericResult.differences.length">Relu après l'écriture : conforme à l'aperçu.</p>
+          <p v-if="!genericResult.differences.length">{{ t('dcs.result.ok') }}</p>
           <template v-else>
-            <p><i class="pi pi-exclamation-triangle" /> Relu après l'écriture, des écarts avec l'aperçu :</p>
+            <p><i class="pi pi-exclamation-triangle" /> {{ t('dcs.result.differ') }}</p>
             <ul><li v-for="(text, i) in genericResult.differences" :key="i">{{ text }}</li></ul>
           </template>
-          <p><Button size="small" severity="secondary" outlined label="Annuler ce retrait" :loading="working === genericResult.backup.id" :disabled="!!working" @click="undoGeneric" /></p>
+          <p><Button size="small" severity="secondary" outlined :label="t('dcs.undo.label')" :loading="working === genericResult.backup.id" :disabled="!!working" @click="undoGeneric" /></p>
         </div>
       </section>
 
       <section>
         <div class="head">
-          <h3 class="eyebrow">Sauvegardes</h3>
-          <Button size="small" severity="secondary" icon="pi pi-save" label="Sauvegarder maintenant" :loading="working === 'backup'" :disabled="!!working" @click="backupNow" />
+          <h3 class="eyebrow">{{ t('dcs.backup.title') }}</h3>
+          <Button size="small" severity="secondary" icon="pi pi-save" :label="t('dcs.backup.now')" :loading="working === 'backup'" :disabled="!!working" @click="backupNow" />
         </div>
         <ul v-if="data?.backups.length" class="rows">
           <li v-for="b in data.backups" :key="b.id">
             <span class="when">{{ date(b.created) }}</span>
             <span class="reason">{{ b.reason }}</span>
-            <span class="n">{{ b.files }} fichiers · {{ size(b.size) }}</span>
+            <span class="n">{{ tn('dcs.files', b.files) }} · {{ size(b.size) }}</span>
             <span class="act">
               <template v-if="confirming === b.id">
-                <Button size="small" severity="danger" label="Restaurer" @click="restore(b.id)" />
-                <Button size="small" text label="Annuler" @click="confirming = null" />
+                <Button size="small" severity="danger" :label="t('dcs.restore.label')" @click="restore(b.id)" />
+                <Button size="small" text :label="t('common.cancel')" @click="confirming = null" />
               </template>
               <Button
                 v-else
                 size="small"
                 text
                 icon="pi pi-history"
-                label="Restaurer…"
+                :label="t('dcs.restore.ask')"
                 :loading="working === b.id"
                 :disabled="!!working || data.dcs_running !== false"
                 @click="confirming = b.id"
@@ -694,11 +676,9 @@ async function restore(id: string) {
             </span>
           </li>
         </ul>
-        <p v-else-if="data" class="intro">Aucune sauvegarde pour l'instant.</p>
-        <p v-if="confirming" class="intro">
-          Les commandes de DCS reviendront exactement à cet état, pour tous les modules ; l'état actuel est sauvegardé d'abord.
-        </p>
-        <p v-if="data" class="intro folder">Dossier : <code>{{ data.folder }}</code></p>
+        <p v-else-if="data" class="intro">{{ t('dcs.backup.none') }}</p>
+        <p v-if="confirming" class="intro">{{ t('dcs.restore.confirm') }}</p>
+        <p v-if="data" class="intro folder"><Tr k="dcs.backup.folder"><template #folder><code>{{ data.folder }}</code></template></Tr></p>
       </section>
     </div>
   </Dialog>

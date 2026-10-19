@@ -19,15 +19,17 @@ import type {
   Template,
   TemplateSummary,
 } from './types'
+import { lang, t } from './i18n'
 
 export class ApiError extends Error {}
 
 async function request<T>(url: string, init?: RequestInit): Promise<T> {
   let response: Response
   try {
-    response = await fetch(url, init)
+    // the server answers in the interface's language
+    response = await fetch(url, { ...init, headers: { ...init?.headers, 'Accept-Language': lang.value } })
   } catch {
-    throw new ApiError("Le serveur ne répond pas : l'application est-elle toujours lancée ?")
+    throw new ApiError(t('api.no_server'))
   }
   if (!response.ok) {
     let detail = response.statusText

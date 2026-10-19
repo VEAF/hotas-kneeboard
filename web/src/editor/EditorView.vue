@@ -7,7 +7,7 @@ import Select from 'primevue/select'
 import SelectButton from 'primevue/selectbutton'
 import { useToast } from 'primevue/usetoast'
 import EditorCanvas from './EditorCanvas.vue'
-import { CATALOG, nextFree, sortedKeys } from './catalog'
+import { catalog as catalogGroups, nextFree, sortedKeys } from './catalog'
 import { detectInput, gamepadSupported } from './gamepad'
 import {
   addExtraBox,
@@ -34,6 +34,7 @@ import { inputName } from '../render/inputs'
 import { diagramPage } from '../render/page'
 import { FONT_CSS } from '../render/export'
 import { canvasMeasurer } from '../render/text'
+import { pageLanguage, t, tn } from '../lib/i18n'
 
 const store = useStore()
 const toast = useToast()
@@ -62,16 +63,16 @@ const selectedKey = computed({
   set: (key: string | null) => key && renameSelected(key),
 })
 const catalog = computed(() =>
-  CATALOG.map((g) => ({
+  catalogGroups().map((g) => ({
     ...g,
-    items: g.items.map((i) => ({ ...i, label: draft.value && i.value in draft.value.inputs && i.value !== selectedKey.value ? `${i.label} (placé)` : i.label })),
+    items: g.items.map((i) => ({ ...i, label: draft.value && i.value in draft.value.inputs && i.value !== selectedKey.value ? t('editor.placed', { input: i.label }) : i.label })),
   })),
 )
 const templateOptions = computed(() => [...store.state.templates].sort((a, b) => a.name.localeCompare(b.name)))
-const modes = [
-  { label: 'Édition', value: 'edit' },
-  { label: 'Aperçu', value: 'preview' },
-]
+const modes = computed(() => [
+  { label: t('editor.mode.edit'), value: 'edit' },
+  { label: t('editor.mode.preview'), value: 'preview' },
+])
 
 // --- opening -------------------------------------------------------------------------------
 
@@ -81,16 +82,16 @@ async function startFrom(id: string) {
   if (!(await confirmDiscard())) return
   try {
     const loaded = await loadTemplate(id)
-    const summary = store.state.templates.find((t) => t.id === id)
+    const summary = store.state.templates.find((x) => x.id === id)
     open(fromTemplate(loaded.data, loaded.image, !!summary?.user, editor.forDevice?.name))
     fit()
   } catch (e) {
-    toast.add({ severity: 'error', summary: 'Gabarit impossible à ouvrir', detail: (e as Error).message, life: 8000 })
+    toast.add({ severity: 'error', summary: t('editor.open_failed'), detail: (e as Error).message, life: 8000 })
   }
 }
 
 async function confirmDiscard(): Promise<boolean> {
-  return !editor.dirty || window.confirm('Les modifications non enregistrées seront perdues. Continuer ?')
+  return !editor.dirty || window.confirm(t('editor.discard'))
 }
 
 async function startNew() {
@@ -124,7 +125,7 @@ function pictureSize(dataUrl: string): Promise<[number, number]> {
 async function usePicture(file: File) {
   const extension = file.name.split('.').pop()?.toLowerCase() ?? ''
   if (!['png', 'jpg', 'jpeg', 'svg'].includes(extension)) {
-    toast.add({ severity: 'warn', summary: 'Image PNG, JPG ou SVG attendue', life: 5000 })
+    toast.add({ severity: 'warn', summary: t('editor.picture_expected'), life: 5000 })
     return
   }
   const dataUrl = await readFile(file)
@@ -199,9 +200,9 @@ async function identify() {
   detected.value = ''
   try {
     const found = await detectInput(controller.signal, (device) => {
-      detected.value = `${device} vient d'apparaître : appuie encore une fois sur le bouton`
+      detected.value = t('editor.identify.appeared', { device })
     })
-    detected.value = `${inputName(found.key)} sur ${found.device}`
+    detected.value = t('editor.identify.found', { input: inputName(found.key), device: found.device })
     if (editor.selection) renameSelected(found.key)
     else placing.value = found.key
   } catch (e) {
@@ -240,7 +241,7 @@ async function check() {
   try {
     while (!controller.signal.aborted) {
       const found = await detectInput(controller.signal, (device) => {
-        detected.value = `${device} vient d'apparaître : appuie encore une fois`
+        detected.value = t('editor.check.appeared', { device })
       })
       const boxed = !!editor.draft && found.key in editor.draft.inputs
       checkLog.value = [{ key: found.key, boxed }, ...checkLog.value.filter((e) => e.key !== found.key)]
@@ -248,11 +249,11 @@ async function check() {
       if (boxed) {
         placing.value = null
         editor.selection = { key: found.key, part: 'box', index: 0 }
-        detected.value = `${inputName(found.key)} : case trouvée`
+        detected.value = t('editor.check.boxed', { input: inputName(found.key) })
       } else {
         editor.selection = null
         placing.value = found.key
-        detected.value = `${inputName(found.key)} n'a pas de case : clique sur l'image où se trouve ce bouton`
+        detected.value = t('editor.check.unboxed', { input: inputName(found.key) })
       }
     }
   } catch (e) {
@@ -280,7 +281,7 @@ function markChecked() {
   const by = checkedBy.value.trim()
   if (!d) return
   if (!by) {
-    toast.add({ severity: 'warn', summary: 'Indique qui a vérifié (ton pseudo)', life: 4000 })
+    toast.add({ severity: 'warn', summary: t('editor.check.who'), life: 4000 })
     return
   }
   try {
@@ -332,6 +333,7 @@ const previewSvg = computed(() => {
     layer: null,
     measurer: canvasMeasurer(),
     fontCss: FONT_CSS,
+    lang: pageLanguage(store.state.dcs?.language),
   }).svg
 })
 
@@ -341,8 +343,8 @@ async function save(asNew = false) {
   const d = editor.draft
   if (!d || saving.value) return
   const session = editor.session
-  if (!d.image) return toast.add({ severity: 'warn', summary: "Ajoute d'abord l'image du périphérique", life: 5000 })
-  if (!d.name.trim()) return toast.add({ severity: 'warn', summary: 'Donne un nom au gabarit', life: 5000 })
+  if (!d.image) return toast.add({ severity: 'warn', summary: t('editor.save.no_picture'), life: 5000 })
+  if (!d.name.trim()) return toast.add({ severity: 'warn', summary: t('editor.save.no_name'), life: 5000 })
   saving.value = true
   try {
     const { id: _, image: __, user: ___, ...template } = draftTemplate(d)
@@ -365,9 +367,9 @@ async function save(asNew = false) {
       const device = store.profiles.value.find((p) => p.name === target.profile)?.devices.find((x) => x.full_name === target.deviceKey)
       if (device && store.templateIdFor(device) !== summary.id) store.setTemplate(device, summary.id)
     }
-    toast.add({ severity: 'success', summary: `Gabarit « ${summary.name} » enregistré`, detail: target ? `Utilisé pour ${target.name}` : undefined, life: 4000 })
+    toast.add({ severity: 'success', summary: t('editor.save.done', { name: summary.name }), detail: target ? t('editor.save.used_for', { device: target.name }) : undefined, life: 4000 })
   } catch (e) {
-    toast.add({ severity: 'error', summary: 'Enregistrement impossible', detail: (e as Error).message, life: 10000 })
+    toast.add({ severity: 'error', summary: t('editor.save.failed'), detail: (e as Error).message, life: 10000 })
   } finally {
     saving.value = false
   }
@@ -386,9 +388,9 @@ async function importFile(file: File) {
     await store.load(true)
     editor.dirty = false
     await startFrom(summary.id)
-    toast.add({ severity: 'success', summary: `Gabarit « ${summary.name} » importé`, life: 4000 })
+    toast.add({ severity: 'success', summary: t('editor.import.done', { name: summary.name }), life: 4000 })
   } catch (e) {
-    toast.add({ severity: 'error', summary: 'Import impossible', detail: (e as Error).message, life: 10000 })
+    toast.add({ severity: 'error', summary: t('editor.import.failed'), detail: (e as Error).message, life: 10000 })
   }
 }
 
@@ -400,24 +402,24 @@ function onImportPicked(event: Event) {
 
 const savedUserTemplate = computed(() => {
   const id = editor.draft?.id
-  return !!id && !editor.draft?.overrides && !!store.state.templates.find((t) => t.id === id && t.user)
+  return !!id && !editor.draft?.overrides && !!store.state.templates.find((x) => x.id === id && x.user)
 })
 
-const replacesBundled = computed(() => !!store.state.templates.find((t) => t.id === editor.draft?.id)?.replaces_bundled)
+const replacesBundled = computed(() => !!store.state.templates.find((x) => x.id === editor.draft?.id)?.replaces_bundled)
 
 async function deleteTemplate() {
   const d = editor.draft
   const question = replacesBundled.value
-    ? `Supprimer ta version de « ${d?.name} » ? Celle de la bibliothèque reviendra.`
-    : `Supprimer le gabarit « ${d?.name} » ? Il disparaît de ta bibliothèque.`
+    ? t('editor.delete.own_version', { name: d?.name })
+    : t('editor.delete.template', { name: d?.name })
   if (!d?.id || !window.confirm(question)) return
   try {
     await api.deleteTemplate(d.id)
     open(newDraft({ devices: editor.forDevice ? [editor.forDevice.name] : [] }))
     await store.load(true)
-    toast.add({ severity: 'info', summary: 'Gabarit supprimé', life: 3000 })
+    toast.add({ severity: 'info', summary: t('editor.delete.done'), life: 3000 })
   } catch (e) {
-    toast.add({ severity: 'error', summary: 'Suppression impossible', detail: (e as Error).message, life: 8000 })
+    toast.add({ severity: 'error', summary: t('editor.delete.failed'), detail: (e as Error).message, life: 8000 })
   }
 }
 
@@ -478,17 +480,18 @@ function onPaletteDrag(event: DragEvent) {
   if (event.dataTransfer) event.dataTransfer.effectAllowed = 'copy'
 }
 
+// [keys, label]: catalog keys, apart from the keys that are the same in every language
 const SHORTCUTS = [
-  ['N', 'placer une entrée (puis clic sur l\'image)'],
-  ['I', 'identifier en appuyant sur le bouton'],
-  ['V', 'vérifier : appuie sur chaque bouton du périphérique'],
-  ['Suppr', 'supprimer la sélection'],
-  ['Ctrl D', 'dupliquer sur le bouton suivant'],
-  ['← ↑ → ↓', 'déplacer (Maj : de 10)'],
-  ['Ctrl Z / Ctrl Y', 'annuler / rétablir'],
-  ['+ − 0', 'zoom, ajuster'],
-  ['P', 'aperçu avec de vraies liaisons'],
-  ['Ctrl S', 'enregistrer'],
+  ['N', 'editor.keys.place'],
+  ['I', 'editor.keys.identify'],
+  ['V', 'editor.keys.check'],
+  ['keys.delete', 'editor.keys.delete'],
+  ['Ctrl D', 'editor.keys.duplicate'],
+  ['← ↑ → ↓', 'editor.keys.move'],
+  ['Ctrl Z / Ctrl Y', 'editor.keys.undo'],
+  ['+ − 0', 'editor.keys.zoom'],
+  ['P', 'editor.keys.preview'],
+  ['Ctrl S', 'editor.keys.save'],
 ]
 const nextKey = computed(() => (draft.value ? inputName(nextFree(Object.keys(draft.value.inputs), editor.selection?.key)) : ''))
 </script>
@@ -496,36 +499,36 @@ const nextKey = computed(() => (draft.value ? inputName(nextFree(Object.keys(dra
 <template>
   <div v-if="draft" class="editor">
     <header class="ebar">
-      <Button icon="pi pi-arrow-left" text label="Pages" @click="close" />
+      <Button icon="pi pi-arrow-left" text :label="t('editor.back')" @click="close" />
       <InputText
         v-model="draft.name"
-        placeholder="Nom du gabarit"
+        :placeholder="t('editor.name')"
         size="small"
         class="name"
-        aria-label="Nom du gabarit"
+        :aria-label="t('editor.name')"
         @focus="nameRemembered = false"
         @beforeinput="rememberName"
       />
-      <span v-if="draft.overrides" class="pill warn" v-tooltip.bottom="'Enregistré, ton gabarit passera devant celui de la bibliothèque'">remplace la bibliothèque</span>
-      <span v-if="editor.dirty" class="pill">non enregistré</span>
+      <span v-if="draft.overrides" class="pill warn" v-tooltip.bottom="t('editor.overrides_tip')">{{ t('editor.overrides') }}</span>
+      <span v-if="editor.dirty" class="pill">{{ t('editor.unsaved') }}</span>
       <span class="spacer" />
-      <Button icon="pi pi-undo" text rounded :disabled="!canUndo" aria-label="Annuler (Ctrl Z)" v-tooltip.bottom="'Annuler (Ctrl Z)'" @click="undo" />
-      <Button icon="pi pi-refresh" text rounded :disabled="!canRedo" aria-label="Rétablir (Ctrl Y)" v-tooltip.bottom="'Rétablir (Ctrl Y)'" @click="redo" />
-      <Button icon="pi pi-search-minus" text rounded aria-label="Zoom arrière (-)" @click="zoomBy(1 / 1.2)" />
-      <Button icon="pi pi-expand" text rounded aria-label="Ajuster (0)" v-tooltip.bottom="'Ajuster (0)'" @click="fit" />
-      <Button icon="pi pi-search-plus" text rounded aria-label="Zoom avant (+)" @click="zoomBy(1.2)" />
-      <SelectButton v-model="mode" :options="modes" option-label="label" option-value="value" :allow-empty="false" size="small" aria-label="Édition ou aperçu" />
-      <Button v-if="draft.id" size="small" severity="secondary" text label="Enregistrer comme nouveau" :disabled="saving" @click="saveAsNew" />
-      <Button icon="pi pi-save" label="Enregistrer" :loading="saving" v-tooltip.bottom="'Enregistrer dans ta bibliothèque (Ctrl+S)'" @click="save()" />
+      <Button icon="pi pi-undo" text rounded :disabled="!canUndo" :aria-label="t('editor.undo')" v-tooltip.bottom="t('editor.undo')" @click="undo" />
+      <Button icon="pi pi-refresh" text rounded :disabled="!canRedo" :aria-label="t('editor.redo')" v-tooltip.bottom="t('editor.redo')" @click="redo" />
+      <Button icon="pi pi-search-minus" text rounded :aria-label="t('editor.zoom_out')" @click="zoomBy(1 / 1.2)" />
+      <Button icon="pi pi-expand" text rounded :aria-label="t('editor.fit')" v-tooltip.bottom="t('editor.fit')" @click="fit" />
+      <Button icon="pi pi-search-plus" text rounded :aria-label="t('editor.zoom_in')" @click="zoomBy(1.2)" />
+      <SelectButton v-model="mode" :options="modes" option-label="label" option-value="value" :allow-empty="false" size="small" :aria-label="t('editor.mode.aria')" />
+      <Button v-if="draft.id" size="small" severity="secondary" text :label="t('editor.save_as_new')" :disabled="saving" @click="saveAsNew" />
+      <Button icon="pi pi-save" :label="t('common.save')" :loading="saving" v-tooltip.bottom="t('editor.save_tip')" @click="save()" />
     </header>
 
     <div class="ebody">
       <aside class="side">
         <section class="block">
-          <span class="eyebrow">Départ</span>
+          <span class="eyebrow">{{ t('editor.start') }}</span>
           <div class="row-buttons">
-            <Button size="small" severity="secondary" icon="pi pi-image" label="Image…" @click="fileInput?.click()" />
-            <Button size="small" severity="secondary" icon="pi pi-file" label="Nouveau" @click="startNew" />
+            <Button size="small" severity="secondary" icon="pi pi-image" :label="t('editor.picture')" @click="fileInput?.click()" />
+            <Button size="small" severity="secondary" icon="pi pi-file" :label="t('editor.new')" @click="startNew" />
           </div>
           <Select
             :options="templateOptions"
@@ -533,56 +536,56 @@ const nextKey = computed(() => (draft.value ? inputName(nextFree(Object.keys(dra
             option-value="id"
             filter
             size="small"
-            placeholder="Partir d'un gabarit…"
-            aria-label="Partir d'un gabarit"
+            :placeholder="t('editor.from_template')"
+            :aria-label="t('editor.from_template')"
             @update:model-value="startFrom"
           />
           <input ref="fileInput" type="file" accept=".png,.jpg,.jpeg,.svg" hidden @change="onPicked" />
         </section>
 
         <section class="block">
-          <span class="eyebrow">Pages kneeboard</span>
+          <span class="eyebrow">{{ t('editor.split.title') }}</span>
           <div class="row-buttons">
             <Button
               size="small"
               severity="secondary"
               :icon="draft.split_at.length ? 'pi pi-times' : 'pi pi-arrows-h'"
-              :label="draft.split_at.length ? 'Ne pas découper' : 'Découper en deux pages'"
+              :label="draft.split_at.length ? t('editor.split.off') : t('editor.split.on')"
               @click="toggleSplit"
             />
           </div>
           <p class="hint">
-            <template v-if="draft.split_at.length">Glisse la ligne bleue à travers une zone blanche, entre deux parties du dessin (la base et les poignées d'un throttle).</template>
-            <template v-else>Pour un dessin trop large pour une page : une ligne de découpe, à placer entre deux parties.</template>
+            <template v-if="draft.split_at.length">{{ t('editor.split.hint_on') }}</template>
+            <template v-else>{{ t('editor.split.hint_off') }}</template>
           </p>
         </section>
 
         <section class="block">
-          <span class="eyebrow">Périphériques DCS</span>
+          <span class="eyebrow">{{ t('editor.devices') }}</span>
           <div class="chips">
-            <span v-for="name in draft.devices" :key="name" class="chip">{{ name }}<button type="button" :aria-label="`Retirer ${name}`" @click="removeDevice(name)">×</button></span>
+            <span v-for="name in draft.devices" :key="name" class="chip">{{ name }}<button type="button" :aria-label="t('editor.remove_device', { name })" @click="removeDevice(name)">×</button></span>
           </div>
-          <InputText v-model="deviceName" size="small" placeholder="Nom DCS, sans GUID, puis Entrée" aria-label="Ajouter un nom de périphérique" @keydown.enter.prevent="addDevice" />
+          <InputText v-model="deviceName" size="small" :placeholder="t('editor.device_placeholder')" :aria-label="t('editor.add_device')" @keydown.enter.prevent="addDevice" />
         </section>
 
         <section class="block">
-          <span class="eyebrow">Entrées · {{ keys.length }}</span>
+          <span class="eyebrow">{{ t('editor.inputs', { n: keys.length }) }}</span>
           <div class="row-buttons">
-            <span class="palette" draggable="true" title="Glisse sur l'image" @dragstart="onPaletteDrag">＋ Entrée</span>
-            <Button size="small" :severity="placing !== null ? 'warn' : 'secondary'" label="Placer (N)" @click="placing = placing === null ? '' : null" />
+            <span class="palette" draggable="true" :title="t('editor.palette_tip')" @dragstart="onPaletteDrag">＋ {{ t('editor.palette') }}</span>
+            <Button size="small" :severity="placing !== null ? 'warn' : 'secondary'" :label="t('editor.place')" @click="placing = placing === null ? '' : null" />
             <Button
               v-if="gamepadSupported()"
               size="small"
               :severity="listening ? 'warn' : 'secondary'"
               :icon="listening ? 'pi pi-spin pi-spinner' : 'pi pi-bolt'"
-              :label="listening ? 'Appuie…' : 'Identifier (I)'"
-              v-tooltip.bottom="'Appuie sur le bouton du périphérique : l\'entrée est reconnue'"
+              :label="listening ? t('editor.press') : t('editor.identify.label')"
+              v-tooltip.bottom="t('editor.identify.tip')"
               @click="identify"
             />
           </div>
-          <p v-if="placing !== null" class="hint">Clique sur l'image à l'endroit du bouton : {{ placing ? inputName(placing) : nextKey }}. Échap pour annuler.</p>
-          <p v-else-if="detected" class="hint">Reconnu : {{ detected }}</p>
-          <div class="inputs" role="listbox" aria-label="Entrées placées">
+          <p v-if="placing !== null" class="hint">{{ t('editor.placing', { input: placing ? inputName(placing) : nextKey }) }}</p>
+          <p v-else-if="detected" class="hint">{{ t('editor.detected', { detected }) }}</p>
+          <div class="inputs" role="listbox" :aria-label="t('editor.placed_inputs')">
             <button
               v-for="key in keys"
               :key="key"
@@ -593,12 +596,12 @@ const nextKey = computed(() => (draft.value ? inputName(nextFree(Object.keys(dra
             >
               {{ inputName(key) }}<span class="code">{{ key }}</span>
             </button>
-            <p v-if="!keys.length" class="hint">Aucune entrée : glisse « ＋ Entrée » sur l'image, ou N puis clic.</p>
+            <p v-if="!keys.length" class="hint">{{ t('editor.no_input') }}</p>
           </div>
         </section>
 
         <section v-if="editor.selection" class="block">
-          <span class="eyebrow">Entrée sélectionnée</span>
+          <span class="eyebrow">{{ t('editor.selected') }}</span>
           <Select
             v-model="selectedKey"
             :options="catalog"
@@ -608,67 +611,67 @@ const nextKey = computed(() => (draft.value ? inputName(nextFree(Object.keys(dra
             option-group-children="items"
             filter
             size="small"
-            aria-label="Entrée DCS"
+            :aria-label="t('editor.dcs_input')"
           />
           <div class="row-buttons">
-            <Button size="small" severity="secondary" :label="draft.inputs[editor.selection.key]?.anchor ? 'Sans repère' : 'Avec repère'" @click="toggleAnchor" />
-            <Button size="small" severity="secondary" label="2e case" v-tooltip.bottom="'La même entrée dessinée à un autre endroit'" @click="addExtraBox" />
-            <Button size="small" severity="secondary" label="Dupliquer" @click="duplicateSelected" />
-            <Button size="small" severity="danger" text label="Supprimer" @click="removeSelected" />
+            <Button size="small" severity="secondary" :label="draft.inputs[editor.selection.key]?.anchor ? t('editor.anchor.off') : t('editor.anchor.on')" @click="toggleAnchor" />
+            <Button size="small" severity="secondary" :label="t('editor.extra_box')" v-tooltip.bottom="t('editor.extra_box_tip')" @click="addExtraBox" />
+            <Button size="small" severity="secondary" :label="t('editor.duplicate')" @click="duplicateSelected" />
+            <Button size="small" severity="danger" text :label="t('editor.remove')" @click="removeSelected" />
           </div>
         </section>
 
         <section v-if="gamepadSupported()" class="block">
-          <span class="eyebrow">Vérifier la numérotation</span>
-          <p class="hint">Appuie sur chaque bouton du périphérique : sa case s'allume, ou l'éditeur te propose de la placer.</p>
+          <span class="eyebrow">{{ t('editor.check.title') }}</span>
+          <p class="hint">{{ t('editor.check.hint') }}</p>
           <div class="row-buttons">
             <Button
               size="small"
               :severity="checking ? 'warn' : 'secondary'"
               :icon="checking ? 'pi pi-spin pi-spinner' : 'pi pi-check-square'"
-              :label="checking ? `Arrêter (${checkedCount} vus)` : 'Vérifier (V)'"
+              :label="checking ? tn('editor.check.stop', checkedCount) : t('editor.check.label')"
               @click="check"
             />
           </div>
           <div v-if="checkLog.length" class="check-log">
             <span v-for="entry in checkLog" :key="entry.key" class="pill" :class="entry.key in draft.inputs ? 'ok' : 'warn'">{{ inputName(entry.key) }}</span>
           </div>
-          <p v-if="draft.checked" class="hint">Vérifié par {{ draft.checked.by }} le {{ draft.checked.date }}.</p>
+          <p v-if="draft.checked" class="hint">{{ t('editor.check.by', { by: draft.checked.by, date: draft.checked.date }) }}</p>
           <div class="row-buttons">
-            <InputText v-model="checkedBy" size="small" placeholder="Ton pseudo" aria-label="Vérifié par" class="checked-by" />
-            <Button size="small" severity="secondary" label="Marquer vérifié" v-tooltip.bottom="'Tous les boutons ont été essayés et tombent sur la bonne case'" @click="markChecked" />
+            <InputText v-model="checkedBy" size="small" :placeholder="t('editor.check.nickname')" :aria-label="t('editor.check.checked_by')" class="checked-by" />
+            <Button size="small" severity="secondary" :label="t('editor.check.mark')" v-tooltip.bottom="t('editor.check.mark_tip')" @click="markChecked" />
           </div>
         </section>
 
         <section class="block">
-          <span class="eyebrow">Partage</span>
+          <span class="eyebrow">{{ t('editor.share') }}</span>
           <div class="row-buttons">
-            <Button size="small" severity="secondary" icon="pi pi-download" label="Importer…" @click="importInput?.click()" />
-            <a v-if="draft.id && !editor.dirty && !draft.overrides" class="p-button p-button-sm p-button-secondary link-button" :href="api.templateFileUrl(draft.id)" download>Exporter</a>
-            <Button v-if="savedUserTemplate" size="small" severity="danger" text label="Supprimer le gabarit" @click="deleteTemplate" />
+            <Button size="small" severity="secondary" icon="pi pi-download" :label="t('editor.import.label')" @click="importInput?.click()" />
+            <a v-if="draft.id && !editor.dirty && !draft.overrides" class="p-button p-button-sm p-button-secondary link-button" :href="api.templateFileUrl(draft.id)" download>{{ t('editor.export') }}</a>
+            <Button v-if="savedUserTemplate" size="small" severity="danger" text :label="t('editor.delete.label')" @click="deleteTemplate" />
           </div>
           <input ref="importInput" type="file" accept=".zip" hidden @change="onImportPicked" />
         </section>
 
         <section class="block keys-help">
-          <span class="eyebrow">Raccourcis</span>
-          <div v-for="[k, label] in SHORTCUTS" :key="k"><kbd>{{ k }}</kbd> {{ label }}</div>
+          <span class="eyebrow">{{ t('editor.shortcuts') }}</span>
+          <div v-for="[k, label] in SHORTCUTS" :key="k"><kbd>{{ k.startsWith('keys.') ? t(k) : k }}</kbd> {{ t(label) }}</div>
         </section>
       </aside>
 
       <main ref="canvasBox" class="stage" :class="{ dropping: draggingFile }">
         <div v-if="!draft.image" class="dropzone" @click="fileInput?.click()">
           <i class="pi pi-image" />
-          <p>Glisse ici une photo ou un dessin du périphérique (PNG, JPG, SVG), ou clique pour en choisir un.</p>
-          <p class="hint">Ou pars d'un gabarit existant, à gauche, pour le corriger.</p>
+          <p>{{ t('editor.drop') }}</p>
+          <p class="hint">{{ t('editor.drop_hint') }}</p>
         </div>
         <template v-else-if="mode === 'edit'">
           <EditorCanvas :placing="placing" @placed="placing = null" />
         </template>
         <div v-else class="preview">
-          <Select v-model="previewOf" :options="previewDevices" option-label="label" option-value="value" filter size="small" placeholder="Liaisons de…" class="preview-select" aria-label="Liaisons à montrer" />
+          <Select v-model="previewOf" :options="previewDevices" option-label="label" option-value="value" filter size="small" :placeholder="t('editor.preview.of')" class="preview-select" :aria-label="t('editor.preview.aria')" />
           <div v-if="previewSvg" class="paper" v-html="previewSvg" />
-          <p v-else class="hint">Choisis un module et un périphérique pour voir le gabarit avec ses liaisons.</p>
+          <p v-else class="hint">{{ t('editor.preview.choose') }}</p>
         </div>
       </main>
     </div>
