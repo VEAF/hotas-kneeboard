@@ -29,7 +29,7 @@ function onDrop(index: number) {
 <template>
   <section class="col" aria-label="Périphériques">
     <header class="colhead">
-      <span class="eyebrow">Périphériques<template v-if="store.profile.value"> · {{ store.profile.value.name }}</template></span>
+      <span class="eyebrow">Périphériques<template v-if="store.profile.value"> · {{ store.profile.value.display_name }}</template></span>
       <span class="hint">Cochés = pages exportées · glisser pour l'ordre des pages</span>
     </header>
     <div class="list" role="listbox" aria-label="Périphériques">

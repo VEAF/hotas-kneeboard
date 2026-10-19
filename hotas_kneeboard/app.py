@@ -7,6 +7,7 @@ import base64
 import binascii
 import logging
 import threading
+from collections import Counter
 from collections.abc import Callable
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -166,12 +167,28 @@ class Bindings:
             profiles.append(
                 {
                     "name": name,
+                    "display_name": translate(entry["display_name"]) if entry.get("display_name") else None,
                     "unit_type": entry.get("unit_type"),
                     "found": entry["found"],
                     "devices": devices,
                 }
             )
+        for profile, label in zip(profiles, profile_labels(profiles), strict=True):
+            profile["display_name"] = label
+        # in the order of the names shown, which the module list and "all the modules" follow
+        profiles.sort(key=lambda p: p["display_name"].casefold())
         return {"profiles": profiles, "error": None}
+
+
+def profile_labels(profiles: list[dict]) -> list[str]:
+    """The name each profile shows: DCS's (its folder's name.lua), else its folder's; two profiles
+    of the same name (an old folder DCS kept, "Mi-24P Pilot" and "Mi-24P_pilot") say their folder"""
+    names = [p.get("display_name") or p["name"] for p in profiles]
+    counts = Counter(n.casefold() for n in names)
+    return [
+        f"{label} ({p['name']})" if counts[label.casefold()] > 1 and label != p["name"] else label
+        for label, p in zip(names, profiles, strict=True)
+    ]
 
 
 def create_app(

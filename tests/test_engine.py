@@ -173,6 +173,15 @@ def test_unit_type_comes_from_make_flyable(result):
     assert result["profiles"]["UiLayer"].get("unit_type") is None
 
 
+def test_display_name_comes_from_name_lua(result):
+    # what DCS shows in its controls screen, not the folder in Saved Games
+    assert result["profiles"]["FakePlane"].get("display_name") == "Fake Plane"
+    assert result["profiles"]["SecondPlane_pilot"].get("display_name") == "Second Plane"
+    # no name.lua, or a module that is not installed
+    assert result["profiles"]["CommunityPlane"].get("display_name") is None
+    assert result["profiles"]["MissingPlane"].get("display_name") is None
+
+
 def test_non_ascii_paths(lua, tmp_path):
     # luae.exe opens files in UTF-8; a stock Lua 5.1 on Windows uses the ANSI code page
     if os.name == "nt" and "luae" not in Path(lua).name.lower():
