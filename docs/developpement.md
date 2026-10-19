@@ -147,7 +147,7 @@ Le suivi suit l'organisation de VEAF-Mission-Creation-Tools, avec des tickets Gi
   Chaque lot ajoute ses entrées à la fin de `[Unreleased]` dans [`CHANGELOG.md`](https://github.com/VEAF/hotas-kneeboard/blob/develop/CHANGELOG.md), sans toucher à la version.
 - Une release, c'est une PR de `develop` vers `main` qui monte la version dans `pyproject.toml` et `hotas_kneeboard/__init__.py` (les deux doivent être égales) et passe `[Unreleased]` sous ce numéro.
   À la fusion, la CI construit l'exe sous Windows et publie la release `vX.Y.Z` ; une fusion sans changement de version ne publie rien.
-  Les notes de la release sont celles que GitHub génère (la liste des PR), précédées du lien vers la documentation de cette version.
+  Ses notes sont [`RELEASE_NOTES.md`](https://github.com/VEAF/hotas-kneeboard/blob/develop/RELEASE_NOTES.md), réécrit à chaque release comme pour VMCT : en français, pour les pilotes (ce qui change pour eux, pas la plomberie), le titre finissant par le numéro de version ; la CI refuse de publier si le titre ne porte pas la version, et ajoute sous le titre le lien vers la documentation de cette version.
 - La CI (tests Python et de l'interface) tourne sur chaque PR et sur chaque poussée vers `develop` et `main`.
 
 ## Règles du dépôt
