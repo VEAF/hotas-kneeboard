@@ -49,7 +49,8 @@ def scrub_pairs() -> list[tuple[str, str]]:
     pairs = []
     data = os.environ.get("HOTAS_KNEEBOARD_DATA")
     if data:
-        pairs.append((str(Path(data).resolve()), "C:\\Users\\Pilote\\AppData\\Roaming\\HOTAS Kneeboard"))
+        # as the app shows it (settings.data_dir): not resolved
+        pairs.append((str(Path(data)), "C:\\Users\\Pilote\\AppData\\Roaming\\HOTAS Kneeboard"))
     profile = os.environ.get("USERPROFILE")
     if profile:
         pairs.append((profile, "C:\\Users\\Pilote"))
