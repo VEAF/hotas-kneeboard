@@ -9,7 +9,12 @@ lacks; check it on the device with the editor's "Vérifier" mode.
 Hats bound only to DCS's generic view commands ("View Up slow"…) are left out: DCS gives them
 to every device, hat or not.
 
+With --device, checks instead the named devices without having them: their bindings are those
+DCS gives them by default in every installed module, as if they were plugged in with no diff
+(a module where you configured the device keeps your diff).
+
 Usage: uv run python scripts/check_templates.py [--install DIR] [--saved-games DIR]
+       [--device "Throttle - HOTAS Warthog" ...]
 """
 
 import argparse
@@ -29,11 +34,39 @@ def generic_view_only(commands: set[str]) -> bool:
     return all(c.startswith(GENERIC_VIEW[0]) and c.endswith(GENERIC_VIEW[1]) for c in commands)
 
 
+def bound_inputs(
+    result, translate, settings, library, wanted: set[str]
+) -> dict[str, dict[str, dict[str, set[str]]]]:
+    """template id -> device name -> input -> commands, over every module; only the ``wanted``
+    devices (lower case) when given"""
+    bound: dict[str, dict[str, dict[str, set[str]]]] = {}
+    for profile in result["profiles"].values():
+        for device in profile["devices"]:
+            page = build_page(device, translate)
+            if wanted and page.name.lower() not in wanted:
+                continue
+            chosen = settings.device_templates.get(page.name)
+            template = library.get(chosen) if chosen else (None if chosen == "" else library.match(page.name))
+            if template is None:
+                continue
+            inputs = bound.setdefault(template.id, {}).setdefault(page.name, {})
+            for key, labels in page.inputs.items():
+                for label in labels.values():
+                    inputs.setdefault(key, set()).update(label.pressed + label.released)
+    return bound
+
+
 def main() -> int:
     sys.stdout.reconfigure(encoding="utf-8")
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--install", type=Path, default=None)
     parser.add_argument("--saved-games", type=Path, default=None)
+    parser.add_argument(
+        "--device",
+        action="append",
+        default=[],
+        help="DCS name of a device (without GUID), checked on the defaults of every installed module",
+    )
     args = parser.parse_args()
     install = args.install or detect_dcs_install_dir()
     saved = args.saved_games or detect_saved_games_dir()
@@ -43,22 +76,12 @@ def main() -> int:
     settings = SettingsStore(data_dir() / "settings.json").load()
     library = TemplateLibrary([BUNDLED_DIR], user_dir=data_dir() / "templates")
     translate = command_translator(install, settings.language or detect_language())
+    wanted = {name.lower() for name in args.device}
     profiles = list_user_profiles(saved)
-    result = load_effective_bindings(install, saved, profiles)
-
-    # template id -> device name -> input -> commands, over every module
-    bound: dict[str, dict[str, dict[str, set[str]]]] = {}
-    for profile in profiles:
-        for device in result["profiles"][profile]["devices"]:
-            page = build_page(device, translate)
-            chosen = settings.device_templates.get(page.name)
-            template = library.get(chosen) if chosen else (None if chosen == "" else library.match(page.name))
-            if template is None:
-                continue
-            inputs = bound.setdefault(template.id, {}).setdefault(page.name, {})
-            for key, labels in page.inputs.items():
-                for label in labels.values():
-                    inputs.setdefault(key, set()).update(label.pressed + label.released)
+    result = load_effective_bindings(
+        install, saved, profiles, extra_devices=args.device, all_installed=bool(wanted)
+    )
+    bound = bound_inputs(result, translate, settings, library, wanted)
 
     problems = 0
     for template_id in sorted(bound):
@@ -75,6 +98,11 @@ def main() -> int:
             for key in sorted(missing, key=lambda k: (len(k), k)):
                 print(f"    {key:16} {' / '.join(sorted(missing[key]))[:110]}")
             problems += bool(missing)
+    seen = {device.lower() for devices in bound.values() for device in devices}
+    for name in args.device:
+        if name.lower() not in seen:
+            print(f"INTROUVABLE {name}: aucun module ne le connaît, ou aucun gabarit ne lui correspond")
+            problems += 1
     print(f"VERDICT: {problems} template(s) to check on the device, of {len(bound)} in use")
     return 1 if problems else 0
 

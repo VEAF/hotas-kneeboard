@@ -73,6 +73,7 @@ Il affiche, pour chaque gabarit, le nombre d'entrées trouvées et les jetons qu
 Avec le périphérique branché :
 
 1. `uv run python scripts/check_templates.py` liste, pour tes périphériques, les entrées liées dans DCS qui n'ont pas de case sur leur gabarit (les vues génériques que DCS met sur le hat de tout périphérique sont ignorées).
+   Sans le périphérique, `--device "Throttle - HOTAS Warthog"` (le nom DCS, sans GUID, option répétable) fait le même contrôle sur les liaisons que DCS lui donne par défaut dans chaque module installé (tes modifications comptent là où tu en as fait) : ça trouve les cases qui manquent, pas les erreurs de numérotation, que seul le vrai périphérique montre.
 2. Dans l'application, ouvre la page du périphérique, **Modifier**, puis **Vérifier** : appuie sur chaque bouton, déplace ou ajoute les cases (voir l'[éditeur](editeur-de-gabarits.md#vérifier-la-numérotation-sur-le-périphérique)).
 3. Indique ton pseudo, **Marquer vérifié**, enregistre : ta version passe devant celle de la bibliothèque, sur ton PC.
 
