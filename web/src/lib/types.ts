@@ -226,7 +226,8 @@ export interface BindingRef {
 export interface DeviceBinding extends BindingRef {
   command: string // translated as the game shows it
   category: string | null
-  origin: 'user' | 'default' // placed by the user's diff, or the module's default
+  // placed by the user; by the module for this very device; by the module's profile of any joystick
+  origin: 'user' | 'device' | 'generic'
 }
 
 export interface DeviceBindingsResponse {
