@@ -16,8 +16,8 @@ L'application cherche toute seule :
 La pastille **DCS** en haut est verte quand tout est trouvé ; survole-la pour voir les dossiers.
 Si quelque chose manque, un bandeau le dit, avec un accès direct aux réglages.
 
-L'application ne lit que tes fichiers : elle ne modifie jamais ta configuration DCS.
-Elle écrit seulement les pages du kneeboard, et ses propres réglages dans `%APPDATA%\HOTAS Kneeboard\`.
+L'application lit tes fichiers sans les modifier, sauf quand tu lui demandes de changer tes commandes DCS (voir [Commandes DCS](#commandes-dcs)) : elle sauvegarde alors tout avant d'écrire.
+Sinon, elle écrit seulement les pages du kneeboard, et ses propres réglages dans `%APPDATA%\HOTAS Kneeboard\`.
 
 ## L'écran
 
@@ -92,6 +92,17 @@ Leur hauteur se règle dans les réglages (1024 pixels par défaut) ; la largeur
 ### En PDF
 
 **PDF** (ou Ctrl+P) télécharge un PDF des mêmes pages, une page A4 par page, à environ 200 points par pouce.
+
+## Commandes DCS
+
+Le bouton à curseurs, en haut, ouvre la fenêtre **Commandes DCS** : ce que l'application peut changer dans tes commandes, et les sauvegardes qu'elle fait avant.
+
+- **DCS doit être fermé.**
+  Le jeu réécrit ses fichiers de commandes quand tu enregistres dans son écran des commandes : l'application refuse toute modification tant que DCS (ou un serveur dédié) tourne.
+- **Avant chaque modification**, tout le dossier `Saved Games\DCS\Config\Input` est sauvegardé dans un zip, dans `%APPDATA%\HOTAS Kneeboard\backups\`.
+  Les 20 dernières sauvegardes sont gardées ; **Sauvegarder maintenant** en fait une à la main.
+- **Restaurer…** remet tes commandes exactement dans l'état de cette sauvegarde, pour tous les modules : les fichiers apparus depuis sont retirés.
+  L'état d'avant la restauration est lui-même sauvegardé d'abord, en tête de liste : une restauration se défait en restaurant celle-là.
 
 ## Réglages
 

@@ -1,5 +1,7 @@
 import type {
   BindingsResponse,
+  DcsBackup,
+  DcsBackupsResponse,
   DcsState,
   KneeboardResult,
   ProgramsResponse,
@@ -53,4 +55,8 @@ export const api = {
   templateFileUrl: (id: string) => `/api/templates/${encodeURIComponent(id)}/file`,
   writeKneeboard: (unitType: string, profile: string, pages: { title: string; png: string }[]) =>
     request<KneeboardResult>('/api/kneeboard', json('POST', { unit_type: unitType, profile, pages })),
+  dcsBackups: () => request<DcsBackupsResponse>('/api/dcs-config/backups'),
+  createDcsBackup: () => request<DcsBackup>('/api/dcs-config/backups', { method: 'POST' }),
+  restoreDcsBackup: (id: string) =>
+    request<{ restored: string; backup_before: DcsBackup }>(`/api/dcs-config/backups/${encodeURIComponent(id)}/restore`, { method: 'POST' }),
 }

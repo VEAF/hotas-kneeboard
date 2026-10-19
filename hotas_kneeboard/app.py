@@ -1,4 +1,5 @@
-"""HTTP server: reads DCS, serves the UI and the templates, writes the kneeboard pages.
+"""HTTP server: reads DCS, serves the UI and the templates, writes the kneeboard pages, and changes
+DCS's own input files (with a backup first, see dcs_config.py).
 
 Error messages reach the user as they are: they are written in French, like the UI."""
 
@@ -6,6 +7,7 @@ import base64
 import binascii
 import logging
 import threading
+from collections.abc import Callable
 from pathlib import Path
 from urllib.parse import urlsplit
 
@@ -17,6 +19,7 @@ from pydantic import BaseModel
 
 from . import __version__
 from .dcs import command_translator, resolve_dirs
+from .dcs_config import BackupNotFoundError, BackupStore, DcsConfigError, dcs_running, restore
 from .engine import EffectiveBindingsError, list_user_profiles, load_effective_bindings
 from .kneeboard import KneeboardError, write_pages
 from .pages import build_page, split_device_name
@@ -123,9 +126,13 @@ def create_app(
     store: SettingsStore | None = None,
     library: TemplateLibrary | None = None,
     lua_interpreter: str | None = None,
+    backups: BackupStore | None = None,
+    is_dcs_running: Callable[[], bool] = dcs_running,
 ) -> FastAPI:
-    """``lua_interpreter``: another Lua 5.1 than the install's ``bin/luae.exe`` (tests)."""
+    """``lua_interpreter``: another Lua 5.1 than the install's ``bin/luae.exe`` (tests);
+    ``is_dcs_running``: whether DCS runs, checked before any change to its files."""
     store = store or SettingsStore(data_dir() / "settings.json")
+    backups = backups or BackupStore(data_dir() / "backups")
     library = library or TemplateLibrary([BUNDLED_DIR], user_dir=data_dir() / "templates")
     bindings = Bindings(lua_interpreter)
     settings_lock = threading.Lock()
@@ -288,6 +295,44 @@ def create_app(
             raise HTTPException(422, str(error)) from error
         except OSError as error:
             raise HTTPException(500, f"Pages impossibles à écrire : {error}") from error
+
+    def saved_games_or_409() -> Path:
+        saved = current_dirs()["saved_games_dir"]
+        if not saved:
+            raise HTTPException(409, "Dossier Saved Games de DCS introuvable : indique-le dans les réglages")
+        return Path(saved)
+
+    def dcs_state() -> bool | None:
+        try:
+            return is_dcs_running()
+        except DcsConfigError:
+            return None
+
+    @app.get("/api/dcs-config/backups")
+    def list_backups() -> dict:
+        return {
+            "folder": str(backups.folder),
+            "dcs_running": dcs_state(),
+            "backups": [b.as_dict() for b in backups.list()],
+        }
+
+    @app.post("/api/dcs-config/backups")
+    def create_backup() -> dict:
+        try:
+            return backups.create(saved_games_or_409() / "Config" / "Input", "sauvegarde à la main").as_dict()
+        except DcsConfigError as error:
+            raise HTTPException(422, str(error)) from error
+
+    @app.post("/api/dcs-config/backups/{backup_id}/restore")
+    def restore_backup(backup_id: str) -> dict:
+        try:
+            before = restore(saved_games_or_409(), backups, backup_id, is_dcs_running)
+        except BackupNotFoundError as error:
+            raise HTTPException(404, str(error)) from error
+        except DcsConfigError as error:
+            raise HTTPException(409, str(error)) from error
+        bindings.invalidate()
+        return {"restored": backup_id, "backup_before": before.as_dict()}
 
     if WEB_DIR.is_dir():
         app.mount("/", StaticFiles(directory=WEB_DIR, html=True), name="web")

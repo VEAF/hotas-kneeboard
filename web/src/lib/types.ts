@@ -142,3 +142,18 @@ export interface KneeboardResult {
   written: string[]
   removed: string[]
 }
+
+/** A zip of Saved Games/DCS/Config/Input, made before each change the app makes to DCS's files */
+export interface DcsBackup {
+  id: string
+  created: string // ISO, local time
+  reason: string
+  size: number
+  files: number
+}
+
+export interface DcsBackupsResponse {
+  folder: string
+  dcs_running: boolean | null // null: could not be checked
+  backups: DcsBackup[]
+}

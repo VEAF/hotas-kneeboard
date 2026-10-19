@@ -11,6 +11,7 @@ hotas_kneeboard/          serveur FastAPI (127.0.0.1 seulement)
   dcs.py                  détection de DCS, de Saved Games, de la langue ; traduction des commandes
   templates.py            format et bibliothèque des gabarits
   kneeboard.py            écriture des pages PNG
+  dcs_config.py           modifications des commandes de DCS : refus si DCS tourne, sauvegarde et restauration
   settings.py             réglages (%APPDATA%/HOTAS Kneeboard/settings.json)
   app.py                  routes HTTP
   library/                les gabarits livrés
@@ -23,6 +24,10 @@ packaging/                construction de l'exe (PyInstaller)
 
 Les pages sont construites dans le navigateur : le PNG passe par un canvas, le PDF par jsPDF.
 Le serveur n'écrit que les fichiers PNG ; il n'y a ni Chromium ni Cairo à livrer.
+
+Les fichiers de commandes de DCS (`Saved Games/DCS/Config/Input`) ne sont modifiés que par `dcs_config.py`, et toujours par `guarded_write`.
+Elle refuse tant que DCS tourne, car le jeu réécrit ces fichiers quand il enregistre ses commandes.
+Avant d'écrire, elle zippe tout le dossier dans `%APPDATA%/HOTAS Kneeboard/backups/` (les 20 derniers zips sont gardés) ; une restauration remplace le dossier en un seul renommage, après avoir sauvegardé l'état courant.
 
 ## Le moteur de lecture
 

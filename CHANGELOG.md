@@ -17,3 +17,4 @@ Chaque lot ajoute ses entrées à la fin de `[Unreleased]` ; une release les pas
 - Découpe en deux pages des dessins qui ont une ligne de découpe (les throttles WinWing Orion), placée dans l'éditeur pour les autres ; les deux moitiés côte à côte à l'écran.
 - Documentation en français : README, guide d'utilisation, éditeur, gabarits, développement.
 - Boutons des autres logiciels sur les pages, chacun dans sa couleur : SRS lu directement avec le profil de chaque avion, VectorXR lu directement, tout autre logiciel saisi à la main ; logiciels montrés et couleurs dans les réglages (FEAT-OTHER-APPS-BINDINGS, #24).
+- Fenêtre « Commandes DCS » : toute modification des commandes de DCS est refusée tant que le jeu tourne et précédée d'une sauvegarde de `Saved Games\DCS\Config\Input` ; les 20 dernières sauvegardes sont listées et restaurables (INVESTIGATE-EDIT-DCS-BINDINGS, #30).
