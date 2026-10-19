@@ -121,6 +121,24 @@ Elle ne sait pas faire la différence avec un périphérique simplement débranc
 - Un périphérique que DCS a vu récemment n'est jamais proposé, et un périphérique désactivé non plus : branché, il pourrait ne pas apparaître dans le journal de DCS.
 - Sans journal de DCS, ou si le journal ne nomme aucun périphérique, la liste est vide : lance DCS une fois, périphériques branchés.
 
+### Retirer les vues du chapeau
+
+Tous les modules mettent les 8 vues lentes (« View Up slow », « View Down Left slow »…) sur le premier chapeau de **chaque** périphérique : le palonnier, l'ICP, les MFD en ont aussi, même si l'écran des commandes du jeu ne les montre pas toujours.
+Avec TrackIR ou la VR, elles ne servent à rien et encombrent les pages ; la section **Vues du chapeau** les retire en une fois.
+
+- **Chercher** calcule l'aperçu (quelques secondes) : chaque périphérique concerné, le nombre de vues, les modules (dépliables) et les fichiers qui seront créés.
+- **Par défaut**, ne sont cochés que les périphériques sur le chapeau desquels tu n'as rien mis toi-même, dans aucun module : le palonnier, l'ICP, les MFD, une manette dont le chapeau ne sert pas.
+  Les autres sont listés grisés, avec ce que tu as mis sur leur chapeau.
+- **Tous les périphériques, chapeaux utilisés compris** les rend cochables aussi : seules les 8 vues par défaut partent, tes propres liaisons sur le chapeau restent.
+- **Tous les modules installés** étend le retrait aux modules que tu n'as jamais configurés : un fichier de commandes est créé pour chaque module et chaque périphérique concerné.
+  Sans l'option, seuls les modules qui ont un dossier dans `Saved Games\DCS\Config\Input` sont touchés.
+- Un fichier n'est créé que pour un périphérique que DCS a vu lors de ses deux derniers lancements, sous le nom exact que le jeu lui donne ; un périphérique absent garde ses fichiers existants, traités eux aussi.
+- **Retirer…** puis **Retirer** : une seule sauvegarde pour toute l'opération, puis les commandes sont relues et comparées à l'aperçu.
+  « Conforme à l'aperçu » veut dire que toutes les vues annoncées sont parties ; sinon, chaque écart est listé.
+- Les fichiers sont réécrits comme DCS les enregistre : une entrée devenue sans effet (un réglage par défaut qui a changé depuis une mise à jour du module) disparaît, comme quand tu enregistres dans le jeu.
+  Un fichier qui ne garde plus aucune différence avec les réglages par défaut est supprimé, comme le fait DCS : le périphérique n'apparaît alors plus dans ce module de l'application, ce n'est pas une perte.
+- Pour revenir en arrière, restaure la sauvegarde « avant le retrait des vues du chapeau » dans la liste des sauvegardes.
+
 ## Réglages
 
 La roue dentée, en haut, ouvre les réglages.

@@ -12,6 +12,7 @@ hotas_kneeboard/          serveur FastAPI (127.0.0.1 seulement)
   templates.py            format et bibliothèque des gabarits
   kneeboard.py            écriture des pages PNG
   dcs_config.py           modifications des commandes de DCS : refus si DCS tourne, sauvegarde et restauration, périphériques désactivés ou oubliés
+  hat_views.py            retrait en une fois des 8 vues génériques du chapeau (aperçu, sélection, relecture)
   lua_tables.py + lua/    lecture et écriture des fichiers Lua de DCS, avec le sérialiseur du jeu
   settings.py             réglages (%APPDATA%/HOTAS Kneeboard/settings.json)
   app.py                  routes HTTP
@@ -46,7 +47,16 @@ Ajouts propres à ce dépôt :
 - le type d'avion de chaque profil, lu dans les appels `make_flyable` du `entry.lua` du module : c'est le nom du dossier kneeboard (`A-10C II` → `A-10C_2`) ;
 - un périphérique sans profil de base, ou d'un module non installé, montre ce que son diff ajoute plutôt que rien ;
 - le retrait de liaisons (enregistrements `remove`) : le moteur recalcule alors le diff de chaque périphérique concerné comme DCS le fait en enregistrant (`saveDeviceProfile`), contre les défauts du module sans le diff livré avec lui ;
-- les combinaisons dont la touche n'est pas une entrée du périphérique sont écartées, comme DCS le fait (`getKeyBelongToDevice`) : le profil joystick du C-130J déclare des touches clavier.
+- les combinaisons dont la touche n'est pas une entrée du périphérique sont écartées, comme DCS le fait (`getKeyBelongToDevice`) : le profil joystick du C-130J déclare des touches clavier ;
+- les périphériques demandés par des enregistrements `device` sont calculés aussi dans les profils de module où ils n'ont pas de diff (défauts du module, marqués `extra`), et `scope installed` ajoute tous les profils de module installés : c'est ce qui permet de créer un diff là où il n'y en a pas ;
+- chaque liaison venue d'un diff (ajoutée ou changée) est marquée `from_diff` : c'est ce que l'utilisateur a placé, par opposition aux défauts du module ;
+- chaque recalcul rend le nombre de liaisons réellement retirées (`removed`) ; `remove_bindings` ne réécrit pas un périphérique où aucune ne l'a été.
+
+Les 8 vues du chapeau (`hat_views.py`) viennent de `Config/Input/Aircrafts/common_joystick_binding.lua`, inclus dans les défauts de chaque module : elles se reconnaissent au couple (hash, touche), identique dans tous les modules (`dnilp34u214…` pour `JOY_BTN_POV1_U`…), jamais au nom affiché.
+Un périphérique est proposé par défaut si aucune liaison de chapeau (touche contenant `POV`) ne vient d'un diff, dans aucun module : les défauts d'un module sur un chapeau (la tourelle de `ground_unit`, le Shkval du Ka-50) ne comptent pas.
+Seules les vues venues des défauts sont retirées ; un nouveau diff n'est créé que pour un périphérique que `Logs/dcs.log` nomme, sous ce nom.
+Après l'écriture, l'aperçu est recalculé : une vue prévue encore présente, ou un nombre retiré différent du prévu, est signalé.
+Vérifié le 2026-10-19 sur une copie fidèle d'un vrai `Saved Games` : 505 vues retirées sur 160 couples périphérique × module (dont 44 fichiers créés), relecture sans écart, et des liaisons effectives identiques avant et après à ces vues près.
 
 Le recalcul couvre les touches (combinaisons ajoutées, retirées) et les axes (plus les combinaisons dont le filtre a changé, comparé comme DCS : valeurs par défaut de `createAxisFilter`, valeurs de cran jamais comparées) ; le diff de retour de force est recopié depuis le fichier, relu par `lua_tables`.
 Une entrée de diff qui ne correspond plus à aucune commande disparaît, comme quand DCS enregistre ; une entrée dont la commande a un numéro `iCommand` inconnu fait refuser l'écriture, pour ne pas perdre la liaison.

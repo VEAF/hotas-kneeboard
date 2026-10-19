@@ -20,6 +20,7 @@ Chaque lot ajoute ses entrées à la fin de `[Unreleased]` ; une release les pas
 - Fenêtre « Commandes DCS » : toute modification des commandes de DCS est refusée tant que le jeu tourne et précédée d'une sauvegarde de `Saved Games\DCS\Config\Input` ; les 20 dernières sauvegardes sont listées et restaurables (INVESTIGATE-EDIT-DCS-BINDINGS, #30).
 - Désactivation et réactivation d'un périphérique dans DCS depuis la fenêtre « Commandes DCS », écrites comme le jeu les écrit ; pastille « désactivé » dans la liste des périphériques (INVESTIGATE-EDIT-DCS-BINDINGS, #33).
 - Oubli d'un périphérique que DCS n'a pas vu lors de ses deux derniers lancements (vJoy désinstallé, périphérique renommé) : ses commandes sont supprimées dans tous les modules, après une sauvegarde (INVESTIGATE-EDIT-DCS-BINDINGS, #34).
+- Retrait en une fois des 8 vues lentes que DCS met sur le premier chapeau de chaque périphérique (palonnier, ICP, MFD…), depuis la fenêtre « Commandes DCS » : aperçu par périphérique et par module, par défaut les périphériques dont tu n'as pas utilisé le chapeau, options « tous les périphériques » (tes liaisons sur le chapeau restent) et « tous les modules installés » (un fichier créé par module) ; une seule sauvegarde, relecture après l'écriture comparée à l'aperçu (INVESTIGATE-EDIT-DCS-BINDINGS, #32).
 
 ### Corrigé
 
