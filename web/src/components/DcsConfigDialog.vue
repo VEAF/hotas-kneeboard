@@ -428,7 +428,7 @@ async function restore(id: string) {
         <p v-if="!devices.seen.length" class="intro">{{ t('dcs.absent.no_log') }}</p>
         <template v-else>
           <p class="intro">
-            {{ t('dcs.absent.intro') }}<template v-if="devices.log_date"> {{ t('dcs.absent.log_date', { date: date(devices.log_date) }) }}</template>.
+            {{ t('dcs.absent.intro') }}<template v-if="devices.log_date">{{ ' ' + t('dcs.absent.log_date', { date: date(devices.log_date) }) }}</template>.
             {{ t('dcs.absent.intro2') }}
           </p>
           <ul v-if="devices.absent.length" class="rows devices">

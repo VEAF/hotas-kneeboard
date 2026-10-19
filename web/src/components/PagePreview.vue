@@ -231,7 +231,7 @@ watch(
       <div v-if="store.device.value" class="controls">
         <label class="ctl">
           <span class="eyebrow">
-            {{ t('preview.template.label') }}<template v-if="automatic && templateId !== NO_TEMPLATE"> {{ t('preview.template.auto') }}</template>
+            {{ t('preview.template.label') }}<template v-if="automatic && templateId !== NO_TEMPLATE">{{ ' ' + t('preview.template.auto') }}</template>
             <button v-if="manualHint" type="button" class="pill warn manual" v-tooltip.bottom="manualHint" @click="selection = AUTOMATIC">
               {{ t('preview.template.manual') }}
             </button>

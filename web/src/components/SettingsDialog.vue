@@ -128,7 +128,7 @@ async function save() {
       <label class="field" for="language">
         <span class="eyebrow">{{ t('settings.language.label') }}</span>
         <Select input-id="language" v-model="language" :options="languages" option-label="label" option-value="value" />
-        <small><Tr k="settings.language.hint"><template #l10n><code>l10n</code></template></Tr><template v-if="state.dcs"> {{ t('settings.language.current', { language: state.dcs.language }) }}</template>.</small>
+        <small><Tr k="settings.language.hint"><template #l10n><code>l10n</code></template></Tr><template v-if="state.dcs">{{ ' ' + t('settings.language.current', { language: state.dcs.language }) }}</template>.</small>
       </label>
       <label class="field" for="page-height">
         <span class="eyebrow">{{ t('settings.page_height.label') }}</span>
