@@ -5,6 +5,10 @@ Chaque lot ajoute ses entrées à la fin de `[Unreleased]` ; une release les pas
 
 ## [Unreleased]
 
+### Documentation
+
+- Des captures d'écran dans le guide d'utilisation et la page de l'éditeur de gabarits : l'écran principal, une page, l'export, les fenêtres Autres logiciels, Liaisons, Commandes DCS et Réglages, l'éditeur.
+
 ## [0.2.0] - 2026-10-19
 
 ### Ajouté
