@@ -23,6 +23,7 @@ from .dcs_config import (
 )
 from .engine import PATH_TOO_LONG, EffectiveBindingsError, load_effective_bindings
 from .hat_views import _configured_profiles, _plugged_devices
+from .i18n import t
 from .pages import split_device_name
 
 
@@ -81,7 +82,7 @@ def plan(
             all_installed=all_modules,
         )
     except EffectiveBindingsError as error:
-        raise DcsConfigError(f"Lecture des liaisons impossible : {error}") from error
+        raise DcsConfigError(t("bindings.read_failed", error=error)) from error
     spelling = {name.lower(): name for name in extra}
     found: dict[str, dict] = {}
     for profile, entry in sorted(result["profiles"].items()):
@@ -123,7 +124,7 @@ def plan(
                     "bindings": sorted(bindings, key=lambda b: (b["key"], b["command"])),
                     "unknown": sorted(unknown, key=lambda b: (b["key"], b["command"])),
                     "new_file": bool(d.get("extra")),
-                    "error": "chemin trop long pour DCS" if d.get("error") == PATH_TOO_LONG else None,
+                    "error": t("bindings.path_too_long") if d.get("error") == PATH_TOO_LONG else None,
                 }
             )
     return sorted(found.values(), key=lambda d: d["device"].lower())
@@ -161,9 +162,9 @@ def remove_generic_buttons(
         for b in m["bindings"]
     ]
     if not removals:
-        raise DcsConfigError("Aucun bouton générique à retirer pour ces périphériques : rien n'a été modifié")
+        raise DcsConfigError(t("generic.nothing"))
     count = len(chosen)
-    reason = f"avant le retrait des boutons génériques ({count} périphérique{'s' if count > 1 else ''})"
+    reason = t("generic.reason.one" if count == 1 else "generic.reason.other", n=count)
     path = lambda r: input_dir_of(saved_games_dir) / r["profile"] / "joystick" / f"{r['device']}.diff.lua"  # noqa: E731
     existing = {(r["profile"], r["device"]): path(r).is_file() for r in removals}
     backup, rewrites = remove_bindings(
@@ -194,7 +195,13 @@ def remove_generic_buttons(
         )
         if r["removed"] != want:
             differences.append(
-                f"{r['device']} ({r['profile']}) : {r['removed']} bouton(s) retiré(s), {want} prévu(s)"
+                t(
+                    "generic.other_count",
+                    device=r["device"],
+                    profile=r["profile"],
+                    removed=r["removed"],
+                    want=want,
+                )
             )
 
     # read again: none of the buttons removed may still be there
@@ -203,7 +210,7 @@ def remove_generic_buttons(
             install_dir, saved_games_dir, devices, all_modules=all_modules, lua_interpreter=lua_interpreter
         )
     except DcsConfigError as error:
-        differences.append(f"Relecture impossible : {error}")
+        differences.append(t("bindings.read_again_failed", error=error))
         after = []
     for device in after:
         for m in device["modules"]:
@@ -211,6 +218,6 @@ def remove_generic_buttons(
             before = {_signature(b) for b in planned["bindings"]} if planned else set()
             if left := sorted(b["key"] for b in m["bindings"] if _signature(b) in before):
                 differences.append(
-                    f"{m['file']} ({m['profile']}) : encore {', '.join(left)} après l'écriture"
+                    t("bindings.left_after", file=m["file"], profile=m["profile"], left=", ".join(left))
                 )
     return {"backup": backup.as_dict(), "written": written, "differences": differences}

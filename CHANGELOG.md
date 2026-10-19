@@ -5,7 +5,15 @@ Chaque lot ajoute ses entrées à la fin de `[Unreleased]` ; une release les pas
 
 ## [Unreleased]
 
+### Ajouté
+
+- L'application en anglais : l'interface, les messages et la console suivent la langue du navigateur (de Windows pour la console), ou celle choisie dans les réglages (« Langue de l'interface »), appliquée tout de suite.
+  Le français reste la langue des pilotes francophones ; les noms de commande restent ceux que DCS affiche dans sa langue.
+- Les mots que l'application écrit sur les pages du kneeboard (« relâché : », la ligne de crédit, la page en liste) et les actions de SRS et VectorXR suivent la langue des commandes : en français quand DCS est en français, en anglais sinon.
+
 ### Documentation
+
+- La documentation et le README en anglais, avec des captures de l'interface anglaise ; le site a un sélecteur de langue, et le livre de l'application ouvre la documentation dans la langue de l'interface.
 
 - Des captures d'écran dans le guide d'utilisation et la page de l'éditeur de gabarits : l'écran principal, une page, l'export, les fenêtres Autres logiciels, Liaisons, Commandes DCS et Réglages, l'éditeur.
 

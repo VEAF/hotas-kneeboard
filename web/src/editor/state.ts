@@ -3,6 +3,7 @@
 import { computed, reactive } from 'vue'
 import type { Box, Credits, Template, TemplateInput } from '../lib/types'
 import { nextFree } from './catalog'
+import { t } from '../lib/i18n'
 
 export interface Draft {
   /** id it is saved under: a user template it replaces, a bundled one it overrides; null = new */
@@ -264,7 +265,7 @@ export function clamp(v: number, min: number, max: number): number {
 export function draftTemplate(draft: Draft): Template {
   return {
     id: draft.id ?? 'draft',
-    name: draft.name || 'Nouveau gabarit',
+    name: draft.name || t('editor.new_template'),
     devices: draft.devices,
     size: draft.size,
     credits: draft.credits,

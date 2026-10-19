@@ -4,6 +4,7 @@ import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
 import ProgressBar from 'primevue/progressbar'
 import type { ExportProgress } from '../lib/exportAll'
+import { t } from '../lib/i18n'
 
 const props = defineProps<{ progress: ExportProgress | null }>()
 const emit = defineEmits<{ stop: [] }>()
@@ -22,14 +23,14 @@ const percent = computed(() => (props.progress ? Math.round((100 * props.progres
   >
     <template v-if="progress">
       <p class="where" role="status">
-        <span>{{ progress.done < progress.total ? `Module ${progress.done + 1} sur ${progress.total}` : `${progress.total} modules` }}</span>
+        <span>{{ progress.done < progress.total ? t('progress.module', { n: progress.done + 1, total: progress.total }) : t('progress.done', { total: progress.total }) }}</span>
         <strong>{{ progress.module }}</strong>
       </p>
       <ProgressBar :value="percent" :show-value="false" style="height: 8px" />
-      <p v-if="progress.stopping" class="note">Arrêt à la fin de ce module…</p>
+      <p v-if="progress.stopping" class="note">{{ t('progress.stopping') }}</p>
     </template>
     <template #footer>
-      <Button label="Arrêter" severity="secondary" outlined :disabled="progress?.stopping" @click="emit('stop')" />
+      <Button :label="t('progress.stop')" severity="secondary" outlined :disabled="progress?.stopping" @click="emit('stop')" />
     </template>
   </Dialog>
 </template>

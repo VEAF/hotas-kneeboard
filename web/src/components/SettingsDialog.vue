@@ -13,6 +13,8 @@ import TabPanels from 'primevue/tabpanels'
 import TabPanel from 'primevue/tabpanel'
 import { useStore } from '../lib/store'
 import { PROGRAM_COLORS } from '../render/programs'
+import { t, tn } from '../lib/i18n'
+import Tr from './Tr'
 
 const visible = defineModel<boolean>('visible', { required: true })
 const store = useStore()
@@ -23,12 +25,18 @@ const savedGames = ref('')
 const pageHeight = ref<number | null>(1024)
 const language = ref('auto')
 // DCS's l10n folders
-const languages = [
-  { label: 'Celle du jeu', value: 'auto' },
+const languages = computed(() => [
+  { label: t('settings.language.game'), value: 'auto' },
   ...Object.entries({ en: 'English', fr: 'Français', de: 'Deutsch', es: 'Español', it: 'Italiano', ru: 'Русский', pl: 'Polski', cs: 'Čeština', cn: '中文', jp: '日本語', ko: '한국어' }).map(
     ([value, label]) => ({ label, value }),
   ),
-]
+])
+// the interface's own languages, named in their language
+const uiLanguages = computed(() => [
+  { label: t('settings.ui_language.auto'), value: 'auto' },
+  { label: 'Français', value: 'fr' },
+  { label: 'English', value: 'en' },
+])
 const tab = ref('general')
 const deviceFilter = ref('')
 const shownDevices = computed(() => {
@@ -71,7 +79,7 @@ async function save() {
   error.value = ''
   try {
     // an emptied number field gives null: the server would refuse it, and the export break
-    if (!pageHeight.value) throw new Error('Indique la hauteur des pages, entre 256 et 4096 pixels.')
+    if (!pageHeight.value) throw new Error(t('settings.page_height.missing'))
     store.changeSettings({ page_height: pageHeight.value })
     const reading = {
       dcs_install_dir: install.value.trim() || null,
@@ -92,88 +100,91 @@ async function save() {
 </script>
 
 <template>
-  <Dialog v-model:visible="visible" modal header="Réglages" :style="{ width: 'min(640px, 94vw)' }">
+  <Dialog v-model:visible="visible" modal :header="t('settings.title')" :style="{ width: 'min(640px, 94vw)' }">
     <Tabs v-model:value="tab">
       <TabList>
-        <Tab value="general">Général</Tab>
-        <Tab value="devices">Périphériques<span v-if="hiddenTotal" class="tab-count">{{ hiddenTotal }} caché{{ hiddenTotal > 1 ? 's' : '' }}</span></Tab>
-        <Tab value="programs">Autres logiciels</Tab>
+        <Tab value="general">{{ t('settings.tab.general') }}</Tab>
+        <Tab value="devices">{{ t('settings.tab.devices') }}<span v-if="hiddenTotal" class="tab-count">{{ tn('settings.hidden', hiddenTotal) }}</span></Tab>
+        <Tab value="programs">{{ t('settings.tab.programs') }}</Tab>
       </TabList>
       <TabPanels>
         <TabPanel value="general">
+    <label class="field immediate" for="ui-language">
+      <span class="eyebrow">{{ t('settings.ui_language.label') }}</span>
+      <Select input-id="ui-language" :model-value="state.settings?.ui_language ?? 'auto'" :options="uiLanguages" option-label="label" option-value="value" @update:model-value="(v: string) => store.setUiLanguage(v === 'auto' ? null : v)" />
+      <small>{{ t('settings.ui_language.hint') }}</small>
+    </label>
     <form class="form" @submit.prevent="save">
       <label class="field" for="install-dir">
-        <span class="eyebrow">Dossier d'installation de DCS</span>
-        <InputText id="install-dir" v-model="install" :placeholder="state.dcs?.install_detected ? (state.dcs?.install_dir ?? 'non trouvé') : ''" fluid />
-        <small>Vide : trouvé dans le registre Windows<template v-if="state.dcs?.install_detected && state.dcs.install_dir"> ({{ state.dcs.install_dir }})</template>.</small>
+        <span class="eyebrow">{{ t('settings.install.label') }}</span>
+        <InputText id="install-dir" v-model="install" :placeholder="state.dcs?.install_detected ? (state.dcs?.install_dir ?? t('settings.not_found')) : ''" fluid />
+        <small>{{ t('settings.install.empty') }}<template v-if="state.dcs?.install_detected && state.dcs.install_dir"> ({{ state.dcs.install_dir }})</template>.</small>
       </label>
       <label class="field" for="saved-games-dir">
-        <span class="eyebrow">Dossier Saved Games de DCS</span>
-        <InputText id="saved-games-dir" v-model="savedGames" :placeholder="state.dcs?.saved_games_detected ? (state.dcs?.saved_games_dir ?? 'non trouvé') : ''" fluid />
-        <small>Vide : <code>Saved Games\DCS</code> de ton profil Windows<template v-if="state.dcs?.saved_games_detected && state.dcs.saved_games_dir"> ({{ state.dcs.saved_games_dir }})</template>.</small>
+        <span class="eyebrow">{{ t('settings.saved_games.label') }}</span>
+        <InputText id="saved-games-dir" v-model="savedGames" :placeholder="state.dcs?.saved_games_detected ? (state.dcs?.saved_games_dir ?? t('settings.not_found')) : ''" fluid />
+        <small><Tr k="settings.saved_games.empty"><template #path><code>Saved Games\DCS</code></template></Tr><template v-if="state.dcs?.saved_games_detected && state.dcs.saved_games_dir"> ({{ state.dcs.saved_games_dir }})</template>.</small>
       </label>
       <label class="field" for="language">
-        <span class="eyebrow">Langue des commandes</span>
+        <span class="eyebrow">{{ t('settings.language.label') }}</span>
         <Select input-id="language" v-model="language" :options="languages" option-label="label" option-value="value" />
-        <small>Les noms tels que DCS les affiche, traduits par ses fichiers <code>l10n</code><template v-if="state.dcs"> (actuellement : {{ state.dcs.language }})</template>.</small>
+        <small><Tr k="settings.language.hint"><template #l10n><code>l10n</code></template></Tr><template v-if="state.dcs">{{ ' ' + t('settings.language.current', { language: state.dcs.language }) }}</template>.</small>
       </label>
       <label class="field" for="page-height">
-        <span class="eyebrow">Hauteur des pages kneeboard (pixels)</span>
+        <span class="eyebrow">{{ t('settings.page_height.label') }}</span>
         <InputNumber id="page-height" v-model="pageHeight" :min="256" :max="4096" :step="128" show-buttons :use-grouping="false" />
-        <small>La largeur suit les proportions du dessin.</small>
+        <small>{{ t('settings.page_height.hint') }}</small>
       </label>
       <p v-if="error" class="error">{{ error }}</p>
       <div class="actions">
-        <Button type="button" label="Annuler" severity="secondary" text @click="visible = false" />
-        <Button type="submit" label="Enregistrer" :loading="saving" />
+        <Button type="button" :label="t('common.cancel')" severity="secondary" text @click="visible = false" />
+        <Button type="submit" :label="t('common.save')" :loading="saving" />
       </div>
     </form>
     <label class="check immediate" for="split-wide">
       <Checkbox input-id="split-wide" :model-value="state.settings?.split_wide ?? true" binary @update:model-value="(v: boolean) => store.changeSettings({ split_wide: v })" />
-      <span>Couper en deux pages les dessins qui ont une ligne de découpe <small>(les throttles WinWing ; l'éditeur la place). Appliqué tout de suite.</small></span>
+      <span>{{ t('settings.split_wide.label') }} <small>{{ t('settings.split_wide.hint') }}</small></span>
     </label>
         </TabPanel>
         <TabPanel value="devices">
           <div class="form">
             <p class="intro">
-              Coche les périphériques à montrer. Un périphérique caché disparaît des listes et des exports de tous les modules : un vJoy, un appareil débranché pour de bon.
-              Appliqué tout de suite.
+              {{ t('settings.devices.intro') }}
             </p>
-            <InputText v-model="deviceFilter" size="small" placeholder="Filtrer…" aria-label="Filtrer les périphériques" />
+            <InputText v-model="deviceFilter" size="small" :placeholder="t('common.filter')" :aria-label="t('settings.devices.filter')" />
             <div class="device-list">
               <label v-for="d in shownDevices" :key="d.name" class="device-row" :for="`show-${d.name}`">
                 <Checkbox :input-id="`show-${d.name}`" :model-value="!store.isHidden(d.name)" binary @update:model-value="(v: boolean) => store.setHidden(d.name, !v)" />
                 <span class="device-name">{{ d.name }}</span>
-                <span class="device-modules">{{ d.modules }} module{{ d.modules > 1 ? 's' : '' }}</span>
+                <span class="device-modules">{{ tn('settings.devices.modules', d.modules) }}</span>
               </label>
-              <p v-if="!shownDevices.length" class="intro">Aucun périphérique.</p>
+              <p v-if="!shownDevices.length" class="intro">{{ t('settings.devices.none') }}</p>
             </div>
             <div class="actions">
-              <Button type="button" size="small" text label="Tout montrer" :disabled="!hiddenTotal" @click="store.changeSettings({ hidden_devices: [] })" />
+              <Button type="button" size="small" text :label="t('settings.devices.show_all')" :disabled="!hiddenTotal" @click="store.changeSettings({ hidden_devices: [] })" />
             </div>
           </div>
         </TabPanel>
         <TabPanel value="programs">
           <div class="form">
             <p class="intro">
-              Les boutons que d'autres logiciels utilisent s'affichent sur les pages, chacun dans sa couleur. SRS et VectorXR sont lus directement, sans jamais modifier leurs réglages ;
-              les autres se saisissent depuis la page d'un périphérique, bouton « Autres logiciels ».
+              {{ t('settings.programs.intro') }}
             </p>
             <form class="field" @submit.prevent="saveSrsDir">
-              <label class="eyebrow" for="srs-dir">Dossier de SRS</label>
+              <label class="eyebrow" for="srs-dir">{{ t('settings.srs.label') }}</label>
               <div class="with-button">
-                <InputText id="srs-dir" v-model="srsDir" :placeholder="state.programs?.srs.folder ?? 'non trouvé'" fluid />
-                <Button type="submit" size="small" label="Appliquer" :loading="srsSaving" />
+                <InputText id="srs-dir" v-model="srsDir" :placeholder="state.programs?.srs.folder ?? t('settings.not_found')" fluid />
+                <Button type="submit" size="small" :label="t('common.apply')" :loading="srsSaving" />
               </div>
               <small>
-                Vide : trouvé dans le registre Windows, sinon dans Program Files<template v-if="state.programs?.srs.folder">
-                  ({{ state.programs.srs.profiles.length }} profils dans {{ state.programs.srs.folder }})</template>.
+                {{ t('settings.srs.empty') }}<template v-if="state.programs?.srs.folder">
+                  ({{ tn('settings.srs.profiles', state.programs.srs.profiles.length, { folder: state.programs.srs.folder }) }})</template>.
               </small>
             </form>
             <p class="intro">
               VectorXR :
-              <template v-if="state.programs?.vectorxr.file">{{ state.programs.vectorxr.bindings.length }} bouton{{ state.programs.vectorxr.bindings.length > 1 ? 's' : '' }} lu{{ state.programs.vectorxr.bindings.length > 1 ? 's' : '' }} dans <code>{{ state.programs.vectorxr.file }}</code> (les modules éteints ne comptent pas).</template>
-              <template v-else>pas installé.</template>
+              <template v-if="state.programs?.vectorxr.file"><Tr k="settings.vectorxr.read" :n="state.programs.vectorxr.bindings.length"><template #file><code>{{ state.programs.vectorxr.file }}</code></template></Tr></template>
+              <template v-else>{{ t('settings.vectorxr.missing') }}</template>
             </p>
             <p v-for="problem in [...(state.programs?.problems ?? []), ...(srsError ? [srsError] : [])]" :key="problem" class="error">{{ problem }}</p>
             <div class="device-list">
@@ -183,7 +194,7 @@ async function save() {
                   <span class="tag" :style="{ background: store.programStyles.value.get(p)?.color }">{{ store.programStyles.value.get(p)?.tag }}</span>
                   {{ p }}
                 </label>
-                <div class="swatches" role="radiogroup" :aria-label="`Couleur de ${p}`">
+                <div class="swatches" role="radiogroup" :aria-label="t('settings.programs.color', { program: p })">
                   <button
                     v-for="c in PROGRAM_COLORS"
                     :key="c"
@@ -198,13 +209,13 @@ async function save() {
                   />
                 </div>
               </div>
-              <p v-if="!store.programNames.value.length" class="intro">Aucun logiciel : ni SRS ni VectorXR trouvés, rien de saisi à la main.</p>
+              <p v-if="!store.programNames.value.length" class="intro">{{ t('settings.programs.none') }}</p>
             </div>
           </div>
         </TabPanel>
       </TabPanels>
     </Tabs>
-    <p class="file">Réglages enregistrés dans <code>{{ state.settingsFile }}</code></p>
+    <p class="file"><Tr k="settings.file"><template #file><code>{{ state.settingsFile }}</code></template></Tr></p>
   </Dialog>
 </template>
 

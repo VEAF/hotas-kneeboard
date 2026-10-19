@@ -17,6 +17,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+from .i18n import t
+
 _logger = logging.getLogger(__name__)
 
 LUA_SCRIPT = Path(__file__).parent / "lua" / "effective_bindings.lua"
@@ -121,19 +123,19 @@ def _loader_input(
     # elsewhere, whose Lua files the interpreter would run): refused in every value
     def checked(what: str, value: str) -> str:
         if any(c in value for c in "\t\r\n"):
-            raise EffectiveBindingsError(f"{what} illisible : {value!r}")
+            raise EffectiveBindingsError(t("engine.unreadable", what=what, value=repr(value)))
         return value
 
     records = [
-        f"install\t{checked('dossier de DCS', install)}",
-        f"saved\t{checked('dossier Saved Games', saved_games)}",
+        f"install\t{checked(t('engine.what.install'), install)}",
+        f"saved\t{checked(t('engine.what.saved_games'), saved_games)}",
         f"casefold\t{1 if sys.platform == 'win32' else 0}",
     ]
-    records += [f"profile\t{checked('nom de module', profile)}" for profile in profiles]
+    records += [f"profile\t{checked(t('engine.what.module'), profile)}" for profile in profiles]
     if all_installed:
         records.append("scope\tinstalled")
     for device in extra_devices or []:
-        records.append(f"device\t{checked('nom de périphérique', device)}")
+        records.append(f"device\t{checked(t('engine.what.device'), device)}")
     for r in removals or []:
         fields = [r["profile"], r["device"], r["hash"], r["key"]]
         reformers = list(r.get("reformers") or [])
@@ -141,7 +143,7 @@ def _loader_input(
         if any(c in field for field in fields + reformers for c in "\t\r\n") or any(
             "," in x for x in reformers
         ):
-            raise EffectiveBindingsError(f"liaison à retirer illisible : {r}")
+            raise EffectiveBindingsError(t("engine.bad_removal", removal=r))
         kind = "axis" if r.get("kind") == "axis" else "key"
         records.append("remove\t" + "\t".join([*fields, ",".join(reformers), kind]))
     for directory, entries in _directory_listings(install, saved_games).items():

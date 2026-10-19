@@ -18,6 +18,7 @@ from datetime import datetime, timedelta
 from pathlib import Path, PurePosixPath
 
 from .engine import EffectiveBindingsError, load_effective_bindings
+from .i18n import t
 from .lua_tables import LuaTableError, read_table, write_table
 from .pages import split_device_name
 
@@ -54,9 +55,7 @@ def dcs_running() -> bool:
             creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
         )
     except (OSError, subprocess.SubprocessError) as error:
-        raise DcsConfigError(
-            f"Impossible de savoir si DCS est lancé ({error}) : rien n'a été modifié"
-        ) from error
+        raise DcsConfigError(t("dcs_config.running_unknown", error=error)) from error
     # one line per process, its image name first: "DCS.exe","1234",…
     output = completed.stdout.decode("mbcs", errors="replace").lower()
     return any(f'"{name}"' in output for name in DCS_PROCESSES)
@@ -92,7 +91,7 @@ class BackupStore:
         try:
             datetime.strptime(backup_id, TIME_FORMAT)
         except ValueError as error:
-            raise BackupNotFoundError("sauvegarde introuvable") from error
+            raise BackupNotFoundError(t("backup.missing")) from error
         return self.folder / f"{BACKUP_PREFIX}{backup_id}.zip"
 
     def list(self) -> list[Backup]:
@@ -114,7 +113,7 @@ class BackupStore:
         """Zips ``input_dir`` (folders included, so that a restore gives it back as it was), then
         drops the oldest backups but ``protect``."""
         if not input_dir.is_dir():
-            raise DcsConfigError(f"Dossier des commandes de DCS introuvable : {input_dir}")
+            raise DcsConfigError(t("dcs_config.input_missing", folder=input_dir))
         self.folder.mkdir(parents=True, exist_ok=True)
         # two backups within the clock's resolution would get the same name
         created = datetime.now()
@@ -132,7 +131,7 @@ class BackupStore:
             tmp.replace(path)
         except OSError as error:
             tmp.unlink(missing_ok=True)
-            raise DcsConfigError(f"Sauvegarde impossible, rien n'a été modifié : {error}") from error
+            raise DcsConfigError(t("backup.failed", error=error)) from error
         self._prune(protect)
         return Backup(backup_id, created, reason, path.stat().st_size, files)
 
@@ -146,7 +145,7 @@ class BackupStore:
         backup does not hold it."""
         path = self._path(backup_id)
         if not path.is_file():
-            raise BackupNotFoundError("sauvegarde introuvable")
+            raise BackupNotFoundError(t("backup.missing"))
         try:
             with zipfile.ZipFile(path) as archive:
                 try:
@@ -154,22 +153,22 @@ class BackupStore:
                 except KeyError:
                     return None
         except (OSError, zipfile.BadZipFile) as error:
-            raise DcsConfigError(f"Sauvegarde illisible : {error}") from error
+            raise DcsConfigError(t("backup.unreadable", error=error)) from error
 
     def extract(self, backup_id: str, target: Path) -> None:
         """Unzips a backup into ``target``, refusing any entry that would land outside it."""
         path = self._path(backup_id)
         if not path.is_file():
-            raise BackupNotFoundError("sauvegarde introuvable")
+            raise BackupNotFoundError(t("backup.missing"))
         try:
             with zipfile.ZipFile(path) as archive:
                 for info in archive.infolist():
                     name = PurePosixPath(info.filename)
                     if name.is_absolute() or ".." in name.parts or ":" in info.filename:
-                        raise DcsConfigError(f"sauvegarde invalide : {info.filename}")
+                        raise DcsConfigError(t("backup.invalid", file=info.filename))
                 archive.extractall(target)
         except (OSError, zipfile.BadZipFile) as error:
-            raise DcsConfigError(f"Sauvegarde illisible : {error}") from error
+            raise DcsConfigError(t("backup.unreadable", error=error)) from error
 
 
 def input_dir_of(saved_games_dir: Path) -> Path:
@@ -189,9 +188,7 @@ def guarded_write(
     returns ``(backup, result of change)``."""
     with _WRITE_LOCK:
         if is_running():
-            raise DcsConfigError(
-                "DCS est lancé : ferme-le avant de modifier ses commandes (il réécrit ces fichiers)"
-            )
+            raise DcsConfigError(t("dcs_config.running"))
         input_dir = input_dir_of(saved_games_dir)
         backup = backups.create(input_dir, reason, protect)
         return backup, change(input_dir)
@@ -224,8 +221,13 @@ def restore(
                     old.replace(current)
                 except OSError as rollback_error:
                     raise DcsConfigError(
-                        f"Restauration interrompue ({error}) : tes commandes d'avant sont dans {old}, "
-                        f"à renommer en {current.name} à la main ({rollback_error})"
+                        t(
+                            "restore.interrupted",
+                            error=error,
+                            old=old,
+                            name=current.name,
+                            rollback_error=rollback_error,
+                        )
                     ) from rollback_error
                 raise
             shutil.rmtree(old, ignore_errors=True)
@@ -233,16 +235,14 @@ def restore(
         backup, _ = guarded_write(
             saved_games_dir,
             backups,
-            f"avant la restauration du {created:%d/%m/%Y à %H:%M:%S}",
+            t("restore.reason", date=created.strftime(t("format.datetime"))),
             swap,
             is_running=is_running,
             protect=backup_id,
         )
         return backup
     except OSError as error:
-        raise DcsConfigError(
-            f"Restauration impossible, les fichiers de DCS n'ont pas changé : {error}"
-        ) from error
+        raise DcsConfigError(t("restore.failed", error=error)) from error
     finally:
         shutil.rmtree(staged, ignore_errors=True)
 
@@ -283,9 +283,9 @@ def read_disabled(install_dir: Path, saved_games_dir: Path, lua_interpreter=None
     try:
         value = read_table(install_dir, path, lua_interpreter)
     except LuaTableError as error:
-        raise DcsConfigError(f"{DISABLED_FILE} illisible : {error}") from error
+        raise DcsConfigError(t("file.unreadable", file=DISABLED_FILE, error=error)) from error
     if not isinstance(value, dict) or not isinstance(value.get("devices", {}), dict):
-        raise DcsConfigError(f"{DISABLED_FILE} : contenu inattendu, rien n'a été modifié")
+        raise DcsConfigError(t("file.unexpected", file=DISABLED_FILE))
     value.setdefault("devices", {})
     return value
 
@@ -321,12 +321,10 @@ def set_device_disabled(
         try:
             write_table(install_dir, input_dir / DISABLED_FILE, "disabled", value, lua_interpreter)
         except LuaTableError as error:
-            raise DcsConfigError(f"{DISABLED_FILE} impossible à écrire : {error}") from error
+            raise DcsConfigError(t("file.write_failed", file=DISABLED_FILE, error=error)) from error
 
-    action = "désactivation" if disabled else "réactivation"
-    backup, _ = guarded_write(
-        saved_games_dir, backups, f"avant la {action} de {logged or device}", change, is_running=is_running
-    )
+    reason = t("devices.reason.disable" if disabled else "devices.reason.enable", device=logged or device)
+    backup, _ = guarded_write(saved_games_dir, backups, reason, change, is_running=is_running)
     return backup
 
 
@@ -381,16 +379,12 @@ def forget_device(
 
     def targets() -> list[Path]:
         if device.lower() in {d.lower() for d in seen_devices(saved_games_dir)}:
-            raise DcsConfigError(
-                f"{device} est branché (vu par DCS lors de ses deux derniers lancements) : rien n'a été supprimé"
-            )
+            raise DcsConfigError(t("forget.plugged", device=device))
         if device.lower() in {d.lower() for d in disabled}:
-            raise DcsConfigError(
-                f"{device} est désactivé dans DCS : réactive-le d'abord, rien n'a été supprimé"
-            )
+            raise DcsConfigError(t("forget.disabled", device=device))
         paths = device_diffs(saved_games_dir).get(device.lower(), [])
         if not paths:
-            raise DcsConfigError(f"Aucune commande enregistrée pour {device}")
+            raise DcsConfigError(t("forget.nothing", device=device))
         return paths
 
     targets()  # refused before any backup
@@ -401,12 +395,12 @@ def forget_device(
             for path in paths:
                 path.unlink(missing_ok=True)
         except OSError as error:
-            raise DcsConfigError(
-                f"Suppression interrompue ({error}) : la sauvegarde d'avant est en tête de liste"
-            ) from error
+            raise DcsConfigError(t("forget.interrupted", error=error)) from error
         return [p.parent.parent.name for p in paths]
 
-    return guarded_write(saved_games_dir, backups, f"avant d'oublier {device}", change, is_running=is_running)
+    return guarded_write(
+        saved_games_dir, backups, t("forget.reason", device=device), change, is_running=is_running
+    )
 
 
 # --- removing key bindings: each device's diff rewritten as DCS saves it -------------------------
@@ -424,28 +418,25 @@ def new_diffs(
     try:
         result = load_effective_bindings(install_dir, saved_games_dir, profiles, lua_interpreter, removals)
     except EffectiveBindingsError as error:
-        raise DcsConfigError(f"Calcul impossible, rien n'a été modifié : {error}") from error
+        raise DcsConfigError(t("rewrite.failed", error=error)) from error
     out = []
     for rewrite in result.get("rewrites", []):
         where = f"{rewrite['device']} ({rewrite['profile']})"
         if rewrite.get("error"):
-            raise DcsConfigError(f"{where} : {rewrite['error']} ; rien n'a été modifié")
+            raise DcsConfigError(t("rewrite.error", where=where, error=rewrite["error"]))
         source = rewrite["diff"].get("source")
         input_dir = input_dir_of(saved_games_dir)
         path = input_dir / rewrite["profile"] / "joystick" / f"{rewrite['device']}.diff.lua"
         # luae.exe cannot open a path of 260 characters or more: a user diff it did not read would be
         # taken for no diff at all, and the user's bindings lost
         if path.is_file() and not (source and Path(source) == path):
-            raise DcsConfigError(
-                f"{where} : diff illisible par l'interpréteur de DCS (chemin de {len(str(path))} caractères ?) ;"
-                " rien n'a été modifié"
-            )
+            raise DcsConfigError(t("rewrite.path_too_long", where=where, length=len(str(path))))
         try:
             old = read_table(install_dir, Path(source), lua_interpreter) if source else {}
         except LuaTableError as error:
-            raise DcsConfigError(f"{where} : {error} ; rien n'a été modifié") from error
+            raise DcsConfigError(t("rewrite.error", where=where, error=error)) from error
         if not isinstance(old, dict):
-            raise DcsConfigError(f"{where} : diff inattendu ; rien n'a été modifié")
+            raise DcsConfigError(t("rewrite.unexpected", where=where))
         # key and axis diffs recomputed as DCS does; the force feedback one is kept as it is
         diff = {
             "ffDiffs": old.get("ffDiffs"),
@@ -492,9 +483,7 @@ def remove_bindings(
                     r["path"].parent.mkdir(parents=True, exist_ok=True)
                     write_table(install_dir, r["path"], "diff", r["diff"], lua_interpreter)
         except (OSError, LuaTableError) as error:
-            raise DcsConfigError(
-                f"Écriture interrompue ({error}) : la sauvegarde d'avant est en tête de liste"
-            ) from error
+            raise DcsConfigError(t("write.interrupted", error=error)) from error
         return rewrites
 
     return guarded_write(saved_games_dir, backups, reason, change, is_running=is_running)
@@ -517,9 +506,11 @@ def read_modifiers(install_dir: Path, path: Path, lua_interpreter=None) -> dict:
     try:
         value = read_table(install_dir, path, lua_interpreter)
     except LuaTableError as error:
-        raise DcsConfigError(f"{path.parent.name}/{MODIFIERS_FILE} illisible : {error}") from error
+        raise DcsConfigError(
+            t("file.unreadable", file=f"{path.parent.name}/{MODIFIERS_FILE}", error=error)
+        ) from error
     if not isinstance(value, dict) or not all(isinstance(m, dict) for m in value.values()):
-        raise DcsConfigError(f"{path.parent.name}/{MODIFIERS_FILE} : contenu inattendu, rien n'a été modifié")
+        raise DcsConfigError(t("file.unexpected", file=f"{path.parent.name}/{MODIFIERS_FILE}"))
     return value
 
 
@@ -549,7 +540,7 @@ def renamed_device(device: str, current: dict[str, list[str]]) -> tuple[str | No
     if not names or device in names:
         return None, None
     if len(names) > 1:
-        return None, f"plusieurs périphériques portent ce GUID ({', '.join(names)}) : à corriger dans DCS"
+        return None, t("modifiers.guid_shared", names=", ".join(names))
     return (names[0], None) if names else (None, None)
 
 
@@ -617,7 +608,7 @@ def fix_modifiers(
     backup; returns what was fixed: ``[{"profile", "modifier", "device", "new_device"}]``. Every
     file is read and checked before the first is written."""
     if not any(i["new_device"] for i in modifier_issues(install_dir, saved_games_dir, lua_interpreter)):
-        raise DcsConfigError("Aucun modificateur à réparer")
+        raise DcsConfigError(t("modifiers.nothing"))
 
     def change(input_dir: Path) -> list[dict]:
         current = current_device_names(saved_games_dir)
@@ -634,14 +625,10 @@ def fix_modifiers(
             for path, modifiers, _ in rewrites:
                 write_table(install_dir, path, "modifiers", modifiers, lua_interpreter)
         except (OSError, LuaTableError) as error:
-            raise DcsConfigError(
-                f"Écriture interrompue ({error}) : la sauvegarde d'avant est en tête de liste"
-            ) from error
+            raise DcsConfigError(t("write.interrupted", error=error)) from error
         return [item for path, _, fixed in rewrites for item in _fixed_list(path.parent.name, fixed)]
 
-    return guarded_write(
-        saved_games_dir, backups, "avant la réparation des modificateurs", change, is_running=is_running
-    )
+    return guarded_write(saved_games_dir, backups, t("modifiers.reason"), change, is_running=is_running)
 
 
 def deleted_modifiers(saved_games_dir: Path, backups: BackupStore) -> list[dict]:
@@ -687,15 +674,15 @@ def restore_modifiers(
     (see ``fix_modifiers``); only that file is written. Refused when the profile has one."""
     data = backups.read_file(backup_id, f"{profile}/{MODIFIERS_FILE}")
     if not data:
-        raise BackupNotFoundError(f"Cette sauvegarde n'a pas de {MODIFIERS_FILE} pour {profile}")
+        raise BackupNotFoundError(t("modifiers.not_in_backup", file=MODIFIERS_FILE, profile=profile))
 
     def change(input_dir: Path) -> list[dict]:
         folder = input_dir / profile
         if profile in ("", ".", "..") or folder.parent != input_dir or not folder.is_dir():
-            raise DcsConfigError(f"Profil introuvable : {profile}")
+            raise DcsConfigError(t("modifiers.no_profile", profile=profile))
         path = folder / MODIFIERS_FILE
         if path.exists():
-            raise DcsConfigError(f"{profile} a déjà un {MODIFIERS_FILE} : rien n'a été modifié")
+            raise DcsConfigError(t("modifiers.exists", profile=profile, file=MODIFIERS_FILE))
         # read with DCS's interpreter, to be written back as DCS writes it; a short name, see write_table
         tmp = folder / f".hk-{uuid.uuid4().hex[:12]}.tmp"
         try:
@@ -707,13 +694,13 @@ def restore_modifiers(
         try:
             write_table(install_dir, path, "modifiers", modifiers, lua_interpreter)
         except (OSError, LuaTableError) as error:
-            raise DcsConfigError(f"{MODIFIERS_FILE} impossible à écrire : {error}") from error
+            raise DcsConfigError(t("file.write_failed", file=MODIFIERS_FILE, error=error)) from error
         return _fixed_list(profile, fixed)
 
     return guarded_write(
         saved_games_dir,
         backups,
-        f"avant de ramener {MODIFIERS_FILE} de {profile}",
+        t("modifiers.restore_reason", file=MODIFIERS_FILE, profile=profile),
         change,
         is_running=is_running,
         protect=backup_id,

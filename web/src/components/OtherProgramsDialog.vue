@@ -12,6 +12,7 @@ import { compareInputs, inputName } from '../render/inputs'
 import { normalizeGuid } from '../render/programs'
 import { detectInput, gamepadSupported } from '../editor/gamepad'
 import type { ManualProgramBinding } from '../lib/types'
+import { t } from '../lib/i18n'
 
 const visible = defineModel<boolean>('visible', { required: true })
 const store = useStore()
@@ -27,8 +28,8 @@ const NONE = '__none__'
 const srsOptions = computed(() => {
   const matched = state.programs?.srs.matched[profileName.value]
   return [
-    { label: `Selon le nom du module${matched ? ` (${matched})` : ' (aucun)'}`, value: AUTO },
-    { label: 'Aucun : pas de SRS sur ces pages', value: NONE },
+    { label: t('programs.srs.auto', { matched: matched ?? t('programs.srs.auto_none') }), value: AUTO },
+    { label: t('programs.srs.none'), value: NONE },
     ...(state.programs?.srs.profiles ?? []).map((p) => ({ label: p, value: p })),
   ]
 })
@@ -109,11 +110,11 @@ function save() {
     action: form.value.action.trim(),
   }
   if (!entry.program || !entry.action) {
-    error.value = 'Indique le logiciel et ce que fait le bouton.'
+    error.value = t('programs.error.missing')
     return
   }
   if (!/^JOY_[A-Z0-9_]+$/.test(entry.input)) {
-    error.value = 'Choisis le bouton dans la liste, ou appuie dessus avec « Identifier ».'
+    error.value = t('programs.error.input')
     return
   }
   const list = [...manual.value]
@@ -131,11 +132,11 @@ async function identify() {
   stopListening()
   const controller = new AbortController()
   listening.value = controller
-  heard.value = 'Appuie sur le bouton…'
+  heard.value = t('programs.press')
   try {
-    const found = await detectInput(controller.signal, (name) => (heard.value = `${name} vient d'apparaître : appuie à nouveau.`))
+    const found = await detectInput(controller.signal, (name) => (heard.value = t('programs.appeared', { device: name })))
     form.value.input = found.key
-    heard.value = `${inputName(found.key)} sur ${found.device}`
+    heard.value = t('editor.identify.found', { input: inputName(found.key), device: found.device })
   } catch (e) {
     if ((e as Error).name !== 'AbortError') heard.value = (e as Error).message
   } finally {
@@ -152,21 +153,20 @@ onBeforeUnmount(stopListening)
 </script>
 
 <template>
-  <Dialog v-model:visible="visible" modal header="Autres logiciels sur ce périphérique" :style="{ width: 'min(700px, 94vw)' }" @hide="reset">
+  <Dialog v-model:visible="visible" modal :header="t('programs.title')" :style="{ width: 'min(700px, 94vw)' }" @hide="reset">
     <div class="form">
       <p class="intro">
-        Les boutons que d'autres logiciels utilisent s'affichent sur les pages à côté des commandes DCS, chacun dans sa couleur.
-        SRS et VectorXR sont lus directement ; les autres se saisissent ici.
+        {{ t('programs.intro') }}
       </p>
 
       <label class="field" for="srs-profile">
-        <span class="eyebrow">Profil SRS pour {{ store.profile.value?.display_name ?? profileName }}</span>
+        <span class="eyebrow">{{ t('programs.srs.label', { module: store.profile.value?.display_name ?? profileName }) }}</span>
         <Select v-if="state.programs?.srs.profiles.length" input-id="srs-profile" v-model="srsChoice" :options="srsOptions" option-label="label" option-value="value" />
-        <small v-else>SRS introuvable : indique son dossier dans les réglages, onglet « Autres logiciels ».</small>
+        <small v-else>{{ t('programs.srs.missing') }}</small>
       </label>
 
       <section>
-        <h3 class="eyebrow">Lus dans SRS et VectorXR</h3>
+        <h3 class="eyebrow">{{ t('programs.read') }}</h3>
         <ul v-if="read.length" class="rows">
           <li v-for="(b, i) in read" :key="i">
             <span class="tag" :style="{ background: store.programStyles.value.get(b.program)?.color }">{{ store.programStyles.value.get(b.program)?.tag }}</span>
@@ -174,31 +174,31 @@ onBeforeUnmount(stopListening)
             <span class="action">{{ b.action }}</span>
           </li>
         </ul>
-        <p v-else class="intro">Rien sur ce périphérique.</p>
+        <p v-else class="intro">{{ t('programs.nothing') }}</p>
       </section>
 
       <section>
-        <h3 class="eyebrow">Saisis à la main</h3>
+        <h3 class="eyebrow">{{ t('programs.manual') }}</h3>
         <ul v-if="mine.length" class="rows">
           <li v-for="b in mine" :key="b.index" :class="{ current: editing === b.index }">
             <span class="tag" :style="{ background: store.programStyles.value.get(b.program)?.color }">{{ store.programStyles.value.get(b.program)?.tag }}</span>
             <span class="input">{{ inputName(b.input) }}</span>
             <span class="action">{{ b.program }} · {{ b.action }}</span>
-            <Button size="small" text icon="pi pi-pencil" aria-label="Modifier" @click="edit(b.index)" />
-            <Button size="small" text severity="danger" icon="pi pi-trash" aria-label="Supprimer" @click="remove(b.index)" />
+            <Button size="small" text icon="pi pi-pencil" :aria-label="t('preview.edit')" @click="edit(b.index)" />
+            <Button size="small" text severity="danger" icon="pi pi-trash" :aria-label="t('editor.remove')" @click="remove(b.index)" />
           </li>
         </ul>
 
         <form class="entry" @submit.prevent="save">
           <label class="field">
-            <span class="eyebrow">Logiciel</span>
+            <span class="eyebrow">{{ t('programs.program') }}</span>
             <InputText v-model="form.program" list="known-programs" placeholder="VoiceAttack" size="small" />
             <datalist id="known-programs">
               <option v-for="p in store.programNames.value" :key="p" :value="p" />
             </datalist>
           </label>
           <label class="field">
-            <span class="eyebrow">Bouton</span>
+            <span class="eyebrow">{{ t('programs.button') }}</span>
             <div class="with-button">
               <Select v-model="form.input" :options="inputOptions" option-label="label" option-value="value" editable size="small" class="input-select" placeholder="JOY_BTN…" />
               <Button
@@ -206,20 +206,20 @@ onBeforeUnmount(stopListening)
                 size="small"
                 severity="secondary"
                 :icon="listening ? 'pi pi-stop' : 'pi pi-bullseye'"
-                :label="listening ? 'Arrêter' : 'Identifier'"
+                :label="listening ? t('progress.stop') : t('programs.identify')"
                 @click="listening ? stopListening() : identify()"
               />
             </div>
             <small v-if="heard">{{ heard }}</small>
           </label>
           <label class="field">
-            <span class="eyebrow">Action</span>
-            <InputText v-model="form.action" placeholder="Écoute micro" size="small" />
+            <span class="eyebrow">{{ t('programs.action') }}</span>
+            <InputText v-model="form.action" :placeholder="t('programs.action_example')" size="small" />
           </label>
           <p v-if="error" class="error">{{ error }}</p>
           <div class="actions">
-            <Button v-if="editing !== null" type="button" size="small" text label="Annuler" @click="reset" />
-            <Button type="submit" size="small" :icon="editing === null ? 'pi pi-plus' : 'pi pi-check'" :label="editing === null ? 'Ajouter' : 'Enregistrer'" />
+            <Button v-if="editing !== null" type="button" size="small" text :label="t('common.cancel')" @click="reset" />
+            <Button type="submit" size="small" :icon="editing === null ? 'pi pi-plus' : 'pi pi-check'" :label="editing === null ? t('programs.add') : t('common.save')" />
           </div>
         </form>
       </section>

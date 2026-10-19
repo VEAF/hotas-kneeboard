@@ -4,6 +4,7 @@ import type { Box } from '../lib/types'
 import { inputName } from '../render/inputs'
 import { addInput, boxOf, clamp, editor, remember, round, setBox, type Selection } from './state'
 import { sortedKeys } from './catalog'
+import { t } from '../lib/i18n'
 
 const props = defineProps<{ placing: string | null }>()
 const emit = defineEmits<{ placed: [] }>()
@@ -141,7 +142,7 @@ defineExpose({ svg })
     <g v-for="(x, index) in draft.split_at" :key="`split-${index}`" class="split" @pointerdown="startSplitDrag($event, index)">
       <rect :x="x - 8" y="0" width="16" :height="draft.size[1]" class="split-grab" />
       <line :x1="x" y1="0" :x2="x" :y2="draft.size[1]" class="split-line" />
-      <text :x="x + 6" y="16" class="split-label">découpe des pages</text>
+      <text :x="x + 6" y="16" class="split-label">{{ t('editor.split.line') }}</text>
     </g>
     <g v-for="key in keys" :key="key" class="input" :class="{ current: editor.selection?.key === key }">
       <template v-for="(box, index) in [draft.inputs[key].box, ...(draft.inputs[key].more_boxes ?? [])]" :key="index">
@@ -156,7 +157,7 @@ defineExpose({ svg })
         <g class="box" :class="{ selected: isSelected(key, 'box', index) }" @pointerdown="startDrag($event, { key, part: 'box', index })">
           <rect :x="box[0]" :y="box[1]" :width="box[2]" :height="box[3]" rx="3" />
           <text :x="box[0] + 4" :y="box[1] + box[3] / 2 + labelSize(box) * 0.35" :font-size="labelSize(box)">
-            {{ inputName(key) }}<tspan v-if="index > 0" class="extra"> (case {{ index + 1 }})</tspan>
+            {{ inputName(key) }}<tspan v-if="index > 0" class="extra"> {{ t('editor.box_n', { n: index + 1 }) }}</tspan>
           </text>
           <rect
             v-if="isSelected(key, 'box', index)"

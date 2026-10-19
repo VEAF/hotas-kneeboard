@@ -11,6 +11,7 @@ import type { Page } from '../render/page'
 import type { LayerMode } from '../lib/types'
 import OtherProgramsDialog from './OtherProgramsDialog.vue'
 import BindingsDialog from './BindingsDialog.vue'
+import { t } from '../lib/i18n'
 
 const programsOpen = ref(false)
 const bindingsOpen = ref(false)
@@ -21,10 +22,10 @@ const pages = ref<Page[]>([])
 const error = ref('')
 const rendering = ref(false)
 
-const layerModes = [
-  { label: 'Même page', value: 'merge' },
-  { label: 'Par calque', value: 'split' },
-]
+const layerModes = computed(() => [
+  { label: t('preview.layers.merge'), value: 'merge' },
+  { label: t('preview.layers.split'), value: 'split' },
+])
 
 // --- zoom: the page fits the space it has, unless the user zooms -------------------------------
 const stage = ref<HTMLElement | null>(null)
@@ -33,10 +34,10 @@ type Zoom = 'fit' | 'width' | number
 // JSON: a zoom factor must come back as a number, not as the text of one
 const zoom = useLocalStorage<Zoom>('hotas-kneeboard-zoom', 'fit', { serializer: StorageSerializers.object })
 const CAPTION = 22
-const zoomModes = [
-  { icon: 'pi pi-arrows-alt', value: 'fit', tip: 'Page entière' },
-  { icon: 'pi pi-arrows-h', value: 'width', tip: 'Toute la largeur' },
-]
+const zoomModes = computed(() => [
+  { icon: 'pi pi-arrows-alt', value: 'fit', tip: t('preview.zoom.fit') },
+  { icon: 'pi pi-arrows-h', value: 'width', tip: t('preview.zoom.width') },
+])
 const zoomMode = computed({
   get: () => (typeof zoom.value === 'number' ? null : zoom.value),
   set: (value) => value && (zoom.value = value),
@@ -95,15 +96,15 @@ const zoomLabel = computed(() => {
 // PrimeVue's Select shows an empty string as "nothing selected": "no template" needs a value
 const NO_TEMPLATE = '-'
 const AUTOMATIC = '*'
-const templateName = (id: string | null | undefined) => state.templates.find((t) => t.id === id)?.name
+const templateName = (id: string | null | undefined) => state.templates.find((x) => x.id === id)?.name
 /** The template the device's DCS name matches, if any */
 const autoName = computed(() => templateName(store.device.value?.auto_template_id))
 
 const templateOptions = computed(() => [
   // the way back to the automatic match, which a choice by hand hides
-  { label: `Automatique : ${autoName.value ?? 'page liste, aucun gabarit reconnu'}`, value: AUTOMATIC },
-  { label: 'Aucun : page liste', value: NO_TEMPLATE },
-  ...[...state.templates].sort((a, b) => a.name.localeCompare(b.name)).map((t) => ({ label: t.name, value: t.id })),
+  { label: t('preview.template.automatic', { name: autoName.value ?? t('preview.template.automatic_none') }), value: AUTOMATIC },
+  { label: t('preview.template.none'), value: NO_TEMPLATE },
+  ...[...state.templates].sort((a, b) => a.name.localeCompare(b.name)).map((x) => ({ label: x.name, value: x.id })),
 ])
 
 /** The template the page uses */
@@ -120,7 +121,7 @@ const selection = computed({
   },
 })
 const selectionTitle = computed(() =>
-  templateId.value === NO_TEMPLATE ? 'Aucun gabarit : page liste' : (templateName(templateId.value) ?? ''),
+  templateId.value === NO_TEMPLATE ? t('preview.template.none_title') : (templateName(templateId.value) ?? ''),
 )
 
 const layerMode = computed({
@@ -128,11 +129,9 @@ const layerMode = computed({
   set: (value: LayerMode) => value && store.changeSettings({ layer_mode: value }),
 })
 
-const UNCHECKED_HINT =
-  "La numérotation de ce gabarit n'a pas encore été vérifiée sur le vrai périphérique : une commande peut tomber sur la mauvaise case. Modifier le gabarit, puis « Vérifier » : appuie sur chaque bouton."
 /** A library template whose numbering nobody checked on the real device yet */
 const unchecked = computed(() => {
-  const summary = state.templates.find((t) => t.id === templateId.value)
+  const summary = state.templates.find((x) => x.id === templateId.value)
   // a user's version in front of a bundled template is still unchecked unless marked so
   return !!summary && (!summary.user || !!summary.replaces_bundled) && !summary.checked
 })
@@ -146,7 +145,7 @@ const automatic = computed(() => {
 const manualHint = computed(() => {
   const d = store.device.value
   if (!d || automatic.value || !d.auto_template_id || templateId.value === d.auto_template_id) return null
-  return `Choisi à la main, pour ce périphérique dans tous les modules. Le gabarit reconnu par son nom est « ${autoName.value} » : clique pour y revenir.`
+  return t('preview.template.manual_tip', { name: autoName.value })
 })
 
 /** The editor, on this device's template (or a new one for it) */
@@ -206,35 +205,35 @@ watch(
 </script>
 
 <template>
-  <section class="col page-col" aria-label="Page">
+  <section class="col page-col" :aria-label="t('preview.title')">
     <header class="pagehead">
       <div class="title">
-        <h2>{{ store.device.value?.name ?? 'Aucun périphérique' }}</h2>
-        <span v-if="store.device.value?.source === 'diff'" class="pill warn" v-tooltip.bottom="'Seules les modifications enregistrées dans Saved Games sont connues : défauts du module absents.'">
-          {{ store.device.value.error === 'module not installed' ? 'module non installé' : 'pas de profil de base' }}
+        <h2>{{ store.device.value?.name ?? t('preview.no_device') }}</h2>
+        <span v-if="store.device.value?.source === 'diff'" class="pill warn" v-tooltip.bottom="t('preview.diff_only_tip')">
+          {{ store.device.value.error === 'module not installed' ? t('modules.not_installed') : t('preview.no_base_profile') }}
         </span>
         <span
           v-else-if="store.device.value?.error === 'path too long'"
           class="pill warn"
-          v-tooltip.bottom="'Le chemin de son fichier de commandes dépasse 260 caractères : l\'interpréteur de DCS ne peut pas le lire, la page montre les défauts du module. Un dossier Saved Games plus court règle le problème.'"
-        >chemin trop long</span>
+          v-tooltip.bottom="t('preview.path_too_long_tip')"
+        >{{ t('preview.path_too_long') }}</span>
         <span
           v-if="store.device.value?.inactive_modifiers.length"
           class="pill warn"
           v-tooltip.bottom="inactiveHint(store.device.value.inactive_modifiers)"
-        >modificateur inactif</span>
+        >{{ t('devices.pill.inactive_modifier') }}</span>
         <span
           v-if="unchecked"
           class="pill warn"
-          v-tooltip.bottom="UNCHECKED_HINT"
-        >numérotation non vérifiée</span>
+          v-tooltip.bottom="t('preview.unchecked_tip')"
+        >{{ t('preview.unchecked') }}</span>
       </div>
       <div v-if="store.device.value" class="controls">
         <label class="ctl">
           <span class="eyebrow">
-            Gabarit<template v-if="automatic && templateId !== NO_TEMPLATE"> auto</template>
+            {{ t('preview.template.label') }}<template v-if="automatic && templateId !== NO_TEMPLATE">{{ ' ' + t('preview.template.auto') }}</template>
             <button v-if="manualHint" type="button" class="pill warn manual" v-tooltip.bottom="manualHint" @click="selection = AUTOMATIC">
-              choix manuel
+              {{ t('preview.template.manual') }}
             </button>
           </span>
           <Select
@@ -246,35 +245,35 @@ watch(
             filter
             size="small"
             class="tpl-select"
-            aria-label="Gabarit du périphérique"
+            :aria-label="t('preview.template.aria')"
           />
         </label>
         <Button
           size="small"
           severity="secondary"
           icon="pi pi-pencil"
-          :label="templateId === NO_TEMPLATE ? 'Créer' : 'Modifier'"
-          v-tooltip.bottom="templateId === NO_TEMPLATE ? 'Créer un gabarit pour ce périphérique' : 'Modifier le gabarit dans l\'éditeur'"
+          :label="templateId === NO_TEMPLATE ? t('preview.create') : t('preview.edit')"
+          v-tooltip.bottom="templateId === NO_TEMPLATE ? t('preview.create_tip') : t('preview.edit_tip')"
           @click="editTemplate"
         />
         <Button
           size="small"
           severity="secondary"
           icon="pi pi-th-large"
-          label="Autres logiciels"
-          v-tooltip.bottom="'Boutons utilisés par SRS, VectorXR ou un logiciel saisi à la main'"
+          :label="t('settings.tab.programs')"
+          v-tooltip.bottom="t('preview.programs_tip')"
           @click="programsOpen = true"
         />
         <Button
           size="small"
           severity="secondary"
           icon="pi pi-list"
-          label="Liaisons"
-          v-tooltip.bottom="'Toutes les liaisons de ce périphérique dans ce module, pour en retirer de DCS'"
+          :label="t('preview.bindings')"
+          v-tooltip.bottom="t('preview.bindings_tip')"
           @click="bindingsOpen = true"
         />
         <label class="ctl">
-          <span class="eyebrow">Calques</span>
+          <span class="eyebrow">{{ t('preview.layers.label') }}</span>
           <SelectButton
             v-model="layerMode"
             :options="layerModes"
@@ -282,7 +281,7 @@ watch(
             option-value="value"
             :allow-empty="false"
             size="small"
-            aria-label="Affichage des calques"
+            :aria-label="t('preview.layers.aria')"
           />
         </label>
       </div>
@@ -292,21 +291,21 @@ watch(
     <div class="stage-wrap">
       <div ref="stage" class="stage" :class="{ single: pages.length === 1, paired: columns === 2 }" @wheel="onWheel">
         <ProgressSpinner v-if="rendering && !pages.length" style="width: 40px; height: 40px" />
-        <p v-if="error" class="stage-error">Page impossible à construire : {{ error }}</p>
+        <p v-if="error" class="stage-error">{{ t('preview.failed', { error }) }}</p>
         <figure v-for="(page, i) in pages" :key="i" class="sheet" :style="{ width: `${sheetWidth(page)}px` }">
           <figcaption v-if="pages.length > 1">{{ page.title }}</figcaption>
           <div class="paper" v-html="page.svg" />
         </figure>
       </div>
       <div v-if="pages.length" class="zoom" role="group" aria-label="Zoom">
-        <SelectButton v-model="zoomMode" :options="zoomModes" option-value="value" data-key="value" size="small" :allow-empty="false" aria-label="Ajustement de la page">
+        <SelectButton v-model="zoomMode" :options="zoomModes" option-value="value" data-key="value" size="small" :allow-empty="false" :aria-label="t('preview.zoom.aria')">
           <template #option="{ option }">
             <i :class="option.icon" v-tooltip.top="option.tip" :aria-label="option.tip" />
           </template>
         </SelectButton>
-        <Button size="small" text icon="pi pi-minus" aria-label="Zoom arrière" v-tooltip.top="'Zoom arrière (Ctrl+molette)'" @click="zoomBy(1 / 1.2)" />
+        <Button size="small" text icon="pi pi-minus" :aria-label="t('preview.zoom.out')" v-tooltip.top="t('preview.zoom.out_tip')" @click="zoomBy(1 / 1.2)" />
         <span class="zoom-value">{{ zoomLabel }}</span>
-        <Button size="small" text icon="pi pi-plus" aria-label="Zoom avant" v-tooltip.top="'Zoom avant (Ctrl+molette)'" @click="zoomBy(1.2)" />
+        <Button size="small" text icon="pi pi-plus" :aria-label="t('preview.zoom.in')" v-tooltip.top="t('preview.zoom.in_tip')" @click="zoomBy(1.2)" />
       </div>
     </div>
   </section>

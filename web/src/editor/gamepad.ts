@@ -4,6 +4,7 @@
 // Hats are not reported the same way by every browser: they are left to manual entry.
 
 import { AXES } from './catalog'
+import { t } from '../lib/i18n'
 
 export interface Detected {
   key: string
@@ -29,7 +30,7 @@ export function gamepadSupported(): boolean {
 export function detectInput(signal: AbortSignal, onAppear?: (device: string) => void): Promise<Detected> {
   return new Promise((resolve, reject) => {
     if (!gamepadSupported()) {
-      reject(new Error("Ce navigateur ne donne pas accès aux manettes (Gamepad API)."))
+      reject(new Error(t('editor.no_gamepad_api')))
       return
     }
     const baselines = new Map<string, Baseline>()
@@ -41,7 +42,7 @@ export function detectInput(signal: AbortSignal, onAppear?: (device: string) => 
     const stop = () => cancelAnimationFrame(frame)
     signal.addEventListener('abort', () => {
       stop()
-      reject(new DOMException('écoute arrêtée', 'AbortError'))
+      reject(new DOMException('listening stopped', 'AbortError'))
     })
     const poll = () => {
       for (const pad of navigator.getGamepads()) {

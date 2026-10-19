@@ -10,6 +10,7 @@ import { api } from '../lib/api'
 import { useStore } from '../lib/store'
 import type { DcsBackup, DeviceBinding, DeviceBindingsResponse } from '../lib/types'
 import { compareInputs, inputName } from '../render/inputs'
+import { t, tn } from '../lib/i18n'
 
 const visible = defineModel<boolean>('visible', { required: true })
 const store = useStore()
@@ -22,27 +23,17 @@ const filter = ref('')
 const picked = ref<Set<string>>(new Set())
 const confirming = ref(false)
 const busy = ref(false)
-/** The last removal, which Annuler undoes by restoring the backup made just before it */
+/** The last removal, which Undo undoes by restoring the backup made just before it */
 const done = ref<{ removed: number; backup: DcsBackup } | null>(null)
 
+// label and hint: catalog keys
 const ORIGINS = {
-  user: { label: 'ta config', class: 'ok', hint: "Tu l'as posée dans l'écran des commandes de DCS." },
-  device: {
-    label: 'défaut pour ce périphérique',
-    class: '',
-    hint: 'Le module la prévoit pour ce périphérique précis.',
-  },
-  generic: {
-    label: 'défaut générique',
-    class: 'warn',
-    hint: "Le module n'a rien prévu pour ce périphérique : DCS lui donne ce qu'il donne à n'importe quel joystick (la gâchette canon sur le bouton 1…). Souvent à retirer.",
-  },
+  user: { label: 'bindings.origin.user', class: 'ok', hint: 'bindings.origin.user_tip' },
+  device: { label: 'bindings.origin.device', class: '', hint: 'bindings.origin.device_tip' },
+  generic: { label: 'bindings.origin.generic', class: 'warn', hint: 'bindings.origin.generic_tip' },
 } as const
-
-const UNKNOWN_HINT =
-  "Le numéro de cette commande de DCS est inconnu de l'application : elle ne saurait pas écrire son retrait comme le jeu. Retire-la dans l'écran des commandes de DCS."
 const id = (b: DeviceBinding) => `${b.kind}|${b.hash}|${b.key}|${b.reformers.join('+')}`
-const modifier = (b: DeviceBinding) => b.reformers.map(inputName).join(' + ')
+const modifier = (b: DeviceBinding) => b.reformers.map((r) => inputName(r)).join(' + ')
 
 const rows = computed(() => {
   const q = filter.value.trim().toLowerCase()
@@ -98,13 +89,13 @@ async function remove() {
     if (result.removed < result.asked) {
       toast.add({
         severity: 'warn',
-        summary: `${result.removed} liaison(s) retirée(s) sur ${result.asked}`,
-        detail: 'Les autres n\'étaient plus dans les fichiers de DCS.',
+        summary: t('bindings.partial', { removed: result.removed, asked: result.asked }),
+        detail: t('bindings.partial_detail'),
         life: 8000,
       })
     }
   } catch (e) {
-    toast.add({ severity: 'error', summary: 'Retrait impossible', detail: (e as Error).message, life: 10000 })
+    toast.add({ severity: 'error', summary: t('dcs.remove_failed'), detail: (e as Error).message, life: 10000 })
   } finally {
     busy.value = false
   }
@@ -117,9 +108,9 @@ async function undo() {
     await api.restoreDcsBackup(done.value.backup.id)
     done.value = null
     await Promise.all([load(), store.load(true)])
-    toast.add({ severity: 'success', summary: 'Retrait annulé', detail: 'Les commandes de DCS sont revenues à leur état d\'avant.', life: 5000 })
+    toast.add({ severity: 'success', summary: t('dcs.undo.done'), detail: t('dcs.undo.detail'), life: 5000 })
   } catch (e) {
-    toast.add({ severity: 'error', summary: 'Annulation impossible', detail: (e as Error).message, life: 10000 })
+    toast.add({ severity: 'error', summary: t('dcs.undo.failed'), detail: (e as Error).message, life: 10000 })
   } finally {
     busy.value = false
   }
@@ -130,31 +121,30 @@ async function undo() {
   <Dialog
     v-model:visible="visible"
     modal
-    :header="`Liaisons : ${store.device.value?.name ?? ''}`"
+    :header="t('bindings.title', { device: store.device.value?.name ?? '' })"
     :style="{ width: 'min(760px, 96vw)' }"
   >
     <p class="where">
-      {{ store.profile.value?.display_name }} · coche ce que tu veux retirer de DCS.
-      DCS doit être fermé ; tout le dossier des commandes est sauvegardé avant.
+      {{ store.profile.value?.display_name }} · {{ t('bindings.intro') }}
     </p>
 
     <div v-if="done" class="done" role="status">
       <i class="pi pi-check-circle" />
-      <span>{{ done.removed }} liaison{{ done.removed > 1 ? 's' : '' }} retirée{{ done.removed > 1 ? 's' : '' }} de DCS.</span>
-      <Button label="Annuler" size="small" severity="secondary" outlined :loading="busy" @click="undo" />
+      <span>{{ tn('bindings.done', done.removed) }}</span>
+      <Button :label="t('bindings.undo')" size="small" severity="secondary" outlined :loading="busy" @click="undo" />
     </div>
 
     <div v-if="loading" class="center"><ProgressSpinner style="width: 32px; height: 32px" /></div>
     <p v-else-if="error" class="error" role="alert">{{ error }}</p>
     <template v-else-if="data">
       <p v-if="!data.editable" class="error">
-        Ce module n'est pas installé : sans ses défauts, ses liaisons ne peuvent pas être recalculées.
+        {{ t('bindings.not_installed') }}
       </p>
-      <InputText v-model="filter" size="small" placeholder="Filtrer : bouton, commande…" fluid aria-label="Filtrer les liaisons" />
+      <InputText v-model="filter" size="small" :placeholder="t('bindings.filter')" fluid :aria-label="t('bindings.filter_aria')" />
       <div class="table">
         <table>
           <thead>
-            <tr><th /><th>Entrée</th><th>Modificateur</th><th>Commande</th><th>Origine</th></tr>
+            <tr><th /><th>{{ t('bindings.col.input') }}</th><th>{{ t('bindings.col.modifier') }}</th><th>{{ t('bindings.col.command') }}</th><th>{{ t('bindings.col.origin') }}</th></tr>
           </thead>
           <tbody>
             <tr v-for="b in rows" :key="id(b)" :class="{ on: picked.has(id(b)), fixed: !b.removable }" @click="data.editable && b.removable && toggle(b, !picked.has(id(b)))">
@@ -163,8 +153,8 @@ async function undo() {
                   :model-value="picked.has(id(b))"
                   binary
                   :disabled="!data.editable || !b.removable"
-                  v-tooltip.right="b.removable ? undefined : UNKNOWN_HINT"
-                  :aria-label="`Retirer ${b.command} de ${inputName(b.key)}`"
+                  v-tooltip.right="b.removable ? undefined : t('bindings.unknown_tip')"
+                  :aria-label="t('bindings.remove_of', { command: b.command, input: inputName(b.key) })"
                   @update:model-value="(on: boolean) => toggle(b, on)"
                 />
               </td>
@@ -172,27 +162,27 @@ async function undo() {
               <td>{{ modifier(b) }}</td>
               <td>{{ b.command }}</td>
               <td>
-                <span class="pill" :class="ORIGINS[b.origin].class" v-tooltip.left="ORIGINS[b.origin].hint">{{ ORIGINS[b.origin].label }}</span>
+                <span class="pill" :class="ORIGINS[b.origin].class" v-tooltip.left="t(ORIGINS[b.origin].hint)">{{ t(ORIGINS[b.origin].label) }}</span>
               </td>
             </tr>
           </tbody>
         </table>
-        <p v-if="!rows.length" class="empty">Aucune liaison{{ filter ? ' ne correspond' : '' }}.</p>
+        <p v-if="!rows.length" class="empty">{{ filter ? t('bindings.none_match') : t('bindings.none') }}</p>
       </div>
     </template>
 
     <template #footer>
       <template v-if="confirming">
         <span class="confirm">
-          Retirer {{ chosen.length }} liaison{{ chosen.length > 1 ? 's' : '' }} de {{ store.profile.value?.display_name }} ?
+          {{ tn('bindings.confirm', chosen.length, { module: store.profile.value?.display_name }) }}
         </span>
-        <Button label="Retour" severity="secondary" text :disabled="busy" @click="confirming = false" />
-        <Button label="Retirer" severity="danger" icon="pi pi-trash" :loading="busy" @click="remove" />
+        <Button :label="t('bindings.back')" severity="secondary" text :disabled="busy" @click="confirming = false" />
+        <Button :label="t('dcs.remove')" severity="danger" icon="pi pi-trash" :loading="busy" @click="remove" />
       </template>
       <template v-else>
-        <Button label="Fermer" severity="secondary" text @click="visible = false" />
+        <Button :label="t('common.close')" severity="secondary" text @click="visible = false" />
         <Button
-          :label="`Supprimer (${chosen.length})`"
+          :label="t('bindings.delete', { n: chosen.length })"
           severity="danger"
           icon="pi pi-trash"
           :disabled="!chosen.length || busy"

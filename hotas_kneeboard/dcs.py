@@ -7,6 +7,7 @@ from collections.abc import Callable
 from pathlib import Path
 
 from .engine import DCS_INTERPRETER, REGISTRY_ROOT, detect_dcs_install_dir
+from .i18n import t
 
 # FOLDERID_SavedGames
 SAVED_GAMES_FOLDER_ID = "{4C5C32FF-BB9D-43B0-B5B4-2D72E54EAAA4}"
@@ -65,15 +66,13 @@ def resolve_dirs(
     saved = Path(saved_override) if saved_override else detect_saved_games_dir()
     problems = []
     if install is None:
-        problems.append("Installation de DCS introuvable : indique-la dans les réglages")
+        problems.append(t("dcs.install_missing"))
     elif not own_interpreter and not (install / DCS_INTERPRETER).is_file():
-        problems.append(
-            f"Pas de {DCS_INTERPRETER.as_posix()} dans {install} : ce n'est pas une installation de DCS"
-        )
+        problems.append(t("dcs.not_install", file=DCS_INTERPRETER.as_posix(), folder=install))
     if saved is None:
-        problems.append("Dossier Saved Games de DCS introuvable : indique-le dans les réglages")
+        problems.append(t("dcs.saved_games_missing"))
     elif not (saved / "Config" / "Input").is_dir():
-        problems.append(f"Pas de Config/Input dans {saved} : ce n'est pas le dossier Saved Games de DCS")
+        problems.append(t("dcs.not_saved_games", folder=saved))
     return {
         "install_dir": str(install) if install else None,
         "install_detected": not install_override,

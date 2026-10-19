@@ -1,5 +1,7 @@
 // How inputs and layers are named on a page.
 
+import { lang, tIn, type Lang } from '../lib/i18n'
+
 const HAT_ARROWS: Record<string, string> = {
   U: '↑',
   UR: '↗',
@@ -12,13 +14,14 @@ const HAT_ARROWS: Record<string, string> = {
 }
 const HAT_ORDER = Object.keys(HAT_ARROWS)
 
-/** "JOY_BTN14" -> "Bouton 14", "JOY_BTN_POV1_U" -> "Hat 1 ↑", "JOY_RZ" -> "Axe RZ" */
-export function inputName(key: string): string {
+/** "JOY_BTN14" -> "Bouton 14" / "Button 14", "JOY_BTN_POV1_U" -> "Hat 1 ↑", "JOY_RZ" -> "Axe RZ" /
+ * "Axis RZ"; in the interface's language unless told (a page speaks the commands' language) */
+export function inputName(key: string, language: Lang = lang.value): string {
   let m: RegExpMatchArray | null
-  if ((m = key.match(/^JOY_BTN_POV(\d+)_([A-Z]+)$/))) return `Hat ${m[1]} ${HAT_ARROWS[m[2]] ?? m[2]}`
-  if ((m = key.match(/^JOY_BTN(\d+)$/))) return `Bouton ${m[1]}`
-  if ((m = key.match(/^JOY_SLIDER(\d+)$/))) return `Curseur ${m[1]}`
-  if ((m = key.match(/^JOY_(R?[XYZ])$/))) return `Axe ${m[1]}`
+  if ((m = key.match(/^JOY_BTN_POV(\d+)_([A-Z]+)$/))) return tIn(language, 'input.hat', { n: m[1], direction: HAT_ARROWS[m[2]] ?? m[2] })
+  if ((m = key.match(/^JOY_BTN(\d+)$/))) return tIn(language, 'input.button', { n: m[1] })
+  if ((m = key.match(/^JOY_SLIDER(\d+)$/))) return tIn(language, 'input.slider', { n: m[1] })
+  if ((m = key.match(/^JOY_(R?[XYZ])$/))) return tIn(language, 'input.axis', { n: m[1] })
   return key
 }
 
@@ -66,6 +69,6 @@ export function layerColor(index: number): string {
   return LAYER_COLORS[index % LAYER_COLORS.length]
 }
 
-export function layerLabel(layer: string): string {
-  return layer === BASE_LAYER ? 'base' : layer
+export function layerLabel(layer: string, language: Lang = lang.value): string {
+  return layer === BASE_LAYER ? tIn(language, 'page.base_layer') : layer
 }

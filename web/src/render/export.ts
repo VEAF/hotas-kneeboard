@@ -6,6 +6,7 @@ import latinExt600 from '@fontsource/barlow-condensed/files/barlow-condensed-lat
 import latin700 from '@fontsource/barlow-condensed/files/barlow-condensed-latin-700-normal.woff2?inline'
 import latinExt700 from '@fontsource/barlow-condensed/files/barlow-condensed-latin-ext-700-normal.woff2?inline'
 import type { Page } from './page'
+import { t } from '../lib/i18n'
 
 /** The label font, embedded: an SVG drawn as an image cannot use the page's fonts */
 export const FONT_CSS = [
@@ -24,7 +25,7 @@ function loadImage(url: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const image = new Image()
     image.onload = () => resolve(image)
-    image.onerror = () => reject(new Error('page impossible à dessiner'))
+    image.onerror = () => reject(new Error(t('export.page_failed')))
     image.src = url
   })
 }
