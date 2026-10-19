@@ -18,7 +18,7 @@ Même organisation que VEAF-Mission-Creation-Tools (VMCT), avec des tickets GitH
 
 - `develop` est la branche par défaut et reçoit le travail ; `main` ne reçoit que des releases.
 - Un lot = une branche `feature/<LOT-ID>`, `fix/<LOT-ID>` ou `chore/<LOT-ID>` créée depuis `develop`, **une seule PR** vers `develop` pour tout le lot, qui ferme ses tickets et le lot (`Closes #…`).
-- Une release = une PR de `develop` vers `main`, qui monte la version dans `pyproject.toml` et `hotas_kneeboard/__init__.py` (les deux doivent être égales), passe la section `[Unreleased]` de `CHANGELOG.md` sous le numéro de version, et réécrit `RELEASE_NOTES.md` (titre `# HOTAS Kneeboard — X.Y.Z`, en français, pour les pilotes, sur le modèle de VMCT ; à faire valider par David). À la fusion, `.github/workflows/release.yml` construit l'exe sous Windows et publie la release `vX.Y.Z` ; une fusion sans changement de version ne publie rien.
+- Une release = une PR de `develop` vers `main`, qui monte la version dans `pyproject.toml` et `hotas_kneeboard/__init__.py` (les deux doivent être égales), passe la section `[Unreleased]` de `CHANGELOG.md` sous le numéro de version, refait les captures de la doc si l'interface a changé (`scripts/doc_screenshots.py`), et réécrit `RELEASE_NOTES.md` (titre `# HOTAS Kneeboard — X.Y.Z`, en français, pour les pilotes, sur le modèle de VMCT ; à faire valider par David). À la fusion, `.github/workflows/release.yml` construit l'exe sous Windows et publie la release `vX.Y.Z` ; une fusion sans changement de version ne publie rien.
 - La CI (`ci.yml`) tourne sur chaque PR et sur les poussées vers `develop` et `main`.
 
 ## Démarche par défaut
@@ -66,7 +66,7 @@ Pour chaque demande, dans l'ordre :
   - `kneeboard.py` : écriture des PNG dans `Saved Games/DCS/Kneeboard/<type d'unité>/`, fichiers `HOTAS - <profil> - <nn> <titre>.png` ; un export ne remplace que les pages du même profil (deux postes d'un avion partagent le dossier).
   - `app.py` : n'accepte que les hôtes `127.0.0.1`/`localhost` et refuse les écritures d'une autre origine (DNS rebinding).
 - `web/` : l'interface Vue 3 + TypeScript + Vite + PrimeVue + VueUse. `src/render/` construit les pages en SVG (affichage, PNG et PDF partent du même SVG). `src/editor/` : l'éditeur de gabarit (état et historique annuler/rétablir dans `state.ts`, écoute des manettes dans `gamepad.ts`). `npm run build` écrit dans `hotas_kneeboard/web/` (ignoré par git).
-- `scripts/convert_jd_templates.py` + `jd_templates.json` : conversion des SVG draw.io de Joystick Diagrams. `scripts/compare_make_html.py` : comparaison des pages avec l'export MAKE HTML de DCS.
+- `scripts/convert_jd_templates.py` + `jd_templates.json` : conversion des SVG draw.io de Joystick Diagrams. `scripts/compare_make_html.py` : comparaison des pages avec l'export MAKE HTML de DCS. `scripts/doc_screenshots.py` : les captures de `docs/images/`, prises dans l'application en lecture seule (marche à suivre dans `docs/developpement.md`).
 - `packaging/` : `.exe` PyInstaller (`build.ps1`).
 
 ## Commandes

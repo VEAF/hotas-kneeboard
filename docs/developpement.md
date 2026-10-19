@@ -146,6 +146,27 @@ Voir le site en local, rechargé à chaque modification :
 uv run --group docs mkdocs serve
 ```
 
+### Les captures d'écran
+
+Les images de `docs/images/` sont prises dans l'application elle-même par `scripts/doc_screenshots.py`, qui pilote l'Edge installé avec Playwright.
+Le script ne fait que regarder : il ouvre les écrans et les fenêtres, lance les aperçus (« Chercher »), et ne clique sur rien qui écrive dans DCS.
+Il coche quand même le palonnier dans « Périphériques sans boutons », ce qui écrit les réglages de l'application : on le lance donc sur une application démarrée avec un `HOTAS_KNEEBOARD_DATA` jetable, dans un premier terminal :
+
+```powershell
+$env:HOTAS_KNEEBOARD_DATA = "$env:TEMP\hk-shots"; uv run hotas-kneeboard --port 8654 --no-browser
+```
+
+puis, dans un second terminal :
+
+```powershell
+$env:HOTAS_KNEEBOARD_DATA = "$env:TEMP\hk-shots"; uv run --with playwright python scripts/doc_screenshots.py
+```
+
+- Les images montrent les périphériques du PC qui les prend : le script choisit l'A-10C II, le manche WinWing Orion et le palonnier T-Pendular ; ailleurs, changer `MODULE`, `STICK` et `RUDDER` en tête du script.
+- Le nom de l'utilisateur Windows et le dossier jetable sont remplacés à l'écran par ceux d'un pilote ordinaire (`C:\Users\Pilote`, `%APPDATA%\HOTAS Kneeboard`).
+- Des noms d'écran en argument (`ecran`, `editeur`…) ne reprennent que ceux-là.
+- Les captures se refont quand l'interface change, au plus tard dans la PR de release : relire chaque image avant de la committer.
+
 ## Lots, tickets, branches et releases
 
 Le suivi suit l'organisation de VEAF-Mission-Creation-Tools, avec des tickets GitHub à la place des fichiers de `.backlog/` ; le détail est dans [`docs/agents/issue-tracker.md`](https://github.com/VEAF/hotas-kneeboard/blob/develop/docs/agents/issue-tracker.md).
@@ -158,6 +179,7 @@ Le suivi suit l'organisation de VEAF-Mission-Creation-Tools, avec des tickets Gi
   Chaque lot ajoute ses entrées à la fin de `[Unreleased]` dans [`CHANGELOG.md`](https://github.com/VEAF/hotas-kneeboard/blob/develop/CHANGELOG.md), sans toucher à la version.
 - Une release, c'est une PR de `develop` vers `main` qui monte la version dans `pyproject.toml` et `hotas_kneeboard/__init__.py` (les deux doivent être égales) et passe `[Unreleased]` sous ce numéro.
   À la fusion, la CI construit l'exe sous Windows et publie la release `vX.Y.Z` ; une fusion sans changement de version ne publie rien.
+  Si l'interface a changé depuis la release précédente, la PR refait aussi les [captures d'écran](#les-captures-décran).
   Ses notes sont [`RELEASE_NOTES.md`](https://github.com/VEAF/hotas-kneeboard/blob/develop/RELEASE_NOTES.md), réécrit à chaque release comme pour VMCT : en français, pour les pilotes (ce qui change pour eux, pas la plomberie), le titre finissant par le numéro de version ; la CI refuse de publier si le titre ne porte pas la version, et ajoute sous le titre le lien vers la documentation de cette version.
 - La CI (tests Python et de l'interface) tourne sur chaque PR et sur chaque poussée vers `develop` et `main`.
 
