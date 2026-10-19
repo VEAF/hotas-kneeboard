@@ -19,7 +19,16 @@ from pydantic import BaseModel
 
 from . import __version__
 from .dcs import command_translator, resolve_dirs
-from .dcs_config import BackupNotFoundError, BackupStore, DcsConfigError, dcs_running, restore
+from .dcs_config import (
+    BackupNotFoundError,
+    BackupStore,
+    DcsConfigError,
+    dcs_running,
+    disabled_devices,
+    restore,
+    seen_devices,
+    set_device_disabled,
+)
 from .engine import EffectiveBindingsError, list_user_profiles, load_effective_bindings
 from .kneeboard import KneeboardError, write_pages
 from .pages import build_page, split_device_name
@@ -52,6 +61,11 @@ class TemplateSave(BaseModel):
     image: str  # base64
     # None: a new template, its id made from its name; else the user template to replace
     id: str | None = None
+
+
+class DeviceDisabled(BaseModel):
+    device: str  # full name, with its GUID
+    disabled: bool
 
 
 class TemplateImport(BaseModel):
@@ -97,6 +111,11 @@ class Bindings:
             _logger.error(f"engine failed: {error}")
             return {"profiles": [], "error": f"Lecture des liaisons impossible : {error}"}
         translate = command_translator(install, dirs["language"])
+        try:
+            disabled = {name.lower() for name in disabled_devices(install, saved, lua_interpreter)}
+        except DcsConfigError as error:
+            _logger.warning(f"disabled devices unknown: {error}")
+            disabled = set()
         profiles = []
         for name in names:
             entry = result["profiles"].get(name) or {"found": False, "devices": []}
@@ -109,6 +128,7 @@ class Bindings:
                     | {
                         "guid": split_device_name(page.full_name)[1],
                         "auto_template_id": template.id if template else None,
+                        "dcs_disabled": page.full_name.lower() in disabled,
                     }
                 )
             profiles.append(
@@ -333,6 +353,39 @@ def create_app(
             raise HTTPException(409, str(error)) from error
         bindings.invalidate()
         return {"restored": backup_id, "backup_before": before.as_dict()}
+
+    @app.get("/api/dcs-config/devices")
+    def dcs_devices() -> dict:
+        dirs = current_dirs()
+        if dirs["problems"]:
+            raise HTTPException(409, " ; ".join(dirs["problems"]))
+        install, saved = Path(dirs["install_dir"]), Path(dirs["saved_games_dir"])
+        try:
+            disabled = disabled_devices(install, saved, lua_interpreter)
+        except DcsConfigError as error:
+            raise HTTPException(422, str(error)) from error
+        return {"disabled": disabled, "seen": seen_devices(saved)}
+
+    @app.put("/api/dcs-config/devices/disabled")
+    def put_device_disabled(body: DeviceDisabled) -> dict:
+        dirs = current_dirs()
+        if dirs["problems"]:
+            raise HTTPException(409, " ; ".join(dirs["problems"]))
+        install, saved = Path(dirs["install_dir"]), Path(dirs["saved_games_dir"])
+        try:
+            backup = set_device_disabled(
+                install,
+                saved,
+                backups,
+                body.device,
+                body.disabled,
+                is_running=is_dcs_running,
+                lua_interpreter=lua_interpreter,
+            )
+        except DcsConfigError as error:
+            raise HTTPException(409, str(error)) from error
+        bindings.invalidate()
+        return {"backup": backup.as_dict()}
 
     if WEB_DIR.is_dir():
         app.mount("/", StaticFiles(directory=WEB_DIR, html=True), name="web")

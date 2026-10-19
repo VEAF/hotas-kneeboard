@@ -104,6 +104,14 @@ Le bouton à curseurs, en haut, ouvre la fenêtre **Commandes DCS** : ce que l'a
 - **Restaurer…** remet tes commandes exactement dans l'état de cette sauvegarde, pour tous les modules : les fichiers apparus depuis sont retirés.
   L'état d'avant la restauration est lui-même sauvegardé d'abord, en tête de liste : une restauration se défait en restaurant celle-là.
 
+### Désactiver un périphérique
+
+La liste **Périphériques désactivés dans DCS** reprend tous les périphériques connus : ceux configurés dans un module, et ceux que DCS a vus à son dernier lancement (« vu au dernier lancement de DCS », lu dans `Saved Games\DCS\Logs\dcs.log`).
+
+- L'interrupteur désactive le périphérique comme le bouton « Désactiver » de l'écran des commandes du jeu : DCS l'ignore dans tous les modules, et ses commandes sont gardées pour sa réactivation.
+- C'est utile pour un périphérique branché dont DCS n'a pas besoin : une manette Bluetooth, un vJoy.
+- Dans la liste des périphériques d'un module, un périphérique désactivé porte la pastille **désactivé**.
+
 ## Réglages
 
 La roue dentée, en haut, ouvre les réglages.

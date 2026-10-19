@@ -1,14 +1,15 @@
 <script setup lang="ts">
-// Changes to DCS's own controls files (Saved Games\DCS\Config\Input): the backups made before each
-// change, listed and restorable.
+// Changes to DCS's own controls files (Saved Games\DCS\Config\Input): devices disabled in DCS,
+// and the backups made before each change, listed and restorable.
 
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
+import ToggleSwitch from 'primevue/toggleswitch'
 import { useToast } from 'primevue/usetoast'
 import { api } from '../lib/api'
 import { useStore } from '../lib/store'
-import type { DcsBackupsResponse } from '../lib/types'
+import type { DcsBackupsResponse, DcsDevicesResponse } from '../lib/types'
 
 const visible = defineModel<boolean>('visible', { required: true })
 const store = useStore()
@@ -19,12 +20,47 @@ const error = ref('')
 const working = ref('') // '' | 'backup' | id of the backup being restored
 const confirming = ref<string | null>(null)
 
+const devices = ref<DcsDevicesResponse | null>(null)
+
+const devicesError = ref('')
+
 async function load() {
   error.value = ''
+  devicesError.value = ''
+  // apart: an unreadable disabled.lua must not hide the backups that can repair it
+  await Promise.all([
+    api.dcsBackups().then((r) => (data.value = r)).catch((e) => (error.value = (e as Error).message)),
+    api.dcsDevices().then((r) => (devices.value = r)).catch((e) => (devicesError.value = (e as Error).message)),
+  ])
+}
+
+const key = (fullName: string) => fullName.toLowerCase()
+/** Every device the app knows: configured in a module, disabled in DCS, or seen at DCS's last start */
+const knownDevices = computed(() => {
+  const byKey = new Map<string, { fullName: string; name: string; disabled: boolean; seen: boolean }>()
+  const add = (fullName: string) => {
+    if (!byKey.has(key(fullName))) byKey.set(key(fullName), { fullName, name: fullName.replace(/\s*\{[^}]*\}$/, ''), disabled: false, seen: false })
+    return byKey.get(key(fullName))!
+  }
+  for (const p of store.profiles.value) for (const d of p.devices) add(d.full_name)
+  for (const d of devices.value?.seen ?? []) add(d).seen = true
+  for (const d of devices.value?.disabled ?? []) add(d).disabled = true
+  return [...byKey.values()].sort((a, b) => a.name.localeCompare(b.name) || a.fullName.localeCompare(b.fullName))
+})
+const guid = (fullName: string) => fullName.match(/\{([^}]*)\}$/)?.[1] ?? ''
+
+async function setDisabled(fullName: string, disabled: boolean) {
+  working.value = `device:${fullName}`
   try {
-    data.value = await api.dcsBackups()
+    await api.setDeviceDisabled(fullName, disabled)
+    toast.add({ severity: 'success', summary: disabled ? 'Périphérique désactivé dans DCS' : 'Périphérique réactivé dans DCS', detail: fullName, life: 4000 })
+    await load()
+    await store.load(true)
   } catch (e) {
-    error.value = (e as Error).message
+    toast.add({ severity: 'error', summary: 'Modification impossible', detail: (e as Error).message, life: 10000 })
+    await load()
+  } finally {
+    working.value = ''
   }
 }
 
@@ -88,6 +124,29 @@ async function restore(id: string) {
       </p>
       <p v-if="error" class="warn" role="alert">{{ error }}</p>
 
+      <p v-if="devicesError" class="warn" role="alert">Périphériques désactivés illisibles : {{ devicesError }}</p>
+      <section v-if="devices">
+        <h3 class="eyebrow">Périphériques désactivés dans DCS</h3>
+        <p class="intro">
+          Un périphérique désactivé est ignoré par DCS, dans tous les modules ; ses commandes sont gardées et reviennent à la réactivation.
+          C'est le réglage « Désactiver » de l'écran des commandes du jeu.
+        </p>
+        <ul class="rows devices">
+          <li v-for="d in knownDevices" :key="d.fullName">
+            <span class="dev">
+              <span class="t">{{ d.name }}</span>
+              <span class="s">{{ guid(d.fullName) }}{{ d.seen ? ' · vu au dernier lancement de DCS' : '' }}</span>
+            </span>
+            <ToggleSwitch
+              :model-value="d.disabled"
+              :disabled="!!working || data?.dcs_running !== false"
+              :aria-label="`Désactiver ${d.name} dans DCS`"
+              @update:model-value="setDisabled(d.fullName, $event)"
+            />
+          </li>
+        </ul>
+      </section>
+
       <section>
         <div class="head">
           <h3 class="eyebrow">Sauvegardes</h3>
@@ -138,6 +197,10 @@ h3 { margin: 0; }
 .rows li:last-child { border-bottom: 0; }
 .when { font-variant-numeric: tabular-nums; }
 .reason { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink-2); }
+.devices li { grid-template-columns: minmax(0, 1fr) auto; }
+.dev { display: flex; flex-direction: column; min-width: 0; }
+.dev .t { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dev .s { font: 12px var(--f-mono); color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .act { display: flex; gap: 4px; justify-content: flex-end; }
 @media (max-width: 600px) { .rows li { grid-template-columns: 1fr auto; } .reason, .n { grid-column: 1; } }
 </style>

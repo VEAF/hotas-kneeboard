@@ -5,9 +5,11 @@ it saves its controls, and would overwrite ours), preceded by a zip of the whole
 app lists and restores. Error messages reach the user as they are: they are in French."""
 
 import logging
+import re
 import shutil
 import subprocess
 import sys
+import threading
 import uuid
 import zipfile
 from collections.abc import Callable
@@ -15,12 +17,16 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path, PurePosixPath
 
+from .lua_tables import LuaTableError, read_table, write_table
+
 _logger = logging.getLogger(__name__)
 
 # the game and the dedicated server: both save their controls into Config/Input
 DCS_PROCESSES = ("dcs.exe", "dcs_server.exe")
 KEEP_BACKUPS = 20
 BACKUP_PREFIX = "config-input-"
+# one change at a time: each reads a file, changes it and writes it back
+_WRITE_LOCK = threading.Lock()
 TIME_FORMAT = "%Y%m%d-%H%M%S-%f"
 
 
@@ -164,13 +170,14 @@ def guarded_write(
 ):
     """Runs ``change(input_dir)`` once DCS is known to be closed and ``Config/Input`` is backed up;
     returns ``(backup, result of change)``."""
-    if is_running():
-        raise DcsConfigError(
-            "DCS est lancé : ferme-le avant de modifier ses commandes (il réécrit ces fichiers)"
-        )
-    input_dir = input_dir_of(saved_games_dir)
-    backup = backups.create(input_dir, reason, protect)
-    return backup, change(input_dir)
+    with _WRITE_LOCK:
+        if is_running():
+            raise DcsConfigError(
+                "DCS est lancé : ferme-le avant de modifier ses commandes (il réécrit ces fichiers)"
+            )
+        input_dir = input_dir_of(saved_games_dir)
+        backup = backups.create(input_dir, reason, protect)
+        return backup, change(input_dir)
 
 
 def restore(
@@ -221,3 +228,76 @@ def restore(
         ) from error
     finally:
         shutil.rmtree(staged, ignore_errors=True)
+
+
+# --- devices DCS ignores: Config/Input/disabled.lua ----------------------------------------------
+
+DISABLED_FILE = "disabled.lua"
+# INPUT (Main): created [<name>] with full id [<name> {GUID}],JOYSTICK|STANDARD
+CREATED_DEVICE = re.compile(r"INPUT \(Main\): created \[[^\]]*\] with full id \[([^\]]+)\]")
+
+
+def seen_devices(saved_games_dir: Path) -> list[str]:
+    """Full names (with GUID) of the devices DCS created at its last start, from ``Logs/dcs.log``:
+    the exact spelling DCS uses, whose GUID case may differ from a diff file's name."""
+    try:
+        text = (Path(saved_games_dir) / "Logs" / "dcs.log").read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return []
+    return list(dict.fromkeys(CREATED_DEVICE.findall(text)))
+
+
+def read_disabled(install_dir: Path, saved_games_dir: Path, lua_interpreter=None) -> dict:
+    """``disabled.lua`` as DCS wrote it: ``{"devices": {full name: true}, "pnp": bool}``; an absent
+    file is an empty list."""
+    path = input_dir_of(saved_games_dir) / DISABLED_FILE
+    if not path.is_file():
+        return {"devices": {}}
+    try:
+        value = read_table(install_dir, path, lua_interpreter)
+    except LuaTableError as error:
+        raise DcsConfigError(f"{DISABLED_FILE} illisible : {error}") from error
+    if not isinstance(value, dict) or not isinstance(value.get("devices", {}), dict):
+        raise DcsConfigError(f"{DISABLED_FILE} : contenu inattendu, rien n'a été modifié")
+    value.setdefault("devices", {})
+    return value
+
+
+def disabled_devices(install_dir: Path, saved_games_dir: Path, lua_interpreter=None) -> list[str]:
+    devices = read_disabled(install_dir, saved_games_dir, lua_interpreter)["devices"]
+    return sorted(name for name, disabled in devices.items() if disabled is True)
+
+
+def set_device_disabled(
+    install_dir: Path,
+    saved_games_dir: Path,
+    backups: BackupStore,
+    device: str,
+    disabled: bool,
+    *,
+    is_running: Callable[[], bool] = dcs_running,
+    lua_interpreter=None,
+) -> Backup:
+    """Disables or re-enables a device the way DCS's controls screen does (``pnp`` kept as is).
+    The device is written under the name DCS gave it at its last start when the log has it, else
+    under the spelling disabled.lua already uses: a diff file's name may differ in GUID case."""
+    logged = next((d for d in seen_devices(saved_games_dir) if d.lower() == device.lower()), None)
+
+    def change(input_dir: Path) -> None:
+        value = read_disabled(install_dir, saved_games_dir, lua_interpreter)
+        devices = value["devices"]
+        known = [n for n in devices if n.lower() == device.lower()]
+        for name in known:
+            del devices[name]
+        if disabled:
+            devices[logged or (known[0] if known else device)] = True
+        try:
+            write_table(install_dir, input_dir / DISABLED_FILE, "disabled", value, lua_interpreter)
+        except LuaTableError as error:
+            raise DcsConfigError(f"{DISABLED_FILE} impossible à écrire : {error}") from error
+
+    action = "désactivation" if disabled else "réactivation"
+    backup, _ = guarded_write(
+        saved_games_dir, backups, f"avant la {action} de {logged or device}", change, is_running=is_running
+    )
+    return backup

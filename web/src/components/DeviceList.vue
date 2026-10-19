@@ -61,7 +61,8 @@ function onDrop(index: number) {
           <span class="t" :title="d.full_name">{{ d.name }}</span>
           <span class="s">{{ d.binding_count }} liaisons{{ layersText(d) }}</span>
         </span>
-        <span v-if="store.isHidden(d.name)" class="pill">caché</span>
+        <span v-if="d.dcs_disabled" class="pill" v-tooltip.left="'Désactivé dans DCS : le jeu ignore ce périphérique (fenêtre Commandes DCS)'">désactivé</span>
+        <span v-else-if="store.isHidden(d.name)" class="pill">caché</span>
         <span v-else-if="store.templateIdFor(d)" class="pill ok">gabarit</span>
         <span v-else class="pill">liste</span>
         <Button

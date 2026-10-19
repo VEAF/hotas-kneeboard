@@ -19,6 +19,7 @@ export interface Device {
   binding_count: number
   inputs: Inputs
   auto_template_id: string | null
+  dcs_disabled: boolean // listed in DCS's Config/Input/disabled.lua
 }
 
 export interface Profile {
@@ -150,6 +151,11 @@ export interface DcsBackup {
   reason: string
   size: number
   files: number
+}
+
+export interface DcsDevicesResponse {
+  disabled: string[] // full names, as in disabled.lua
+  seen: string[] // devices DCS created at its last start (Logs/dcs.log)
 }
 
 export interface DcsBackupsResponse {

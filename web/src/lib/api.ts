@@ -2,6 +2,7 @@ import type {
   BindingsResponse,
   DcsBackup,
   DcsBackupsResponse,
+  DcsDevicesResponse,
   DcsState,
   KneeboardResult,
   ProgramsResponse,
@@ -55,6 +56,9 @@ export const api = {
   templateFileUrl: (id: string) => `/api/templates/${encodeURIComponent(id)}/file`,
   writeKneeboard: (unitType: string, profile: string, pages: { title: string; png: string }[]) =>
     request<KneeboardResult>('/api/kneeboard', json('POST', { unit_type: unitType, profile, pages })),
+  dcsDevices: () => request<DcsDevicesResponse>('/api/dcs-config/devices'),
+  setDeviceDisabled: (device: string, disabled: boolean) =>
+    request<{ backup: DcsBackup }>('/api/dcs-config/devices/disabled', json('PUT', { device, disabled })),
   dcsBackups: () => request<DcsBackupsResponse>('/api/dcs-config/backups'),
   createDcsBackup: () => request<DcsBackup>('/api/dcs-config/backups', { method: 'POST' }),
   restoreDcsBackup: (id: string) =>

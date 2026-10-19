@@ -178,7 +178,7 @@ onKeyStroke((event) => {
       <span class="spacer" />
       <Button v-if="state.view === 'pages'" icon="pi pi-pencil" text rounded aria-label="Éditeur de gabarit" v-tooltip.bottom="'Éditeur de gabarit'" @click="openEditor" />
       <Button icon="pi pi-refresh" text rounded aria-label="Relire les fichiers de DCS (F5)" v-tooltip.bottom="'Relire les fichiers de DCS (F5)'" :loading="state.loading" @click="refresh" />
-      <Button icon="pi pi-sliders-h" text rounded aria-label="Commandes DCS : sauvegardes" v-tooltip.bottom="'Commandes DCS : sauvegardes'" @click="dcsConfigOpen = true" />
+      <Button icon="pi pi-sliders-h" text rounded aria-label="Commandes DCS : périphériques désactivés, sauvegardes" v-tooltip.bottom="'Commandes DCS : périphériques désactivés, sauvegardes'" @click="dcsConfigOpen = true" />
       <Button icon="pi pi-cog" text rounded aria-label="Réglages" v-tooltip.bottom="'Réglages'" @click="settingsOpen = true" />
       <Button :icon="theme === 'dark' ? 'pi pi-sun' : 'pi pi-moon'" text rounded aria-label="Thème clair ou sombre" v-tooltip.bottom="'Thème clair / sombre'" @click="theme = theme === 'dark' ? 'light' : 'dark'" />
       <Button icon="pi pi-question-circle" text rounded aria-label="Raccourcis clavier (?)" v-tooltip.bottom="'Raccourcis clavier (?)'" @click="helpOpen = true" />

@@ -11,7 +11,8 @@ hotas_kneeboard/          serveur FastAPI (127.0.0.1 seulement)
   dcs.py                  détection de DCS, de Saved Games, de la langue ; traduction des commandes
   templates.py            format et bibliothèque des gabarits
   kneeboard.py            écriture des pages PNG
-  dcs_config.py           modifications des commandes de DCS : refus si DCS tourne, sauvegarde et restauration
+  dcs_config.py           modifications des commandes de DCS : refus si DCS tourne, sauvegarde et restauration, périphériques désactivés
+  lua_tables.py + lua/    lecture et écriture des fichiers Lua de DCS, avec le sérialiseur du jeu
   settings.py             réglages (%APPDATA%/HOTAS Kneeboard/settings.json)
   app.py                  routes HTTP
   library/                les gabarits livrés
@@ -28,6 +29,10 @@ Le serveur n'écrit que les fichiers PNG ; il n'y a ni Chromium ni Cairo à livr
 Les fichiers de commandes de DCS (`Saved Games/DCS/Config/Input`) ne sont modifiés que par `dcs_config.py`, et toujours par `guarded_write`.
 Elle refuse tant que DCS tourne, car le jeu réécrit ces fichiers quand il enregistre ses commandes.
 Avant d'écrire, elle zippe tout le dossier dans `%APPDATA%/HOTAS Kneeboard/backups/` (les 20 derniers zips sont gardés) ; une restauration remplace le dossier en un seul renommage, après avoir sauvegardé l'état courant.
+
+Un fichier de DCS est lu en l'exécutant avec `luae.exe`, qui rend sa valeur en JSON, et réécrit avec le `Scripts/Serializer.lua` du jeu, en binaire (DCS écrit des fins de ligne LF).
+Relus puis réécrits ainsi, les 88 fichiers d'un vrai `Config/Input` (diffs, `modifiers.lua`, `disabled.lua`) sont identiques octet pour octet.
+Le sérialiseur d'ED n'est pas redistribuable : la fixture de test a le sien, et `test_lua_tables.py` vérifie qu'il écrit les mêmes octets que le vrai quand `DCS_TEST_LUA` est le `bin/luae.exe` d'une install.
 
 ## Le moteur de lecture
 
