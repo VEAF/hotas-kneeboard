@@ -121,6 +121,20 @@ Elle ne sait pas faire la différence avec un périphérique simplement débranc
 - Un périphérique que DCS a vu récemment n'est jamais proposé, et un périphérique désactivé non plus : branché, il pourrait ne pas apparaître dans le journal de DCS.
 - Sans journal de DCS, ou si le journal ne nomme aucun périphérique, la liste est vide : lance DCS une fois, périphériques branchés.
 
+### Réparer les modificateurs d'un périphérique renommé
+
+Un modificateur (« Paddle », une palette du manche tenue pour changer de calque) est enregistré avec le nom complet de son périphérique.
+Quand une mise à jour du pilote renomme le périphérique (WinWing : « WINWING Orion Joystick Base 2 » devenu « WINCTRL Orion Joystick Base Metal 2 »), DCS ne le reconnaît plus et l'ignore sans rien dire.
+Les liaisons qui s'en servent restent affichées, dans le jeu comme ici, mais ne marchent plus en vol.
+
+- La section **Modificateurs** les liste, module par module, avec l'ancien et le nouveau nom ; dans la liste des périphériques et sur la page, la pastille **modificateur inactif** le signale aussi.
+- Un périphérique est reconnu par son GUID, le même avant et après le renommage, et par le nom que DCS lui a donné à ses deux derniers lancements (`Saved Games\DCS\Logs\dcs.log`) : branche-le et lance DCS une fois avant de réparer.
+  Un périphérique simplement débranché n'est pas signalé.
+- **Réparer** donne à ces modificateurs le nom que DCS utilise maintenant, dans tous les modules, après une sauvegarde.
+- Quand DCS a ignoré un modificateur, il réécrit le fichier des modificateurs sans lui à l'enregistrement suivant, et le supprime s'il ne reste que les réglages par défaut.
+  Si une sauvegarde de l'application a encore ce fichier, le module est proposé avec **Ramener** : le fichier revient avec les noms réparés, seul ce fichier est écrit.
+  Si tu as supprimé ce fichier toi-même, laisse-le.
+
 ### Retirer les vues du chapeau
 
 Tous les modules mettent les 8 vues lentes (« View Up slow », « View Down Left slow »…) sur le premier chapeau de **chaque** périphérique : le palonnier, l'ICP, les MFD en ont aussi, même si l'écran des commandes du jeu ne les montre pas toujours.
@@ -197,6 +211,9 @@ La numérotation du gabarit ne correspond pas à ton périphérique : vérifie-l
 
 **Un périphérique apparaît deux fois, ou porte un nom étrange (« … BOOT »).**
 Windows l'a vu une fois sous un autre nom, et DCS a gardé sa configuration ; cache-le dans les réglages.
+
+**Une liaison avec un modificateur (« Paddle + … ») ne marche pas en vol.**
+Le pilote du périphérique l'a peut-être renommé : la page porte alors la pastille « modificateur inactif ». Voir [Réparer les modificateurs d'un périphérique renommé](#réparer-les-modificateurs-dun-périphérique-renommé).
 
 **Les pages n'apparaissent pas dans le kneeboard.**
 Relance la mission : DCS lit le dossier kneeboard au chargement.

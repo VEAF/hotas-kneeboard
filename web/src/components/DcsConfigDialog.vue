@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // Changes to DCS's own controls files (Saved Games\DCS\Config\Input): devices disabled in DCS,
-// devices DCS no longer sees, the generic hat views removed in bulk, and the backups made before
+// devices DCS no longer sees, modifiers on a renamed device, the generic hat views removed in bulk, and the backups made before
 // each change, listed and restorable.
 
 import { computed, ref, watch } from 'vue'
@@ -11,7 +11,14 @@ import ToggleSwitch from 'primevue/toggleswitch'
 import { useToast } from 'primevue/usetoast'
 import { api } from '../lib/api'
 import { useStore } from '../lib/store'
-import type { DcsBackupsResponse, DcsDevicesResponse, HatViewsDevice, HatViewsPreview, HatViewsResult } from '../lib/types'
+import type {
+  DcsBackupsResponse,
+  DcsDevicesResponse,
+  HatViewsDevice,
+  HatViewsPreview,
+  HatViewsResult,
+  ModifiersResponse,
+} from '../lib/types'
 
 const visible = defineModel<boolean>('visible', { required: true })
 const store = useStore()
@@ -25,14 +32,18 @@ const confirming = ref<string | null>(null)
 const devices = ref<DcsDevicesResponse | null>(null)
 
 const devicesError = ref('')
+const modifiers = ref<ModifiersResponse | null>(null)
+const modifiersError = ref('')
 
 async function load() {
   error.value = ''
   devicesError.value = ''
+  modifiersError.value = ''
   // apart: an unreadable disabled.lua must not hide the backups that can repair it
   await Promise.all([
     api.dcsBackups().then((r) => (data.value = r)).catch((e) => (error.value = (e as Error).message)),
     api.dcsDevices().then((r) => (devices.value = r)).catch((e) => (devicesError.value = (e as Error).message)),
+    api.modifiers().then((r) => (modifiers.value = r)).catch((e) => (modifiersError.value = (e as Error).message)),
   ])
 }
 
@@ -86,6 +97,29 @@ async function forget(device: string) {
     working.value = ''
   }
 }
+
+// --- modifiers DCS drops because their device was renamed by its driver ---------------------------
+const fixable = computed(() => (modifiers.value?.issues ?? []).filter((i) => i.new_device))
+const deviceName = (fullName: string) => fullName.replace(/\s*\{[^}]*\}$/, '')
+
+async function changeModifiers(what: string, call: () => Promise<{ fixed: unknown[] }>, done: string) {
+  working.value = what
+  try {
+    const result = await call()
+    toast.add({ severity: 'success', summary: done, detail: `${result.fixed.length} modificateur(s) renommé(s)`, life: 6000 })
+    await load()
+    await store.load(true)
+  } catch (e) {
+    toast.add({ severity: 'error', summary: 'Modification impossible', detail: (e as Error).message, life: 10000 })
+    await load()
+  } finally {
+    working.value = ''
+  }
+}
+
+const fixModifiers = () => changeModifiers('modifiers', api.fixModifiers, 'Modificateurs réparés')
+const restoreModifiers = (profile: string, backup: string) =>
+  changeModifiers(`modifiers:${profile}`, () => api.restoreModifiers(profile, backup), `modifiers.lua de ${profile} ramené`)
 
 // --- the 8 generic hat views, removed in bulk ------------------------------------------------------
 // computed on demand: reading every module takes a few seconds
@@ -336,6 +370,61 @@ async function restore(id: string) {
             </li>
           </ul>
           <p v-else class="intro">Aucun : DCS a vu tous les périphériques qui ont des commandes.</p>
+        </template>
+      </section>
+
+      <p v-if="modifiersError" class="warn" role="alert">Modificateurs illisibles : {{ modifiersError }}</p>
+      <section v-if="modifiers && (modifiers.issues.length || modifiers.deleted.length)">
+        <h3 class="eyebrow">Modificateurs</h3>
+        <template v-if="modifiers.issues.length">
+          <p class="intro">
+            Ces modificateurs nomment leur périphérique sous un ancien nom : son pilote l'a renommé, le GUID est le même.
+            DCS les ignore, et les liaisons qui s'en servent s'affichent mais ne marchent pas en jeu.
+            « Réparer » leur donne le nom que DCS utilise maintenant, dans tous les modules, après une sauvegarde.
+          </p>
+          <ul class="rows devices">
+            <li v-for="i in modifiers.issues" :key="`${i.profile}/${i.modifier}`">
+              <span class="dev">
+                <span class="t">{{ i.modifier }} · {{ i.profile }}</span>
+                <span v-if="i.new_device" class="s">{{ deviceName(i.device) }} → {{ deviceName(i.new_device) }} · {{ guid(i.device) }}</span>
+                <span v-else class="s">{{ i.problem }}</span>
+              </span>
+            </li>
+          </ul>
+          <div class="head">
+            <span />
+            <Button
+              size="small"
+              icon="pi pi-wrench"
+              label="Réparer"
+              :loading="working === 'modifiers'"
+              :disabled="!fixable.length || !!working || data?.dcs_running !== false"
+              @click="fixModifiers"
+            />
+          </div>
+        </template>
+        <template v-if="modifiers.deleted.length">
+          <p class="intro">
+            Ces modules n'ont plus de fichier de modificateurs : DCS le supprime quand il n'y reste que les réglages par défaut, ce qui arrive quand il ignore un modificateur.
+            Une sauvegarde l'a encore ; il revient avec les noms de périphériques réparés. Si tu l'as supprimé toi-même, laisse-le.
+          </p>
+          <ul class="rows devices">
+            <li v-for="d in modifiers.deleted" :key="d.profile">
+              <span class="dev">
+                <span class="t">{{ d.profile }}</span>
+                <span class="s">sauvegarde du {{ date(d.created) }}</span>
+              </span>
+              <Button
+                size="small"
+                text
+                icon="pi pi-replay"
+                label="Ramener"
+                :loading="working === `modifiers:${d.profile}`"
+                :disabled="!!working || data?.dcs_running !== false"
+                @click="restoreModifiers(d.profile, d.backup)"
+              />
+            </li>
+          </ul>
         </template>
       </section>
 

@@ -16,6 +16,7 @@ const device: Device = {
   binding_count: 1,
   auto_template_id: null,
   dcs_disabled: false,
+  inactive_modifiers: [],
   inputs: { JOY_BTN24: { Paddle: { text: 'Transmit UHF', pressed: ['Transmit UHF'], released: [] } } },
 }
 

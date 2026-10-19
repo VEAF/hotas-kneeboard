@@ -4,6 +4,8 @@ import type {
   DcsBackupsResponse,
   DcsDevicesResponse,
   HatViewsPreview,
+  ModifiersFixed,
+  ModifiersResponse,
   HatViewsResult,
   DcsState,
   KneeboardResult,
@@ -70,6 +72,10 @@ export const api = {
       '/api/dcs-config/hat-views',
       json('POST', { devices, every_device: everyDevice, all_modules: allModules }),
     ),
+  modifiers: () => request<ModifiersResponse>('/api/dcs-config/modifiers'),
+  fixModifiers: () => request<ModifiersFixed>('/api/dcs-config/modifiers/fix', { method: 'POST' }),
+  restoreModifiers: (profile: string, backup: string) =>
+    request<ModifiersFixed>('/api/dcs-config/modifiers/restore', json('POST', { profile, backup })),
   dcsBackups: () => request<DcsBackupsResponse>('/api/dcs-config/backups'),
   createDcsBackup: () => request<DcsBackup>('/api/dcs-config/backups', { method: 'POST' }),
   restoreDcsBackup: (id: string) =>

@@ -26,9 +26,13 @@ from .dcs_config import (
     absent_devices,
     dcs_log_date,
     dcs_running,
+    deleted_modifiers,
     disabled_devices,
+    fix_modifiers,
     forget_device,
+    modifier_issues,
     restore,
+    restore_modifiers,
     seen_devices,
     set_device_disabled,
 )
@@ -83,6 +87,11 @@ class HatViewsRemoval(BaseModel):
     all_modules: bool = False
 
 
+class ModifiersRestore(BaseModel):
+    profile: str
+    backup: str  # backup id
+
+
 class TemplateImport(BaseModel):
     file: str  # base64 of the shared template file
 
@@ -131,6 +140,10 @@ class Bindings:
         except DcsConfigError as error:
             _logger.warning(f"disabled devices unknown: {error}")
             disabled = set()
+        # modifiers DCS drops (device renamed): their layers do not fire in game
+        inactive: dict[str, set[str]] = {}
+        for issue in modifier_issues(install, saved, lua_interpreter):
+            inactive.setdefault(issue["profile"], set()).add(issue["modifier"])
         profiles = []
         for name in names:
             entry = result["profiles"].get(name) or {"found": False, "devices": []}
@@ -144,6 +157,10 @@ class Bindings:
                         "guid": split_device_name(page.full_name)[1],
                         "auto_template_id": template.id if template else None,
                         "dcs_disabled": page.full_name.lower() in disabled,
+                        "inactive_modifiers": sorted(
+                            {m for layer in page.layers for m in layer.split(" + ")}
+                            & inactive.get(name, set())
+                        ),
                     }
                 )
             profiles.append(
@@ -449,6 +466,50 @@ def create_app(
             # even a write stopped halfway may have changed files
             bindings.invalidate()
         return result
+
+    @app.get("/api/dcs-config/modifiers")
+    def get_modifiers() -> dict:
+        """Modifiers DCS drops because their device was renamed, and deleted modifiers.lua files a
+        backup still holds; nothing written"""
+        install, saved = install_and_saved()
+        return {
+            "issues": modifier_issues(install, saved, lua_interpreter),
+            "deleted": deleted_modifiers(saved, backups),
+        }
+
+    @app.post("/api/dcs-config/modifiers/fix")
+    def post_fix_modifiers() -> dict:
+        install, saved = install_and_saved()
+        try:
+            backup, fixed = fix_modifiers(
+                install, saved, backups, is_running=is_dcs_running, lua_interpreter=lua_interpreter
+            )
+        except DcsConfigError as error:
+            raise HTTPException(409, str(error)) from error
+        finally:
+            bindings.invalidate()
+        return {"fixed": fixed, "backup": backup.as_dict()}
+
+    @app.post("/api/dcs-config/modifiers/restore")
+    def post_restore_modifiers(body: ModifiersRestore) -> dict:
+        install, saved = install_and_saved()
+        try:
+            backup, fixed = restore_modifiers(
+                install,
+                saved,
+                backups,
+                body.profile,
+                body.backup,
+                is_running=is_dcs_running,
+                lua_interpreter=lua_interpreter,
+            )
+        except BackupNotFoundError as error:
+            raise HTTPException(404, str(error)) from error
+        except DcsConfigError as error:
+            raise HTTPException(409, str(error)) from error
+        finally:
+            bindings.invalidate()
+        return {"fixed": fixed, "backup": backup.as_dict()}
 
     if WEB_DIR.is_dir():
         app.mount("/", StaticFiles(directory=WEB_DIR, html=True), name="web")
