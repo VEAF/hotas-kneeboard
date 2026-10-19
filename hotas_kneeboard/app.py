@@ -10,6 +10,7 @@ import threading
 from collections import Counter
 from collections.abc import Callable
 from pathlib import Path
+from typing import Literal
 from urllib.parse import urlsplit
 
 from fastapi import FastAPI, HTTPException, Request
@@ -32,6 +33,7 @@ from .dcs_config import (
     fix_modifiers,
     forget_device,
     modifier_issues,
+    remove_bindings,
     restore,
     restore_modifiers,
     seen_devices,
@@ -86,6 +88,21 @@ class HatViewsRemoval(BaseModel):
     devices: list[str]  # full names, with their GUID
     every_device: bool = False
     all_modules: bool = False
+
+
+class BindingRef(BaseModel):
+    """One binding, as the engine names it: the command's hash and the combo"""
+
+    kind: Literal["key", "axis"]
+    hash: str
+    key: str
+    reformers: list[str] = []
+
+
+class BindingsRemoval(BaseModel):
+    profile: str  # the folder in Saved Games/DCS/Config/Input
+    device: str  # full name, with its GUID: the diff file's name
+    bindings: list[BindingRef]
 
 
 class ModifiersRestore(BaseModel):
@@ -483,6 +500,65 @@ def create_app(
             # even a write stopped halfway may have changed files
             bindings.invalidate()
         return result
+
+    @app.get("/api/dcs-config/bindings")
+    def get_device_bindings(profile: str, device: str) -> dict:
+        """Every binding of a device in a module, one row each, for the user to pick what to remove:
+        ``origin`` "user" when the user's diff placed it, else "default" (the module's, or a diff the
+        module ships)"""
+        install, saved = install_and_saved()
+        try:
+            result = load_effective_bindings(install, saved, [profile], lua_interpreter)
+        except EffectiveBindingsError as error:
+            raise HTTPException(422, f"Lecture des liaisons impossible : {error}") from error
+        entry = result["profiles"].get(profile) or {}
+        found = next((d for d in entry.get("devices", []) if d["name"].lower() == device.lower()), None)
+        if found is None:
+            raise HTTPException(404, f"{device} n'est pas configuré dans {profile}")
+        translate = command_translator(install, current_dirs()["language"])
+        return {
+            "profile": profile,
+            "device": found["name"],
+            # a device DCS knows only by its diff (module not installed): nothing to compute from
+            "editable": found.get("source") == "effective",
+            "bindings": [
+                {
+                    "kind": b["kind"],
+                    "hash": b["hash"],
+                    "key": b["key"],
+                    "reformers": b.get("reformers") or [],
+                    "command": translate(b["command"]),
+                    "category": b.get("category"),
+                    "origin": "user" if b.get("from_diff") else "default",
+                }
+                for b in found["bindings"]
+            ],
+        }
+
+    @app.post("/api/dcs-config/bindings/remove")
+    def post_remove_bindings(body: BindingsRemoval) -> dict:
+        install, saved = install_and_saved()
+        if not body.bindings:
+            raise HTTPException(422, "Aucune liaison à retirer")
+        removals = [{"profile": body.profile, "device": body.device, **b.model_dump()} for b in body.bindings]
+        count = len(body.bindings)
+        try:
+            backup, rewrites = remove_bindings(
+                install,
+                saved,
+                backups,
+                removals,
+                f"retrait de {count} liaison{'s' if count > 1 else ''} : {body.device} ({body.profile})",
+                is_running=is_dcs_running,
+                lua_interpreter=lua_interpreter,
+            )
+        except DcsConfigError as error:
+            raise HTTPException(409, str(error)) from error
+        finally:
+            # even a write stopped halfway may have changed files
+            bindings.invalidate()
+        removed = sum(r["removed"] or 0 for r in rewrites)
+        return {"backup": backup.as_dict(), "removed": removed, "asked": count}
 
     @app.get("/api/dcs-config/modifiers")
     def get_modifiers() -> dict:

@@ -171,6 +171,19 @@ Avec TrackIR ou la VR, elles ne servent à rien et encombrent les pages ; la sec
   Un fichier qui ne garde plus aucune différence avec les réglages par défaut est supprimé, comme le fait DCS : le périphérique n'apparaît alors plus dans ce module de l'application, ce n'est pas une perte.
 - Pour revenir en arrière, restaure la sauvegarde « avant le retrait des vues du chapeau » dans la liste des sauvegardes.
 
+### Retirer des liaisons
+
+Le bouton **Liaisons**, au-dessus de la page, liste toutes les liaisons du périphérique dans ce module : l'entrée (« Bouton 1 », « Axe Z »), le modificateur s'il y en a, la commande, et son origine.
+« ta config » : tu l'as posée dans l'écran des commandes de DCS ; « défaut du module » : DCS la met d'office, et tu ne l'as pas retirée.
+C'est là qu'on voit un bouton qui fait deux choses sans le savoir : un « Engine Stop Right » à toi, et le « Gun Trigger » que le module met sur le bouton 1 de tout joystick.
+
+1. Coche les liaisons à retirer (boutons, chapeaux ou axes) ; le filtre cherche dans l'entrée et la commande.
+2. **Supprimer (n)**, puis **Retirer** pour confirmer.
+3. Les pages se relisent sans elles. **Annuler**, dans la même fenêtre, restaure la sauvegarde faite juste avant.
+
+Comme pour le reste de cette fenêtre, DCS doit être fermé, et tout `Config\Input` est sauvegardé avant ; le fichier du périphérique est réécrit comme DCS l'enregistre, une liaison par défaut retirée y figurant comme retirée.
+Le retrait ne vaut que pour ce module : la même commande reste dans les autres.
+
 ## Réglages
 
 La roue dentée, en haut, ouvre les réglages.

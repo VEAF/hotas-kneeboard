@@ -136,7 +136,8 @@ def _loader_input(
             "," in x for x in reformers
         ):
             raise EffectiveBindingsError(f"liaison à retirer illisible : {r}")
-        records.append("remove\t" + "\t".join([*fields, ",".join(reformers)]))
+        kind = "axis" if r.get("kind") == "axis" else "key"
+        records.append("remove\t" + "\t".join([*fields, ",".join(reformers), kind]))
     for directory, entries in _directory_listings(install, saved_games).items():
         records.append(f"dir\t{directory}")
         records += [f"entry\t{entry}" for entry in entries if "\n" not in entry]

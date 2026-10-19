@@ -1,5 +1,8 @@
 import type {
+  BindingRef,
+  BindingsRemoved,
   BindingsResponse,
+  DeviceBindingsResponse,
   DcsBackup,
   DcsBackupsResponse,
   DcsDevicesResponse,
@@ -76,6 +79,12 @@ export const api = {
   fixModifiers: () => request<ModifiersFixed>('/api/dcs-config/modifiers/fix', { method: 'POST' }),
   restoreModifiers: (profile: string, backup: string) =>
     request<ModifiersFixed>('/api/dcs-config/modifiers/restore', json('POST', { profile, backup })),
+  deviceBindings: (profile: string, device: string) =>
+    request<DeviceBindingsResponse>(
+      `/api/dcs-config/bindings?profile=${encodeURIComponent(profile)}&device=${encodeURIComponent(device)}`,
+    ),
+  removeBindings: (profile: string, device: string, bindings: BindingRef[]) =>
+    request<BindingsRemoved>('/api/dcs-config/bindings/remove', json('POST', { profile, device, bindings })),
   dcsBackups: () => request<DcsBackupsResponse>('/api/dcs-config/backups'),
   createDcsBackup: () => request<DcsBackup>('/api/dcs-config/backups', { method: 'POST' }),
   restoreDcsBackup: (id: string) =>
