@@ -186,6 +186,11 @@ watch(
           {{ store.device.value.error === 'module not installed' ? 'module non installé' : 'pas de profil de base' }}
         </span>
         <span
+          v-else-if="store.device.value?.error === 'path too long'"
+          class="pill warn"
+          v-tooltip.bottom="'Le chemin de son fichier de commandes dépasse 260 caractères : l\'interpréteur de DCS ne peut pas le lire, la page montre les défauts du module. Un dossier Saved Games plus court règle le problème.'"
+        >chemin trop long</span>
+        <span
           v-if="unchecked"
           class="pill warn"
           v-tooltip.bottom="UNCHECKED_HINT"

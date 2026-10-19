@@ -9,6 +9,7 @@ import DeviceList from './components/DeviceList.vue'
 import PagePreview from './components/PagePreview.vue'
 import SettingsDialog from './components/SettingsDialog.vue'
 import ShortcutsDialog from './components/ShortcutsDialog.vue'
+import DcsConfigDialog from './components/DcsConfigDialog.vue'
 import EditorView from './editor/EditorView.vue'
 import { editor } from './editor/state'
 import { api } from './lib/api'
@@ -21,6 +22,7 @@ const toast = useToast()
 const modules = ref<InstanceType<typeof ModuleList> | null>(null)
 const settingsOpen = ref(false)
 const helpOpen = ref(false)
+const dcsConfigOpen = ref(false)
 const theme = useLocalStorage<'dark' | 'light'>('hotas-kneeboard-theme', 'dark')
 // on <html>, not on the app: PrimeVue puts dialogs, menus and tooltips at the end of <body>
 watchEffect(() => {
@@ -93,7 +95,7 @@ function typing(event: KeyboardEvent): boolean {
   if (target.closest('input[type=checkbox]')) return event.key === ' '
   return !!target.closest('input, textarea, select, [contenteditable=""], [contenteditable=true], [role=combobox], .p-select-overlay, .p-listbox')
 }
-const dialogOpen = () => settingsOpen.value || helpOpen.value
+const dialogOpen = () => settingsOpen.value || helpOpen.value || dcsConfigOpen.value
 
 function stepDevice(delta: number, move: boolean) {
   const list = store.devices.value
@@ -176,6 +178,7 @@ onKeyStroke((event) => {
       <span class="spacer" />
       <Button v-if="state.view === 'pages'" icon="pi pi-pencil" text rounded aria-label="Éditeur de gabarit" v-tooltip.bottom="'Éditeur de gabarit'" @click="openEditor" />
       <Button icon="pi pi-refresh" text rounded aria-label="Relire les fichiers de DCS (F5)" v-tooltip.bottom="'Relire les fichiers de DCS (F5)'" :loading="state.loading" @click="refresh" />
+      <Button icon="pi pi-sliders-h" text rounded aria-label="Commandes DCS : périphériques, vues du chapeau, sauvegardes" v-tooltip.bottom="'Commandes DCS : périphériques, vues du chapeau, sauvegardes'" @click="dcsConfigOpen = true" />
       <Button icon="pi pi-cog" text rounded aria-label="Réglages" v-tooltip.bottom="'Réglages'" @click="settingsOpen = true" />
       <Button :icon="theme === 'dark' ? 'pi pi-sun' : 'pi pi-moon'" text rounded aria-label="Thème clair ou sombre" v-tooltip.bottom="'Thème clair / sombre'" @click="theme = theme === 'dark' ? 'light' : 'dark'" />
       <Button icon="pi pi-question-circle" text rounded aria-label="Raccourcis clavier (?)" v-tooltip.bottom="'Raccourcis clavier (?)'" @click="helpOpen = true" />
@@ -234,6 +237,7 @@ onKeyStroke((event) => {
 
     <SettingsDialog v-model:visible="settingsOpen" />
     <ShortcutsDialog v-model:visible="helpOpen" />
+    <DcsConfigDialog v-model:visible="dcsConfigOpen" />
     <Toast position="bottom-center" />
   </div>
 </template>

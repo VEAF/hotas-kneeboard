@@ -42,6 +42,7 @@ def test_bindings_give_pages_with_their_template(client):
     stick = next(d for d in fake["devices"] if d["full_name"] == STICK)
     assert stick["name"] == "Fake Stick"
     assert stick["auto_template_id"] == "fake-stick"
+    assert stick["dcs_disabled"] is False
     assert stick["inputs"]["JOY_BTN8"][""]["text"] == "Gear Up / Down"
     assert stick["inputs"]["JOY_BTN4"]["JOY_BTN5"]["text"] == "Master Arm"
 

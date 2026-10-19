@@ -1,5 +1,10 @@
 import type {
   BindingsResponse,
+  DcsBackup,
+  DcsBackupsResponse,
+  DcsDevicesResponse,
+  HatViewsPreview,
+  HatViewsResult,
   DcsState,
   KneeboardResult,
   ProgramsResponse,
@@ -53,4 +58,20 @@ export const api = {
   templateFileUrl: (id: string) => `/api/templates/${encodeURIComponent(id)}/file`,
   writeKneeboard: (unitType: string, profile: string, pages: { title: string; png: string }[]) =>
     request<KneeboardResult>('/api/kneeboard', json('POST', { unit_type: unitType, profile, pages })),
+  dcsDevices: () => request<DcsDevicesResponse>('/api/dcs-config/devices'),
+  setDeviceDisabled: (device: string, disabled: boolean) =>
+    request<{ backup: DcsBackup }>('/api/dcs-config/devices/disabled', json('PUT', { device, disabled })),
+  forgetDevice: (device: string) =>
+    request<{ profiles: string[]; backup: DcsBackup }>('/api/dcs-config/devices/forget', json('POST', { device })),
+  hatViews: (allModules: boolean) =>
+    request<HatViewsPreview>(`/api/dcs-config/hat-views?all_modules=${allModules}`),
+  removeHatViews: (devices: string[], everyDevice: boolean, allModules: boolean) =>
+    request<HatViewsResult>(
+      '/api/dcs-config/hat-views',
+      json('POST', { devices, every_device: everyDevice, all_modules: allModules }),
+    ),
+  dcsBackups: () => request<DcsBackupsResponse>('/api/dcs-config/backups'),
+  createDcsBackup: () => request<DcsBackup>('/api/dcs-config/backups', { method: 'POST' }),
+  restoreDcsBackup: (id: string) =>
+    request<{ restored: string; backup_before: DcsBackup }>(`/api/dcs-config/backups/${encodeURIComponent(id)}/restore`, { method: 'POST' }),
 }

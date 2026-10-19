@@ -16,8 +16,8 @@ L'application cherche toute seule :
 La pastille **DCS** en haut est verte quand tout est trouvé ; survole-la pour voir les dossiers.
 Si quelque chose manque, un bandeau le dit, avec un accès direct aux réglages.
 
-L'application ne lit que tes fichiers : elle ne modifie jamais ta configuration DCS.
-Elle écrit seulement les pages du kneeboard, et ses propres réglages dans `%APPDATA%\HOTAS Kneeboard\`.
+L'application lit tes fichiers sans les modifier, sauf quand tu lui demandes de changer tes commandes DCS (voir [Commandes DCS](#commandes-dcs)) : elle sauvegarde alors tout avant d'écrire.
+Sinon, elle écrit seulement les pages du kneeboard, et ses propres réglages dans `%APPDATA%\HOTAS Kneeboard\`.
 
 ## L'écran
 
@@ -92,6 +92,52 @@ Leur hauteur se règle dans les réglages (1024 pixels par défaut) ; la largeur
 ### En PDF
 
 **PDF** (ou Ctrl+P) télécharge un PDF des mêmes pages, une page A4 par page, à environ 200 points par pouce.
+
+## Commandes DCS
+
+Le bouton à curseurs, en haut, ouvre la fenêtre **Commandes DCS** : ce que l'application peut changer dans tes commandes, et les sauvegardes qu'elle fait avant.
+
+- **DCS doit être fermé.**
+  Le jeu réécrit ses fichiers de commandes quand tu enregistres dans son écran des commandes : l'application refuse toute modification tant que DCS (ou un serveur dédié) tourne.
+- **Avant chaque modification**, tout le dossier `Saved Games\DCS\Config\Input` est sauvegardé dans un zip, dans `%APPDATA%\HOTAS Kneeboard\backups\`.
+  Les 20 dernières sauvegardes sont gardées ; **Sauvegarder maintenant** en fait une à la main.
+- **Restaurer…** remet tes commandes exactement dans l'état de cette sauvegarde, pour tous les modules : les fichiers apparus depuis sont retirés.
+  L'état d'avant la restauration est lui-même sauvegardé d'abord, en tête de liste : une restauration se défait en restaurant celle-là.
+
+### Désactiver un périphérique
+
+La liste **Périphériques désactivés dans DCS** reprend tous les périphériques connus : ceux configurés dans un module, et ceux que DCS a vus lors de ses deux derniers lancements (« vu par DCS récemment », lu dans `Saved Games\DCS\Logs\dcs.log` et `dcs.log.old`).
+
+- L'interrupteur désactive le périphérique comme le bouton « Désactiver » de l'écran des commandes du jeu : DCS l'ignore dans tous les modules, et ses commandes sont gardées pour sa réactivation.
+- C'est utile pour un périphérique branché dont DCS n'a pas besoin : une manette Bluetooth, un vJoy.
+- Dans la liste des périphériques d'un module, un périphérique désactivé porte la pastille **désactivé**.
+
+### Oublier un périphérique absent
+
+La liste **Périphériques absents** montre les périphériques qui ont des commandes enregistrées, mais que DCS n'a pas vus lors de ses deux derniers lancements : un vJoy désinstallé, un périphérique renommé par une mise à jour de son pilote, un manche revendu.
+Elle ne sait pas faire la différence avec un périphérique simplement débranché ces jours-là : c'est à toi de choisir.
+
+- **Oublier…** puis **Oublier** supprime les commandes du périphérique dans tous les modules, après une sauvegarde : une restauration les fait revenir.
+- Un périphérique que DCS a vu récemment n'est jamais proposé, et un périphérique désactivé non plus : branché, il pourrait ne pas apparaître dans le journal de DCS.
+- Sans journal de DCS, ou si le journal ne nomme aucun périphérique, la liste est vide : lance DCS une fois, périphériques branchés.
+
+### Retirer les vues du chapeau
+
+Tous les modules mettent les 8 vues lentes (« View Up slow », « View Down Left slow »…) sur le premier chapeau de **chaque** périphérique : le palonnier, l'ICP, les MFD en ont aussi, même si l'écran des commandes du jeu ne les montre pas toujours.
+Avec TrackIR ou la VR, elles ne servent à rien et encombrent les pages ; la section **Vues du chapeau** les retire en une fois.
+
+- **Chercher** calcule l'aperçu (quelques secondes) : chaque périphérique concerné, le nombre de vues, les modules (dépliables) et les fichiers qui seront créés.
+- **Par défaut**, ne sont cochés que les périphériques sur le chapeau desquels tu n'as rien mis toi-même, dans aucun module : le palonnier, l'ICP, les MFD, une manette dont le chapeau ne sert pas.
+  Les autres sont listés grisés, avec ce que tu as mis sur leur chapeau.
+- **Tous les périphériques, chapeaux utilisés compris** les rend cochables aussi : seules les 8 vues par défaut partent, tes propres liaisons sur le chapeau restent.
+- **Tous les modules installés** étend le retrait aux modules que tu n'as jamais configurés : un fichier de commandes est créé pour chaque module et chaque périphérique concerné.
+  Sans l'option, seuls les modules qui ont un dossier dans `Saved Games\DCS\Config\Input` sont touchés.
+- Un fichier n'est créé que pour un périphérique que DCS a vu lors de ses deux derniers lancements, sous le nom exact que le jeu lui donne ; un périphérique absent garde ses fichiers existants, traités eux aussi.
+- **Retirer…** puis **Retirer** : une seule sauvegarde pour toute l'opération, puis les commandes sont relues et comparées à l'aperçu.
+  « Conforme à l'aperçu » veut dire que toutes les vues annoncées sont parties ; sinon, chaque écart est listé.
+- Les fichiers sont réécrits comme DCS les enregistre : une entrée devenue sans effet (un réglage par défaut qui a changé depuis une mise à jour du module) disparaît, comme quand tu enregistres dans le jeu.
+  Un fichier qui ne garde plus aucune différence avec les réglages par défaut est supprimé, comme le fait DCS : le périphérique n'apparaît alors plus dans ce module de l'application, ce n'est pas une perte.
+- Pour revenir en arrière, restaure la sauvegarde « avant le retrait des vues du chapeau » dans la liste des sauvegardes.
 
 ## Réglages
 

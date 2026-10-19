@@ -9,7 +9,8 @@ Même organisation que VEAF-Mission-Creation-Tools (VMCT), avec des tickets GitH
 
 - Le PRD du produit est [#1](https://github.com/VEAF/hotas-kneeboard/issues/1) ; ses lots en sont les sous-tickets (feuille de route et avancement).
 - Un **lot** est un ticket étiqueté `lot`, titré `<LOT-ID> — …` (`FEAT-…`, `FIX-…`, `CHORE-…`, `DOC-…`, `INVESTIGATE-…`), son PRD dans le corps, ses conditions de fin en cases à cocher.
-- Ses **tickets** sont ses sous-tickets, étiquetés `ticket`, titrés `<LOT-ID> NN — …`, numérotés dans l'ordre des dépendances ; ils se découpent avec `/to-tickets` avant d'écrire du code (c'est David qui le lance, le skill ne peut pas être appelé par un agent).
+- Ses **tickets** sont ses sous-tickets, étiquetés `ticket`, titrés `<LOT-ID> NN — …`, numérotés dans l'ordre des dépendances ; ils se découpent avant d'écrire du code en suivant le skill `to-tickets`.
+  Ce skill ne peut pas être appelé par un agent (`disable-model-invocation`) : l'agent lit son `SKILL.md` et en suit la démarche, découpage soumis à David avant publication.
 - Le **statut** est une étiquette : ⬜ ready · 🔄 in-progress · 🧑 waiting-human · ⏸ paused. Fermé « completed » = ✅ done, fermé « not planned » = 🚫 won't fix.
   Un changement de statut se fait sur le ticket au moment où il arrive.
 
@@ -26,7 +27,7 @@ Pour chaque demande, dans l'ordre :
 
 0. **Se synchroniser** : `git fetch` puis `git pull --ff-only` sur `develop` avant de lire les tickets ou le code.
 1. **Analyser** la demande ; une question ou une analyse sans code s'arrête là. En commençant un ticket, le reformuler en 1 à 3 phrases (ce qu'il est, ce que « fini » veut dire) avant tout outil.
-2. **Le lot** : s'il n'existe pas, créer son ticket `lot` (PRD dans le corps, statut ⬜ ready) en sous-ticket de #1, et faire découper ses tickets par `/to-tickets`.
+2. **Le lot** : s'il n'existe pas, créer son ticket `lot` (PRD dans le corps, statut ⬜ ready) en sous-ticket de #1, et découper ses tickets en suivant le skill `to-tickets` (voir plus haut).
 3. **La branche** depuis `develop` (`feature/`, `fix/` ou `chore/<LOT-ID>`) ; le lot et le ticket en cours passent à 🔄 in-progress.
 4. **Coder** : code, tests, documentation de `docs/` touchée par le changement.
 5. **Tester** et passer la porte de qualité (commandes ci-dessous) ; tout corriger avant de continuer.
@@ -45,10 +46,17 @@ Pour chaque demande, dans l'ordre :
 
 - `hotas_kneeboard/` : le serveur FastAPI.
   - `engine.py` + `lua/effective_bindings.lua` : le moteur, repris de VEAF/joystick-diagrams-dcs-world-plugin. Il exécute le Lua avec l'interpréteur de DCS (`bin/luae.exe`) : défauts du module + diff de l'utilisateur, comme `Scripts/Input/Data.lua`.
+    Il sait aussi recalculer le diff d'un périphérique après retrait de liaisons de touche, comme DCS l'écrit en enregistrant (`saveDeviceProfile`) ; `dcs_config.remove_bindings` écrit le résultat.
   - `pages.py` : regroupement par entrée et par calque de modificateurs, appariement des positions relâchées `_OFF`.
   - `dcs.py` : détection de l'install, de Saved Games et de la langue ; traduction des noms de commande par `l10n/<langue>/LC_MESSAGES/input.mo`, comme le jeu.
   - `templates.py` : format des gabarits (docstring) et bibliothèque : gabarits livrés (`library/`, les 45 convertis, à ne pas éditer à la main) puis ceux de l'utilisateur (`%APPDATA%/HOTAS Kneeboard/templates/`), qui passent devant ; enregistrement, suppression, export et import en un fichier zip.
   - `programs.py` : boutons des autres logiciels, en lecture seule : profils SRS (`<SRS>/Client/<profil>.cfg`, boutons comptés depuis 0, mesuré) et réglages VectorXR (`%LOCALAPPDATA%/VectorXR/config/settings.json`) ; les saisies à la main, le choix du profil SRS et les couleurs sont appliqués par l'interface (`web/src/render/programs.ts`).
+  - `dcs_config.py` : modifications des fichiers de commandes de DCS (`Saved Games/DCS/Config/Input`) ; toute écriture passe par `guarded_write`, qui refuse tant que DCS tourne (il réécrit ces fichiers en enregistrant ses commandes) et sauvegarde d'abord tout le dossier en zip dans `%APPDATA%/HOTAS Kneeboard/backups/` (les 20 derniers), restaurable depuis l'interface.
+    Il gère aussi `disabled.lua` (périphériques désactivés), avec le nom exact que DCS donne au périphérique dans `Logs/dcs.log` (et `dcs.log.old`).
+    Il propose d'oublier (supprimer les diffs dans tous les profils) les périphériques que ces deux journaux ne nomment pas ; un journal ne distingue pas un périphérique parti d'un périphérique débranché ce jour-là, d'où le choix laissé à l'utilisateur.
+  - `lua_tables.py` + `lua/lua_tables.lua` : lecture et écriture des fichiers Lua de DCS ; l'écriture passe par le `Scripts/Serializer.lua` du jeu (`serialize_sorted`, fins de ligne LF), pour écrire octet pour octet ce que DCS écrirait.
+    Les tests utilisent une copie de remplacement dans la fixture (`tests/dcs_fixture/DCS World/Scripts/Serializer.lua`, le fichier d'ED n'est pas redistribuable), comparée au vrai quand `DCS_TEST_LUA` pointe dans une install.
+  - `hat_views.py` : retrait en une fois des 8 vues génériques du chapeau (`common_joystick_binding.lua`), reconnues au couple (hash, touche) ; par défaut les périphériques où l'utilisateur n'a rien mis sur le chapeau (liaisons `from_diff` du moteur), options « tous les périphériques » et « tous les modules installés » (le moteur calcule alors aussi les périphériques sans diff : enregistrements `device` et `scope installed`) ; une sauvegarde, puis relecture.
   - `kneeboard.py` : écriture des PNG dans `Saved Games/DCS/Kneeboard/<type d'unité>/`, fichiers `HOTAS - <profil> - <nn> <titre>.png` ; un export ne remplace que les pages du même profil (deux postes d'un avion partagent le dossier).
   - `app.py` : n'accepte que les hôtes `127.0.0.1`/`localhost` et refuse les écritures d'une autre origine (DNS rebinding).
 - `web/` : l'interface Vue 3 + TypeScript + Vite + PrimeVue + VueUse. `src/render/` construit les pages en SVG (affichage, PNG et PDF partent du même SVG). `src/editor/` : l'éditeur de gabarit (état et historique annuler/rétablir dans `state.ts`, écoute des manettes dans `gamepad.ts`). `npm run build` écrit dans `hotas_kneeboard/web/` (ignoré par git).

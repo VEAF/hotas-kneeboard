@@ -11,6 +11,9 @@ hotas_kneeboard/          serveur FastAPI (127.0.0.1 seulement)
   dcs.py                  détection de DCS, de Saved Games, de la langue ; traduction des commandes
   templates.py            format et bibliothèque des gabarits
   kneeboard.py            écriture des pages PNG
+  dcs_config.py           modifications des commandes de DCS : refus si DCS tourne, sauvegarde et restauration, périphériques désactivés ou oubliés
+  hat_views.py            retrait en une fois des 8 vues génériques du chapeau (aperçu, sélection, relecture)
+  lua_tables.py + lua/    lecture et écriture des fichiers Lua de DCS, avec le sérialiseur du jeu
   settings.py             réglages (%APPDATA%/HOTAS Kneeboard/settings.json)
   app.py                  routes HTTP
   library/                les gabarits livrés
@@ -24,6 +27,14 @@ packaging/                construction de l'exe (PyInstaller)
 Les pages sont construites dans le navigateur : le PNG passe par un canvas, le PDF par jsPDF.
 Le serveur n'écrit que les fichiers PNG ; il n'y a ni Chromium ni Cairo à livrer.
 
+Les fichiers de commandes de DCS (`Saved Games/DCS/Config/Input`) ne sont modifiés que par `dcs_config.py`, et toujours par `guarded_write`.
+Elle refuse tant que DCS tourne, car le jeu réécrit ces fichiers quand il enregistre ses commandes.
+Avant d'écrire, elle zippe tout le dossier dans `%APPDATA%/HOTAS Kneeboard/backups/` (les 20 derniers zips sont gardés) ; une restauration remplace le dossier en un seul renommage, après avoir sauvegardé l'état courant.
+
+Un fichier de DCS est lu en l'exécutant avec `luae.exe`, qui rend sa valeur en JSON, et réécrit avec le `Scripts/Serializer.lua` du jeu, en binaire (DCS écrit des fins de ligne LF).
+Relus puis réécrits ainsi, les 88 fichiers d'un vrai `Config/Input` (diffs, `modifiers.lua`, `disabled.lua`) sont identiques octet pour octet.
+Le sérialiseur d'ED n'est pas redistribuable : la fixture de test a le sien, et `test_lua_tables.py` vérifie qu'il écrit les mêmes octets que le vrai quand `DCS_TEST_LUA` est le `bin/luae.exe` d'une install.
+
 ## Le moteur de lecture
 
 Un fichier `Saved Games/DCS/Config/Input/<profil>/joystick/<périphérique>.diff.lua` ne contient que les modifications de l'utilisateur par rapport aux défauts du module.
@@ -34,7 +45,27 @@ Il vient de VEAF/joystick-diagrams-dcs-world-plugin, où ses règles sont docume
 Ajouts propres à ce dépôt :
 
 - le type d'avion de chaque profil, lu dans les appels `make_flyable` du `entry.lua` du module : c'est le nom du dossier kneeboard (`A-10C II` → `A-10C_2`) ;
-- un périphérique sans profil de base, ou d'un module non installé, montre ce que son diff ajoute plutôt que rien.
+- un périphérique sans profil de base, ou d'un module non installé, montre ce que son diff ajoute plutôt que rien ;
+- le retrait de liaisons (enregistrements `remove`) : le moteur recalcule alors le diff de chaque périphérique concerné comme DCS le fait en enregistrant (`saveDeviceProfile`), contre les défauts du module sans le diff livré avec lui ;
+- les combinaisons dont la touche n'est pas une entrée du périphérique sont écartées, comme DCS le fait (`getKeyBelongToDevice`) : le profil joystick du C-130J déclare des touches clavier ;
+- les périphériques demandés par des enregistrements `device` sont calculés aussi dans les profils de module où ils n'ont pas de diff (défauts du module, marqués `extra`), et `scope installed` ajoute tous les profils de module installés : c'est ce qui permet de créer un diff là où il n'y en a pas ;
+- chaque liaison venue d'un diff (ajoutée ou changée) est marquée `from_diff` : c'est ce que l'utilisateur a placé, par opposition aux défauts du module ;
+- chaque recalcul rend le nombre de liaisons réellement retirées (`removed`) ; `remove_bindings` ne réécrit pas un périphérique où aucune ne l'a été.
+
+Les 8 vues du chapeau (`hat_views.py`) viennent de `Config/Input/Aircrafts/common_joystick_binding.lua`, inclus dans les défauts de chaque module : elles se reconnaissent au couple (hash, touche), identique dans tous les modules (`dnilp34u214…` pour `JOY_BTN_POV1_U`…), jamais au nom affiché.
+Un périphérique est proposé par défaut si aucune liaison de chapeau (touche contenant `POV`) ne vient d'un diff, dans aucun module : les défauts d'un module sur un chapeau (la tourelle de `ground_unit`, le Shkval du Ka-50) ne comptent pas.
+Seules les vues venues des défauts sont retirées ; un nouveau diff n'est créé que pour un périphérique que `Logs/dcs.log` nomme, sous ce nom.
+Après l'écriture, l'aperçu est recalculé : une vue prévue encore présente, ou un nombre retiré différent du prévu, est signalé.
+Vérifié le 2026-10-19 sur une copie fidèle d'un vrai `Saved Games` : 505 vues retirées sur 160 couples périphérique × module (dont 44 fichiers créés), relecture sans écart, et des liaisons effectives identiques avant et après à ces vues près.
+
+Le recalcul couvre les touches (combinaisons ajoutées, retirées) et les axes (plus les combinaisons dont le filtre a changé, comparé comme DCS : valeurs par défaut de `createAxisFilter`, valeurs de cran jamais comparées) ; le diff de retour de force est recopié depuis le fichier, relu par `lua_tables`.
+Une entrée de diff qui ne correspond plus à aucune commande disparaît, comme quand DCS enregistre ; une entrée dont la commande a un numéro `iCommand` inconnu fait refuser l'écriture, pour ne pas perdre la liaison.
+Un diff vide est supprimé, comme DCS le fait : le périphérique retombe sur les défauts du module, et sur le diff livré avec lui s'il y en a un.
+Prouvé le 2026-10-19 contre DCS : 4 vues retirées à la main dans l'écran des commandes (manche Orion, F-16C_50), la même opération faite par l'appli sur le même état de départ donne le même fichier octet pour octet, et le palonnier que DCS a réécrit au passage aussi.
+Sur une copie fidèle d'un vrai `Saved Games` (commandes communautaires comprises), réécrire les 57 diffs sans rien retirer laisse les liaisons de 55 périphériques identiques ; les 2 autres ne contenaient que des entrées périmées, leur fichier est supprimé et ils retombent sur les défauts, sans effet en jeu.
+
+`luae.exe` ouvre les fichiers par la bibliothèque C, limitée à 260 caractères sous Windows : un diff au chemin plus long n'est pas lu.
+Le recalcul le prendrait pour un diff absent ; `dcs_config.new_diffs` refuse donc d'écrire quand le diff de l'utilisateur existe et que le moteur ne l'a pas lu.
 
 Les noms de commande affichés sont traduits par `l10n/<langue>/LC_MESSAGES/input.mo`, comme le jeu le fait, anglais compris (« Trim: Nose Up » s'affiche « Trim Hat - NOSE UP » dans l'A-10C II).
 

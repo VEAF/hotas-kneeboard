@@ -13,6 +13,7 @@ const device: Device = {
   layers: ['', 'Paddle'],
   binding_count: 5,
   auto_template_id: 'warthog',
+  dcs_disabled: false,
   inputs: {
     JOY_BTN17: { '': { text: 'LG Handle - UP / DN', pressed: ['LG Handle - UP'], released: ['LG Handle - DN'] } },
     JOY_BTN2: {
