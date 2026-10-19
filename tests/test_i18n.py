@@ -60,10 +60,13 @@ def test_a_message_falls_back_to_english_then_to_its_key():
         assert t("forget.nothing") == "No saved controls for {device}"
 
 
-def test_out_of_a_request_the_environment_then_english(monkeypatch):
-    monkeypatch.setenv("HOTAS_KNEEBOARD_LANG", "fr")
-    assert t("backup.missing") == "sauvegarde introuvable"
+def test_out_of_a_request_the_environment_then_the_system_then_english(monkeypatch):
+    monkeypatch.setattr(i18n, "system_language", lambda: "fr")
+    monkeypatch.setenv("HOTAS_KNEEBOARD_LANG", "en")
+    assert t("backup.missing") == "backup not found"
     monkeypatch.delenv("HOTAS_KNEEBOARD_LANG")
+    assert t("backup.missing") == "sauvegarde introuvable"
+    monkeypatch.setattr(i18n, "system_language", lambda: None)
     assert t("backup.missing") == "backup not found"
 
 
@@ -90,6 +93,7 @@ def test_a_route_answers_in_the_language_asked_sync_routes_included():
 
 def test_the_app_refuses_another_site_in_the_language_asked(tmp_path, monkeypatch):
     monkeypatch.delenv("HOTAS_KNEEBOARD_LANG")
+    monkeypatch.setattr(i18n, "system_language", lambda: None)
     store = SettingsStore(tmp_path / "settings.json")
     store.save(Settings())
     client = TestClient(

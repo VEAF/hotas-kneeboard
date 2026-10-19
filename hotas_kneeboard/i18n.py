@@ -6,12 +6,15 @@ itself.
 
 The language is the one of the request being answered: the interface sends its own in
 ``Accept-Language`` (``LanguageMiddleware``), so a message from the server reads like the
-interface around it. Out of a request (the command line, the tests), it is the one set by
-``set_language``, else ``HOTAS_KNEEBOARD_LANG``, else English.
+interface around it. Out of a request (the console of the .exe, the tests), it is the one set by
+``set_language``, else ``HOTAS_KNEEBOARD_LANG``, else the system's (Windows' display language),
+else English.
 """
 
 import json
+import locale
 import os
+import sys
 from contextlib import contextmanager
 from contextvars import ContextVar
 from functools import cache
@@ -41,8 +44,28 @@ def catalog(language: str) -> dict[str, str]:
         return {}
 
 
+@cache
+def system_language() -> str | None:
+    """The user's language as the system gives it, if the app speaks it"""
+    if sys.platform == "win32":
+        # locale.getlocale() says nothing on Windows until setlocale(), which acts on the whole process
+        try:
+            import winreg
+
+            with winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Control Panel\International") as key:
+                return normalize(winreg.QueryValueEx(key, "LocaleName")[0])  # "fr-FR"
+        except OSError:
+            return None
+    for name in ("LC_ALL", "LC_MESSAGES", "LANG"):
+        if value := os.environ.get(name):
+            return normalize(value)
+    return normalize(locale.getlocale()[0])
+
+
 def current_language() -> str:
-    return _language.get() or normalize(os.environ.get("HOTAS_KNEEBOARD_LANG")) or DEFAULT
+    return (
+        _language.get() or normalize(os.environ.get("HOTAS_KNEEBOARD_LANG")) or system_language() or DEFAULT
+    )
 
 
 def set_language(language: str | None) -> None:
