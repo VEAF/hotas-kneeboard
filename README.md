@@ -32,7 +32,8 @@ Un projet de la [VEAF](https://www.veaf.org), sous licence GPL v2.
 1. Choisis un module à gauche, puis un périphérique : la page montre ce que DCS fera.
 2. Décoche les périphériques que tu ne veux pas dans le kneeboard, glisse-les pour changer l'ordre des pages.
 3. **Kneeboard** (Ctrl+E) écrit les pages ; elles sont dans le kneeboard au prochain vol sur cet avion.
-4. **PDF** (Ctrl+P) télécharge les mêmes pages.
+   La flèche à côté (Ctrl+Maj+E) le fait pour tous tes avions d'un coup.
+4. **PDF** (Ctrl+P) télécharge les mêmes pages ; Ctrl+Maj+P, tous les modules dans un seul PDF.
 
 `?` affiche tous les raccourcis clavier.
 

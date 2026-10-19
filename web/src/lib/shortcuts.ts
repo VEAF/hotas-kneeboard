@@ -8,6 +8,8 @@ export const SHORTCUTS = [
   { keys: ['/'], label: 'Filtrer les modules' },
   { keys: ['Ctrl', 'E'], label: 'Exporter le module vers le kneeboard' },
   { keys: ['Ctrl', 'P'], label: 'PDF du module' },
+  { keys: ['Ctrl', 'Maj', 'E'], label: 'Exporter tous les modules vers leur kneeboard' },
+  { keys: ['Ctrl', 'Maj', 'P'], label: 'PDF de tous les modules, en un seul fichier' },
   { keys: ['F5'], label: 'Relire les fichiers de DCS' },
   { keys: ['Ctrl', 'molette'], label: 'Zoomer sur la page (boutons à côté : page entière, toute la largeur)' },
   { keys: ['?'], label: 'Cette aide' },

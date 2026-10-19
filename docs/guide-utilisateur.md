@@ -93,9 +93,15 @@ Dans les réglages, l'onglet **Autres logiciels** indique le dossier de SRS (tro
 Les pages apparaissent dans le kneeboard de cet avion à la mission suivante.
 Leur hauteur se règle dans les réglages (1024 pixels par défaut) ; la largeur suit les proportions du dessin.
 
+**Tous les modules d'un coup** : la flèche à côté de **Kneeboard**, puis **Tous les modules** (ou Ctrl+Maj+E).
+Chaque avion de la liste qui a au moins un périphérique coché reçoit ses pages, comme si tu l'exportais à la main ; les profils qui ne sont pas des avions (Default, UiLayer) sont sautés.
+En haut, à côté des boutons, s'affiche où en est l'export (« 7/20 F-16C_50 ») ; il faut compter quelques secondes pour une vingtaine de modules.
+Si un module échoue, les autres continuent, et le message de fin dit lequel et pourquoi.
+
 ### En PDF
 
 **PDF** (ou Ctrl+P) télécharge un PDF des mêmes pages, une page A4 par page, à environ 200 points par pouce.
+La flèche à côté, **Tous les modules** (ou Ctrl+Maj+P), en fait un seul PDF, `HOTAS - tous les modules.pdf`, module après module dans l'ordre de la liste, avec les mêmes avions que pour le kneeboard ; chaque page porte le nom de son module en en-tête.
 
 ## Commandes DCS
 
