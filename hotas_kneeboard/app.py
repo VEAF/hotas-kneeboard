@@ -227,10 +227,14 @@ def create_app(
 
     @app.middleware("http")
     async def same_origin_writes(request: Request, call_next):
+        refused = JSONResponse({"detail": "requête d'un autre site refusée"}, status_code=403)
         origin = request.headers.get("origin")
         if request.method not in ("GET", "HEAD", "OPTIONS") and origin:
             if urlsplit(origin).hostname not in LOCAL_HOSTS:
-                return JSONResponse({"detail": "requête d'un autre site refusée"}, status_code=403)
+                return refused
+        # a read too runs the engine: a page of another site may send it, without seeing the answer
+        if request.url.path.startswith("/api/") and request.headers.get("sec-fetch-site") == "cross-site":
+            return refused
         return await call_next(request)
 
     def current_dirs() -> dict:
@@ -507,6 +511,9 @@ def create_app(
         ``origin`` "user" when the user's diff placed it, else "default" (the module's, or a diff the
         module ships)"""
         install, saved = install_and_saved()
+        # only a module the user configured: the name goes to the engine
+        if profile not in list_user_profiles(saved):
+            raise HTTPException(404, f"Module inconnu : {profile!r}")
         try:
             result = load_effective_bindings(install, saved, [profile], lua_interpreter)
         except EffectiveBindingsError as error:
@@ -540,6 +547,8 @@ def create_app(
         install, saved = install_and_saved()
         if not body.bindings:
             raise HTTPException(422, "Aucune liaison à retirer")
+        if body.profile not in list_user_profiles(saved):
+            raise HTTPException(404, f"Module inconnu : {body.profile!r}")
         removals = [{"profile": body.profile, "device": body.device, **b.model_dump()} for b in body.bindings]
         count = len(body.bindings)
         try:

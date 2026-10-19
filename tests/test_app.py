@@ -134,6 +134,33 @@ def test_requests_from_another_site_are_refused(client):
     assert allowed.status_code == 200
 
 
+def test_reads_from_another_site_are_refused(client):
+    # a read runs the engine: a page of another site must not set it off
+    assert client.get("/api/bindings", headers={"sec-fetch-site": "cross-site"}).status_code == 403
+    assert client.get("/api/bindings", headers={"sec-fetch-site": "same-origin"}).status_code == 200
+    # the page itself, typed in the address bar
+    assert client.get("/", headers={"sec-fetch-site": "none"}).status_code != 403
+
+
+def test_device_bindings_only_for_a_configured_module(client):
+    # its name goes to the engine: a line break would add records of its own
+    bad = "FakePlane\ninstall\tC:/elsewhere"
+    response = client.get("/api/dcs-config/bindings", params={"profile": bad, "device": STICK})
+    assert response.status_code == 404
+    removal = {"profile": bad, "device": STICK, "bindings": [{"kind": "key", "hash": "h", "key": "JOY_BTN1"}]}
+    assert client.post("/api/dcs-config/bindings/remove", json=removal).status_code == 404
+
+
+def test_the_engine_refuses_a_value_that_would_add_records():
+    from hotas_kneeboard.engine import EffectiveBindingsError, _loader_input
+
+    for value in ("A\ninstall\tX", "A\tB", "A\rB"):
+        with pytest.raises(EffectiveBindingsError):
+            _loader_input("i", "s", [value])
+    with pytest.raises(EffectiveBindingsError):
+        _loader_input("i\nscope\tinstalled", "s", ["A"])
+
+
 @pytest.mark.parametrize(
     "changes",
     [

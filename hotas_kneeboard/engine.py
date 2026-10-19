@@ -116,23 +116,29 @@ def _loader_input(
     """stdin of the interpreter: the script, then the records it reads (see its header)"""
     # Lua reads stdin in text mode on Windows: a CR would shift the script length
     script = LUA_SCRIPT.read_bytes().replace(b"\r\n", b"\n")
+
+    # a tab or a line break in a value would add records of its own (an "install" pointing
+    # elsewhere, whose Lua files the interpreter would run): refused in every value
+    def checked(what: str, value: str) -> str:
+        if any(c in value for c in "\t\r\n"):
+            raise EffectiveBindingsError(f"{what} illisible : {value!r}")
+        return value
+
     records = [
-        f"install\t{install}",
-        f"saved\t{saved_games}",
+        f"install\t{checked('dossier de DCS', install)}",
+        f"saved\t{checked('dossier Saved Games', saved_games)}",
         f"casefold\t{1 if sys.platform == 'win32' else 0}",
     ]
-    records += [f"profile\t{profile}" for profile in profiles]
+    records += [f"profile\t{checked('nom de module', profile)}" for profile in profiles]
     if all_installed:
         records.append("scope\tinstalled")
     for device in extra_devices or []:
-        if any(c in device for c in "\t\n"):
-            raise EffectiveBindingsError(f"nom de périphérique illisible : {device!r}")
-        records.append(f"device\t{device}")
+        records.append(f"device\t{checked('nom de périphérique', device)}")
     for r in removals or []:
         fields = [r["profile"], r["device"], r["hash"], r["key"]]
         reformers = list(r.get("reformers") or [])
         # tab-separated record, reformers comma-joined: only they may not hold a comma
-        if any(c in field for field in fields + reformers for c in "\t\n") or any(
+        if any(c in field for field in fields + reformers for c in "\t\r\n") or any(
             "," in x for x in reformers
         ):
             raise EffectiveBindingsError(f"liaison à retirer illisible : {r}")
@@ -140,7 +146,7 @@ def _loader_input(
         records.append("remove\t" + "\t".join([*fields, ",".join(reformers), kind]))
     for directory, entries in _directory_listings(install, saved_games).items():
         records.append(f"dir\t{directory}")
-        records += [f"entry\t{entry}" for entry in entries if "\n" not in entry]
+        records += [f"entry\t{entry}" for entry in entries if not any(c in entry for c in "\t\r\n")]
     data = "\n".join(records).encode("utf-8", errors="replace") + b"\n"
     return str(len(script)).encode() + b"\n" + script + data
 
