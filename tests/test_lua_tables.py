@@ -235,6 +235,53 @@ def test_removing_a_binding_the_user_added_drops_its_entry(lua, saved, tmp_path)
     assert (MASTER_ARM, "JOY_BTN4", ("JOY_BTN5",)) not in key_bindings(saved, lua, STICK)
 
 
+ZOOM = "a2001cd14"  # JOY_Y by default, its filter changed by the user
+BRIGHTNESS = "a2002cd14"  # JOY_Z by default, untouched
+
+
+def axis_bindings(saved, lua, device):
+    from hotas_kneeboard.engine import load_effective_bindings
+
+    result = load_effective_bindings(INSTALL, saved, ["FakePlane"], lua)
+    found = next(d for d in result["profiles"]["FakePlane"]["devices"] if d["name"] == device)
+    return {(b["hash"], b["key"]) for b in found["bindings"] if b["kind"] == "axis"}
+
+
+def test_removing_a_default_axis_writes_a_removed_entry(lua, saved, tmp_path):
+    # the throttle keeps the module's axes as they are: Brightness on JOY_Z
+    path = saved / "Config" / "Input" / "FakePlane" / "joystick" / f"{THROTTLE}.diff.lua"
+    before, axes = read_table(INSTALL, path, lua), axis_bindings(saved, lua, THROTTLE)
+    assert (BRIGHTNESS, "JOY_Z") in axes and "axisDiffs" not in before
+    _, rewrites = remove(
+        saved, tmp_path, lua, THROTTLE, [{"hash": BRIGHTNESS, "key": "JOY_Z", "kind": "axis"}]
+    )
+    assert rewrites[0]["removed"] == 1
+    after = read_table(INSTALL, path, lua)
+    assert after["axisDiffs"] == {BRIGHTNESS: {"name": "Brightness", "removed": [{"key": "JOY_Z"}]}}
+    assert after["keyDiffs"] == before["keyDiffs"]
+    assert axis_bindings(saved, lua, THROTTLE) == axes - {(BRIGHTNESS, "JOY_Z")}
+
+
+def test_removing_an_axis_whose_filter_was_changed(lua, saved, tmp_path):
+    path = saved / "Config" / "Input" / "FakePlane" / "joystick" / f"{STICK}.diff.lua"
+    remove(saved, tmp_path, lua, STICK, [{"hash": ZOOM, "key": "JOY_Y", "kind": "axis"}])
+    # a default combo removed: DCS writes it removed, its changed filter goes with it
+    assert read_table(INSTALL, path, lua)["axisDiffs"][ZOOM] == {
+        "name": "Zoom",
+        "removed": [{"key": "JOY_Y"}],
+    }
+    assert (ZOOM, "JOY_Y") not in axis_bindings(saved, lua, STICK)
+
+
+def test_a_key_removal_does_not_take_an_axis_of_the_same_key(lua, saved, tmp_path):
+    # without its kind, the removal of JOY_Z is a key one: no key command has it, nothing is written
+    path = saved / "Config" / "Input" / "FakePlane" / "joystick" / f"{THROTTLE}.diff.lua"
+    before = path.read_bytes()
+    _, rewrites = remove(saved, tmp_path, lua, THROTTLE, [{"hash": BRIGHTNESS, "key": "JOY_Z"}])
+    assert rewrites[0]["removed"] == 0 and rewrites[0]["written"] is False
+    assert path.read_bytes() == before
+
+
 def test_without_a_user_diff_the_module_diff_is_copied_in(lua, saved, tmp_path):
     path = saved / "Config" / "Input" / "FakePlane" / "joystick" / f"{THROTTLE}.diff.lua"
     path.unlink()
@@ -284,7 +331,7 @@ def test_a_device_name_with_a_comma_is_accepted(lua):
     data = _loader_input(
         "i", "s", ["P"], [{"profile": "P", "device": "Pedals, USB {1}", "hash": "h", "key": "K"}]
     )
-    assert b"remove\tP\tPedals, USB {1}\th\tK\t\n" in data
+    assert b"remove\tP\tPedals, USB {1}\th\tK\t\tkey\n" in data
 
 
 def test_axis_entries_are_recomputed_as_dcs_does(lua, saved, tmp_path):
@@ -521,3 +568,71 @@ def test_the_api_brings_a_modifiers_file_back(make_client, saved, renamed):
     )
     assert response.status_code == 200
     assert renamed.is_file()
+
+
+def device_rows(client, device):
+    response = client.get("/api/dcs-config/bindings", params={"profile": "FakePlane", "device": device})
+    assert response.status_code == 200
+    return response.json()
+
+
+def test_the_api_lists_a_device_bindings_with_their_origin(make_client):
+    data = device_rows(make_client(), THROTTLE)
+    assert data["editable"] is True
+    rows = {(b["kind"], b["key"], tuple(b["reformers"])): b for b in data["bindings"]}
+    assert rows[("axis", "JOY_Z", ())]["command"] == "Brightness"
+    assert rows[("axis", "JOY_Z", ())]["origin"] == "default"
+    # placed by the user's diff
+    assert rows[("key", "JOY_BTN10", ("JOY_BTN5",))]["origin"] == "user"
+
+
+def test_the_api_removes_a_key_and_an_axis_then_the_backup_gives_them_back(make_client, saved):
+    client = make_client()
+    path = saved / "Config" / "Input" / "FakePlane" / "joystick" / f"{THROTTLE}.diff.lua"
+    before = path.read_bytes()
+    client.get("/api/bindings")  # fills the cache, which the removal must invalidate
+    response = client.post(
+        "/api/dcs-config/bindings/remove",
+        json={
+            "profile": "FakePlane",
+            "device": THROTTLE,
+            "bindings": [
+                {"kind": "axis", "hash": BRIGHTNESS, "key": "JOY_Z"},
+                {
+                    "kind": "key",
+                    "hash": "d3010pnilunilcd15vd1vpnilvunil",
+                    "key": "JOY_BTN10",
+                    "reformers": ["JOY_BTN5"],
+                },
+            ],
+        },
+    )
+    assert response.status_code == 200
+    result = response.json()
+    assert (result["removed"], result["asked"]) == (2, 2)
+    keys = {(b["kind"], b["key"], tuple(b["reformers"])) for b in device_rows(client, THROTTLE)["bindings"]}
+    assert ("axis", "JOY_Z", ()) not in keys and ("key", "JOY_BTN10", ("JOY_BTN5",)) not in keys
+    # Speed Brake keeps its default on JOY_BTN10, without the modifier
+    assert ("key", "JOY_BTN10", ()) in keys
+    fake = next(p for p in client.get("/api/bindings").json()["profiles"] if p["name"] == "FakePlane")
+    throttle = next(d for d in fake["devices"] if d["full_name"] == THROTTLE)
+    assert "JOY_Z" not in throttle["inputs"]
+    # Annuler: the backup made before the removal
+    restored = client.post(f"/api/dcs-config/backups/{result['backup']['id']}/restore")
+    assert restored.status_code == 200
+    assert path.read_bytes() == before
+
+
+def test_the_api_refuses_to_remove_while_dcs_runs(make_client, saved):
+    path = saved / "Config" / "Input" / "FakePlane" / "joystick" / f"{THROTTLE}.diff.lua"
+    before = path.read_bytes()
+    response = make_client(running=True).post(
+        "/api/dcs-config/bindings/remove",
+        json={
+            "profile": "FakePlane",
+            "device": THROTTLE,
+            "bindings": [{"kind": "axis", "hash": BRIGHTNESS, "key": "JOY_Z"}],
+        },
+    )
+    assert response.status_code == 409
+    assert path.read_bytes() == before

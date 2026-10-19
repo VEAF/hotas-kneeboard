@@ -214,3 +214,30 @@ export interface DcsBackupsResponse {
   dcs_running: boolean | null // null: could not be checked
   backups: DcsBackup[]
 }
+
+/** One binding of a device in a module, as DCS's files name it (GET /api/dcs-config/bindings) */
+export interface BindingRef {
+  kind: 'key' | 'axis'
+  hash: string // the command's, as DCS hashes it
+  key: string // JOY_BTN1, JOY_X…
+  reformers: string[] // the modifiers held with it
+}
+
+export interface DeviceBinding extends BindingRef {
+  command: string // translated as the game shows it
+  category: string | null
+  origin: 'user' | 'default' // placed by the user's diff, or the module's default
+}
+
+export interface DeviceBindingsResponse {
+  profile: string
+  device: string
+  editable: boolean // false for a module not installed: nothing to compute the diff from
+  bindings: DeviceBinding[]
+}
+
+export interface BindingsRemoved {
+  backup: DcsBackup
+  removed: number
+  asked: number
+}

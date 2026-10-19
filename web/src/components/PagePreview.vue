@@ -10,8 +10,10 @@ import { editor, fromTemplate, newDraft, open } from '../editor/state'
 import type { Page } from '../render/page'
 import type { LayerMode } from '../lib/types'
 import OtherProgramsDialog from './OtherProgramsDialog.vue'
+import BindingsDialog from './BindingsDialog.vue'
 
 const programsOpen = ref(false)
+const bindingsOpen = ref(false)
 
 const store = useStore()
 const { state } = store
@@ -263,6 +265,14 @@ watch(
           v-tooltip.bottom="'Boutons utilisés par SRS, VectorXR ou un logiciel saisi à la main'"
           @click="programsOpen = true"
         />
+        <Button
+          size="small"
+          severity="secondary"
+          icon="pi pi-list"
+          label="Liaisons"
+          v-tooltip.bottom="'Toutes les liaisons de ce périphérique dans ce module, pour en retirer de DCS'"
+          @click="bindingsOpen = true"
+        />
         <label class="ctl">
           <span class="eyebrow">Calques</span>
           <SelectButton
@@ -277,6 +287,7 @@ watch(
         </label>
       </div>
       <OtherProgramsDialog v-model:visible="programsOpen" />
+      <BindingsDialog v-model:visible="bindingsOpen" />
     </header>
     <div class="stage-wrap">
       <div ref="stage" class="stage" :class="{ single: pages.length === 1, paired: columns === 2 }" @wheel="onWheel">

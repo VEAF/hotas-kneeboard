@@ -11,6 +11,7 @@ Chaque lot ajoute ses entrées à la fin de `[Unreleased]` ; une release les pas
 - Export de tous les modules d'un coup, vers leur kneeboard (Maj+E) ou en un seul PDF (Maj+P), depuis la flèche à côté de chaque bouton d'export : les avions qui ont un périphérique coché, avec une fenêtre de progression qui permet d'arrêter ; un module en échec n'arrête pas les autres.
 - Les modules portent le nom de l'écran des commandes de DCS (« AH-64D Pilot » au lieu de `AH-64D_BLK_II_PLT`), dans la liste et en en-tête des pages, triés par ce nom ; le dossier du profil reste affiché dessous.
 - Les colonnes des modules et des périphériques se redimensionnent en glissant la ligne qui les sépare ; double-clic pour revenir à la largeur par défaut.
+- Retrait de liaisons de DCS depuis l'application (bouton **Liaisons** au-dessus de la page) : boutons, chapeaux et axes d'un périphérique dans un module, avec leur origine (ta config ou défaut du module) ; DCS fermé, sauvegarde avant, fichier réécrit comme DCS l'enregistre, **Annuler** dans la même fenêtre (FEAT-REMOVE-DCS-BINDINGS, #53).
 
 ### Corrigé
 

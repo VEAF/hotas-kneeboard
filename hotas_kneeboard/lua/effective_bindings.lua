@@ -13,8 +13,9 @@
 --   install <DCS install>        saved <Saved Games/DCS>      casefold <1 if paths ignore case>
 --   profile <unit name>          (one line per profile to compute)
 --   dir <directory>              followed by one "entry <name>" line per directory entry
---   remove <profile> <device> <hash> <key> <reformers>
---                                a key binding to remove (reformers comma-separated, may be empty):
+--   remove <profile> <device> <hash> <key> <reformers> [<kind>]
+--                                a binding to remove, a key one unless kind is "axis" (reformers
+--                                comma-separated, may be empty):
 --                                the output then holds "rewrites", the new diff of each device
 --                                concerned, as DCS would save it (see diffAfterRemovals)
 --   device <full name>           a joystick computed in every requested unit profile even without
@@ -47,10 +48,13 @@ do
 		elseif kind == 'dir' then currentDir = {} listings[value] = currentDir
 		elseif kind == 'entry' and currentDir then table.insert(currentDir, value)
 		elseif kind == 'remove' then
-			local profile, device, hash, key, reformers = value:match('^(.-)\t(.-)\t(.-)\t(.-)\t(.*)$')
+			local fields = {}
+			for field in (value .. '\t'):gmatch('([^\t]*)\t') do table.insert(fields, field) end
+			local profile, device, hash, key, reformers, bindingKind = unpack(fields)
 			local list = {}
 			for r in (reformers or ''):gmatch('[^,]+') do table.insert(list, r) end
-			table.insert(removals, {profile = profile, device = device, hash = hash, key = key, reformers = list})
+			table.insert(removals, {profile = profile, device = device, hash = hash, key = key, reformers = list,
+				kind = bindingKind == 'axis' and 'axis' or 'key'})
 		end
 	end
 	if not (DCS_ROOT and SAVED_GAMES) then
@@ -836,16 +840,19 @@ local function diffAfterRemovals(baseFolder, userFolder, deviceName, unitProfile
 	if err then return nil, err end
 	-- counted once per binding: a module may declare a command twice (same hash), both lose the combo
 	local removed, counted = 0, {}
-	for _, c in ipairs(effective.keyCommands or {}) do
-		local hash = hashOf(c, KEY_HASH)
-		for _, r in ipairs(toRemove) do
-			local i = r.hash == hash and findCombo(c.combos, r)
-			if i then
-				table.remove(c.combos, i)
-				local id = hash .. '|' .. comboHash(r)
-				if not counted[id] then
-					counted[id] = true
-					removed = removed + 1
+	for _, kind in ipairs({'key', 'axis'}) do
+		local commands, spec = effective[kind .. 'Commands'], kind == 'key' and KEY_HASH or AXIS_HASH
+		for _, c in ipairs(commands or {}) do
+			local hash = hashOf(c, spec)
+			for _, r in ipairs(toRemove) do
+				local i = r.kind == kind and r.hash == hash and findCombo(c.combos, r)
+				if i then
+					table.remove(c.combos, i)
+					local id = kind .. '|' .. hash .. '|' .. comboHash(r)
+					if not counted[id] then
+						counted[id] = true
+						removed = removed + 1
+					end
 				end
 			end
 		end
