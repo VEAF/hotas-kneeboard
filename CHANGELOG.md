@@ -5,6 +5,10 @@ Chaque lot ajoute ses entrées à la fin de `[Unreleased]` ; une release les pas
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-10-19
+
+Première version publiée.
+
 ### Ajouté
 
 - Lecture des liaisons réelles de DCS pour chaque module : défauts du module, modifications de l'utilisateur, commandes de la communauté, noms traduits comme dans le jeu ; identique à l'export « MAKE HTML » sur l'A-10C II et le F-16C (FEAT-READ-SEE-EXPORT, #2).
