@@ -1,0 +1,60 @@
+{
+  "version": 3,
+  "core": {
+    "osd": {
+      "enabled": true,
+      "toggleBindings": [
+        { "type": "keyboard", "chord": ["Ctrl", "Alt", "F10"] },
+        {
+          "type": "device",
+          "deviceGuid": "{d281fb60-b9ad-11f0-8001-444553540000}",
+          "inputPath": "button-55",
+          "deviceName": "WINCTRL Orion Throttle Base II + F15EX HANDLE L + F15 HANDLE R",
+          "inputLabel": "Button 55"
+        }
+      ],
+      "cycleBinding": { "type": "keyboard", "chord": ["Ctrl", "Alt", "F11"] }
+    }
+  },
+  "applications": [{ "id": "dcs", "name": "DCS", "enabled": true, "match": { "exe": "DCS.exe" } }],
+  "modules": {
+    "pivotxr": {
+      "enabled": true,
+      "profiles": [
+        {
+          "name": "DCS - snapviews",
+          "enabled": true,
+          "applicationIds": ["dcs"],
+          "setOriginBindings": [
+            { "type": "device", "deviceGuid": "{d281fb60-b9ad-11f0-8001-444553540000}", "inputPath": "button-51", "inputLabel": "Button 51" }
+          ],
+          "viewControls": {
+            "quickViews": [
+              {
+                "id": "a",
+                "name": "Right MFD",
+                "activationBindings": [
+                  { "binding": { "type": "device", "deviceGuid": "{d281fb60-b9ad-11f0-8001-444553540000}", "inputPath": "button-54", "inputLabel": "Button 54" } }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "Another game",
+          "enabled": true,
+          "applicationIds": ["msfs"],
+          "setOriginBindings": [
+            { "type": "device", "deviceGuid": "{d281fb60-b9ad-11f0-8001-444553540000}", "inputPath": "button-60", "inputLabel": "Button 60" }
+          ]
+        }
+      ]
+    },
+    "depthxr": {
+      "enabled": false,
+      "bindings": {
+        "toggleEnabled": { "type": "device", "deviceGuid": "{d281fb60-b9ad-11f0-8001-444553540000}", "inputPath": "button-70", "inputLabel": "Button 70" }
+      }
+    }
+  }
+}

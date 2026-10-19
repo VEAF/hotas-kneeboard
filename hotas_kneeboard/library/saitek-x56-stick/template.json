@@ -1,0 +1,165 @@
+{
+ "format": 1,
+ "name": "X56 H.O.T.A.S. Stick",
+ "devices": [
+  "Saitek Pro Flight X-56 Rhino Stick"
+ ],
+ "image": "background.svg",
+ "size": [
+  817.0,
+  1160.0
+ ],
+ "inputs": {
+  "JOY_BTN1": {
+   "box": [
+    83.5,
+    386.0,
+    117.0,
+    30.0
+   ]
+  },
+  "JOY_BTN2": {
+   "box": [
+    285.0,
+    116.0,
+    117.0,
+    30.0
+   ]
+  },
+  "JOY_BTN3": {
+   "box": [
+    675.0,
+    496.0,
+    117.0,
+    30.0
+   ]
+  },
+  "JOY_BTN4": {
+   "box": [
+    83.5,
+    436.0,
+    117.0,
+    30.0
+   ]
+  },
+  "JOY_BTN5": {
+   "box": [
+    83.5,
+    606.0,
+    117.0,
+    30.0
+   ]
+  },
+  "JOY_BTN6": {
+   "box": [
+    83.5,
+    536.0,
+    117.0,
+    30.0
+   ]
+  },
+  "JOY_BTN7": {
+   "box": [
+    575.0,
+    86.0,
+    117.0,
+    30.0
+   ]
+  },
+  "JOY_BTN8": {
+   "box": [
+    633.5,
+    116.0,
+    117.0,
+    30.0
+   ]
+  },
+  "JOY_BTN9": {
+   "box": [
+    575.0,
+    146.0,
+    117.0,
+    30.0
+   ]
+  },
+  "JOY_BTN10": {
+   "box": [
+    516.5,
+    116.0,
+    117.0,
+    30.0
+   ]
+  },
+  "JOY_BTN11": {
+   "box": [
+    613.5,
+    256.0,
+    117.0,
+    30.0
+   ]
+  },
+  "JOY_BTN12": {
+   "box": [
+    672.0,
+    286.0,
+    117.0,
+    30.0
+   ]
+  },
+  "JOY_BTN13": {
+   "box": [
+    613.5,
+    316.0,
+    117.0,
+    30.0
+   ]
+  },
+  "JOY_BTN14": {
+   "box": [
+    555.0,
+    286.0,
+    117.0,
+    30.0
+   ]
+  },
+  "JOY_BTN_POV1_D": {
+   "box": [
+    83.5,
+    316.0,
+    117.0,
+    30.0
+   ]
+  },
+  "JOY_BTN_POV1_L": {
+   "box": [
+    25.0,
+    286.0,
+    117.0,
+    30.0
+   ]
+  },
+  "JOY_BTN_POV1_R": {
+   "box": [
+    142.0,
+    286.0,
+    117.0,
+    30.0
+   ]
+  },
+  "JOY_BTN_POV1_U": {
+   "box": [
+    83.5,
+    256.0,
+    117.0,
+    30.0
+   ]
+  }
+ },
+ "credits": {
+  "author": "Joystick Diagrams contributors",
+  "source": "https://github.com/Rexeh/joystick-diagrams/blob/master/templates/Saitek%20-%20Logitech/X56%20H.O.T.A.S.%20Stick.svg",
+  "license": "GPL-2.0",
+  "converted_by": "scripts/convert_jd_templates.py"
+ },
+ "checked": null
+}

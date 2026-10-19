@@ -1,0 +1,52 @@
+/* Instrument-panel greys with a blue bias, amber accent; kneeboard pages stay white paper. */
+:root {
+  --panel: #1d232b;
+  --panel-2: #252c36;
+  --panel-3: #2f3844;
+  --line: #3a4452;
+  --ink: #e6eaef;
+  --ink-2: #a9b3bf;
+  --ink-3: #7b8695;
+  --amber: #f0a83a;
+  --amber-ink: #1d1606;
+  --sel: #33465e;
+  --ok: #5fc08a;
+  --warn: #e8b04a;
+  --bad: #e5706a;
+  --bg: #151a20;
+  --f-display: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
+  --f-body: 'Barlow', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --f-mono: ui-monospace, Consolas, monospace;
+  color-scheme: dark;
+}
+.app-light {
+  --panel: #e9edf2;
+  --panel-2: #f4f6f9;
+  --panel-3: #dde3ea;
+  --line: #c5ced9;
+  --ink: #1b222b;
+  --ink-2: #4c5765;
+  --ink-3: #717d8c;
+  --sel: #cfdcec;
+  --bg: #d8dee6;
+  --amber: #c97d0a;
+  --amber-ink: #fff;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html, body, #app { height: 100%; margin: 0; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 14px; line-height: 1.4; }
+h1, h2, h3 { font-family: var(--f-display); letter-spacing: 0.02em; margin: 0; }
+kbd {
+  font-family: var(--f-mono); font-size: 11px; padding: 1px 5px; border: 1px solid var(--line);
+  border-bottom-width: 2px; border-radius: 4px; background: var(--panel-2); color: var(--ink);
+}
+.eyebrow { font: 600 11px var(--f-body); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); }
+.pill {
+  font: 600 10.5px var(--f-body); letter-spacing: 0.06em; text-transform: uppercase; padding: 2px 6px;
+  border-radius: 999px; border: 1px solid var(--line); color: var(--ink-2); white-space: nowrap;
+}
+.pill.ok { border-color: color-mix(in srgb, var(--ok) 60%, transparent); color: var(--ok); }
+.pill.warn { border-color: color-mix(in srgb, var(--warn) 60%, transparent); color: var(--warn); }
+:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }

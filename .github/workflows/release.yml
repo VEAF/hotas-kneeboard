@@ -1,0 +1,62 @@
+name: Release
+
+# A release is a merge of develop into main. The version comes from pyproject.toml (keep
+# hotas_kneeboard/__init__.py the same): if the tag vX.Y.Z does not exist yet, the .exe is built
+# on Windows and published as release vX.Y.Z. A merge that does not change the version publishes
+# nothing (the job says so).
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  exe:
+    # a manual run from another branch must not publish its commit as a release
+    if: github.ref == 'refs/heads/main'
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      # the runner's own Python may predate tomllib (3.11)
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Version
+        id: version
+        shell: pwsh
+        run: |
+          $version = python -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])"
+          $package = python -c "import hotas_kneeboard; print(hotas_kneeboard.__version__)"
+          if ($version -ne $package) { throw "pyproject.toml ($version) and hotas_kneeboard/__init__.py ($package) disagree" }
+          $tag = "v$version"
+          git rev-parse -q --verify "refs/tags/$tag" > $null
+          $exists = $LASTEXITCODE -eq 0
+          "tag=$tag" >> $env:GITHUB_OUTPUT
+          "publish=$(-not $exists)".ToLower() >> $env:GITHUB_OUTPUT
+          if ($exists) { "Tag $tag already exists: bump the version in pyproject.toml to publish a release." >> $env:GITHUB_STEP_SUMMARY }
+          # git rev-parse fails when the tag does not exist: not an error of this step
+          $global:LASTEXITCODE = 0
+      - uses: astral-sh/setup-uv@v6
+        if: steps.version.outputs.publish == 'true'
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        if: steps.version.outputs.publish == 'true'
+        with:
+          node-version: 22
+      - name: Build
+        if: steps.version.outputs.publish == 'true'
+        shell: pwsh
+        run: ./packaging/build.ps1
+      - name: Publish
+        if: steps.version.outputs.publish == 'true'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          gh release create $env:TAG dist/HOTAS-Kneeboard.exe --target $env:GITHUB_SHA --title "HOTAS Kneeboard $env:TAG" --generate-notes

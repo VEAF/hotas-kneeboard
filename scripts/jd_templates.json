@@ -1,0 +1,266 @@
+{
+ "_comment": "Joystick Diagrams template (path under its templates/) -> our template: folder id, DCS device names (without GUID), input remaps after checking the real numbering, checked {by, date} once checked on the real device, maintained: true once library/<id> was fixed by hand (the converter then leaves it alone), split_at: x where the drawing is cut into kneeboard pages (measured white column between its parts), skip reason.",
+ "templates": {
+  "CH/CH Fighterstick USB.svg": {
+   "id": "ch-fighterstick-usb",
+   "devices": [
+    "CH Fighterstick USB"
+   ]
+  },
+  "CH/CH Pro Throttle USB.svg": {
+   "id": "ch-pro-throttle-usb",
+   "devices": [
+    "CH Pro Throttle USB"
+   ]
+  },
+  "Saitek - Logitech/adampridmore_Saitek Pro Flight X-56 Rhino Stick.svg": {
+   "id": "saitek-x56-rhino-stick-adampridmore",
+   "devices": [],
+   "author": "adampridmore (Joystick Diagrams contributors)"
+  },
+  "Saitek - Logitech/adampridmore_Saitek Pro Flight X-56 Rhino Throttle.svg": {
+   "id": "saitek-x56-rhino-throttle-adampridmore",
+   "devices": [],
+   "author": "adampridmore (Joystick Diagrams contributors)"
+  },
+  "Saitek - Logitech/X52_H.O.T.A.S..svg": {
+   "id": "saitek-x52",
+   "devices": [
+    "Saitek X52 Flight Control System",
+    "Saitek X52 Pro Flight Control System",
+    "Saitek X52 Pro Flight Controller"
+   ]
+  },
+  "Saitek - Logitech/X56 H.O.T.A.S. Stick.svg": {
+   "id": "saitek-x56-stick",
+   "devices": [
+    "Saitek Pro Flight X-56 Rhino Stick"
+   ]
+  },
+  "Saitek - Logitech/X56 H.O.T.A.S. Throttle.svg": {
+   "id": "saitek-x56-throttle",
+   "devices": [
+    "Saitek Pro Flight X-56 Rhino Throttle"
+   ]
+  },
+  "Starter Template.svg": {
+   "id": "starter",
+   "skip": "empty starter drawing, no device"
+  },
+  "Thrustmaster/T.16000M Joystick Left Handed.svg": {
+   "id": "thrustmaster-t-16000m-joystick-left-handed",
+   "devices": []
+  },
+  "Thrustmaster/T.16000M Joystick Right Handed.svg": {
+   "id": "thrustmaster-t-16000m-joystick-right-handed",
+   "devices": [
+    "T.16000M"
+   ]
+  },
+  "Thrustmaster/T.16000M Throttle.svg": {
+   "id": "thrustmaster-t-16000m-throttle",
+   "devices": [
+    "TWCS Throttle"
+   ]
+  },
+  "Thrustmaster/Thrustmaster Warthog - Joystick.svg": {
+   "id": "thrustmaster-warthog-joystick",
+   "maintained": true,
+   "devices": [
+    "Joystick - HOTAS Warthog"
+   ]
+  },
+  "Thrustmaster/Thrustmaster Warthog - Throttle.svg": {
+   "id": "thrustmaster-warthog-throttle",
+   "maintained": true,
+   "devices": [
+    "Throttle - HOTAS Warthog"
+   ],
+   "remap": {
+    "JOY_BTN_POV2_U": "JOY_BTN_POV1_U",
+    "JOY_BTN_POV2_D": "JOY_BTN_POV1_D",
+    "JOY_BTN_POV2_L": "JOY_BTN_POV1_L",
+    "JOY_BTN_POV2_R": "JOY_BTN_POV1_R"
+   }
+  },
+  "Total Controls/Total Controls - Apache MPD.svg": {
+   "id": "total-controls-apache-mpd",
+   "devices": []
+  },
+  "Total Controls/Total Controls - Multi Function Button Box.svg": {
+   "id": "total-controls-multi-function-button-box",
+   "devices": []
+  },
+  "Virpil/Virpil Constellation ALPHA L.svg": {
+   "id": "virpil-constellation-alpha-l",
+   "devices": []
+  },
+  "Virpil/Virpil Constellation ALPHA Prime L.svg": {
+   "id": "virpil-constellation-alpha-prime-l",
+   "devices": []
+  },
+  "Virpil/Virpil Constellation ALPHA Prime R.svg": {
+   "id": "virpil-constellation-alpha-prime-r",
+   "devices": []
+  },
+  "Virpil/Virpil Constellation ALPHA R.svg": {
+   "id": "virpil-constellation-alpha-r",
+   "devices": []
+  },
+  "Virpil/Virpil Control Panel #1.svg": {
+   "id": "virpil-control-panel-1",
+   "devices": []
+  },
+  "Virpil/Virpil Stick MT-50CM2.svg": {
+   "id": "virpil-stick-mt-50cm2",
+   "devices": []
+  },
+  "Virpil/Virpil Stick VFX.svg": {
+   "id": "virpil-stick-vfx",
+   "devices": []
+  },
+  "Virpil/Virpil Stick WarBRD.svg": {
+   "id": "virpil-stick-warbrd",
+   "devices": []
+  },
+  "Virpil/Virpil Throttle MT-50 CM2.svg": {
+   "id": "virpil-throttle-mt-50-cm2",
+   "devices": []
+  },
+  "VKB Sim/VKB-Sim Gladiator NXT L.svg": {
+   "id": "vkb-sim-gladiator-nxt-l",
+   "devices": []
+  },
+  "VKB Sim/VKB-Sim Gladiator NXT R.svg": {
+   "id": "vkb-sim-gladiator-nxt-r",
+   "devices": []
+  },
+  "WinWing/18-HUD Unit1/WinWing - 18-HUD Unit 1.svg": {
+   "id": "winwing-18-hud-unit-1",
+   "devices": []
+  },
+  "WinWing/18-UFC Unit1/WinWing 18-UFC Unit 1.svg": {
+   "id": "winwing-18-ufc-unit-1",
+   "devices": [
+    "WINWING UFC1"
+   ]
+  },
+  "WinWing/ICP/ICP.svg": {
+   "id": "winwing-icp",
+   "devices": [
+    "WINWING ICP"
+   ]
+  },
+  "WinWing/MFD Unit1/MFD Unit1.svg": {
+   "id": "winwing-mfd-unit1",
+   "devices": [
+    "WINWING MFD1-L",
+    "WINWING MFD1-R",
+    "WINWING MFD1-C"
+   ]
+  },
+  "WinWing/Orion2 16(EX) Joystick Combo/16EX Metal Joystick Grip(None Shaker Kit)/WINWING Orion Joystick Base 2 + JGRIP-F16.svg": {
+   "id": "winwing-orion-joystick-base-2-jgrip-f16-no-shaker",
+   "devices": [
+    "WINCTRL Orion Joystick Base Metal 2 + JGRIP-F16",
+    "WINWING Orion Joystick Base 2 + JGRIP-F16",
+    "WINWING JOYSTICK BASE2 + JGRIP-F16"
+   ]
+  },
+  "WinWing/Orion2 16(EX) Joystick Combo/16EX Metal Joystick Grip(with Shaker Kit)/WINWING Orion Joystick Base 2 + JGRIP-F16.svg": {
+   "id": "winwing-orion-joystick-base-2-jgrip-f16-shaker",
+   "devices": []
+  },
+  "WinWing/Orion2 16EX Throttle Combo/Orion2 16EX Throttle Combo.svg": {
+   "id": "winwing-orion2-16ex-throttle-combo",
+   "devices": [
+    "WINWING Orion Throttle Base II + TGRIP-F16",
+    "WINWING THROTTLE BASE2 + TGRIP-F16"
+   ],
+   "split_at": [
+    568
+   ]
+  },
+  "WinWing/Orion2 18 Joystick Combo/Orion2 18 Joystick Combo.svg": {
+   "id": "winwing-orion2-18-joystick-combo",
+   "devices": [
+    "WINWING JOYSTICK BASE2 + F18 GRIP"
+   ]
+  },
+  "WinWing/Orion2 18 Throttle Combo/Orion2 18 Throttle Combo.svg": {
+   "id": "winwing-orion2-18-throttle-combo",
+   "devices": [
+    "WINWING Orion Throttle Base II + F18 HANDLE",
+    "WINWING THROTTLE BASE2 + F18 HANDLE"
+   ],
+   "split_at": [
+    566
+   ]
+  },
+  "WinWing/Orion2 18 Throttle Combo/Orion2 18 Throttle Combo_with Axis.svg": {
+   "id": "winwing-orion2-18-throttle-combo-with-axis",
+   "devices": [],
+   "split_at": [
+    566
+   ]
+  },
+  "WinWing/Orion2 Throttle Base+15E Metal Throttle Grip/Orion2 Throttle Base+15E Metal Throttle Grip.svg": {
+   "id": "winwing-orion2-throttle-base-15e-metal-throttle-grip",
+   "devices": [],
+   "split_at": [
+    568
+   ]
+  },
+  "WinWing/Orion2 Throttle Base+15EX - Metal Throttle Grip/WINWING Orion Throttle Base II + F15EX HANDLE L + F15EX HANDLE R.svg": {
+   "id": "winwing-orion-throttle-base-ii-f15ex-handle-l-f15ex-handle-r",
+   "devices": [
+    "WINCTRL Orion Throttle Base II + F15EX HANDLE L + F15 HANDLE R",
+    "WINWING Orion Throttle Base II + F15EX HANDLE L + F15EX HANDLE R",
+    "WINWING Orion Throttle Base II + F15EX HANDLE L + F15 HANDLE R",
+    "WINWING THROTTLE BASE2 + F15EX HANDLE L + F15 HANDLE R",
+    "WINWING THROTTLE BASE2 + F15EX HANDLE L + F15EX HANDLE R"
+   ],
+   "split_at": [
+    566
+   ]
+  },
+  "WinWing/PCR Panel of Combat Ready/PCR Panel of Combat Ready.svg": {
+   "id": "winwing-pcr-panel-of-combat-ready",
+   "devices": [
+    "WINWING F18 COMBAT READY PANEL"
+   ]
+  },
+  "WinWing/PTO 2 Panel of Take Off/PTO 2 Panel of Take Off.svg": {
+   "id": "winwing-pto-2-panel-of-take-off",
+   "devices": [
+    "WINWING F18 TAKEOFF PANEL 2"
+   ]
+  },
+  "WinWing/PTO Panel of Take Off/PTO Panel of Take Off.svg": {
+   "id": "winwing-pto-panel-of-take-off",
+   "devices": [
+    "WINWING F18 TAKEOFF PANEL"
+   ]
+  },
+  "WinWing/T1-SUPER TARUS THROTTLE/T1-SUPER TARUS THROTTLE.svg": {
+   "id": "winwing-t1-super-tarus-throttle",
+   "devices": []
+  },
+  "WinWing/URSA MINOR Fighter Joystick/URSA MINOR Fighter Joystick L - Axis POV.svg": {
+   "id": "winwing-ursa-minor-fighter-joystick-l-axis-pov",
+   "devices": []
+  },
+  "WinWing/URSA MINOR Fighter Joystick/URSA MINOR Fighter Joystick L - Button POV.svg": {
+   "id": "winwing-ursa-minor-fighter-joystick-l-button-pov",
+   "devices": []
+  },
+  "WinWing/URSA MINOR Fighter Joystick/URSA MINOR Fighter Joystick R - Axis POV.svg": {
+   "id": "winwing-ursa-minor-fighter-joystick-r-axis-pov",
+   "devices": []
+  },
+  "WinWing/URSA MINOR Fighter Joystick/URSA MINOR Fighter Joystick R - Button POV.svg": {
+   "id": "winwing-ursa-minor-fighter-joystick-r-button-pov",
+   "devices": []
+  }
+ }
+}
