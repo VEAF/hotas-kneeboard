@@ -50,6 +50,6 @@ jobs:
       - name: Publish the release
         if: github.ref == 'refs/heads/main'
         run: |
-          version=$(python -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])")
+          version=$(uv run --no-sync python -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])")
           uv run --no-sync mike deploy --push --update-aliases "$version" latest
           uv run --no-sync mike set-default --push latest
