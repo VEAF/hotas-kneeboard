@@ -5,6 +5,8 @@ Chaque lot ajoute ses entrées à la fin de `[Unreleased]` ; une release les pas
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-19
+
 ### Ajouté
 
 - Lien vers la documentation de ta version dans la barre du haut et dans la fenêtre des raccourcis.
