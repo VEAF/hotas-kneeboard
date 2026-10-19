@@ -18,7 +18,7 @@ Même organisation que VEAF-Mission-Creation-Tools (VMCT), avec des tickets GitH
 
 - `develop` est la branche par défaut et reçoit le travail ; `main` ne reçoit que des releases.
 - Un lot = une branche `feature/<LOT-ID>`, `fix/<LOT-ID>` ou `chore/<LOT-ID>` créée depuis `develop`, **une seule PR** vers `develop` pour tout le lot, qui ferme ses tickets et le lot (`Closes #…`).
-- Une release = une PR de `develop` vers `main`, qui monte la version dans `pyproject.toml` et `hotas_kneeboard/__init__.py` (les deux doivent être égales) et passe la section `[Unreleased]` de `CHANGELOG.md` sous le numéro de version. À la fusion, `.github/workflows/release.yml` construit l'exe sous Windows et publie la release `vX.Y.Z` ; une fusion sans changement de version ne publie rien.
+- Une release = une PR de `develop` vers `main`, qui monte la version dans `pyproject.toml` et `hotas_kneeboard/__init__.py` (les deux doivent être égales), passe la section `[Unreleased]` de `CHANGELOG.md` sous le numéro de version, et réécrit `RELEASE_NOTES.md` (titre `# HOTAS Kneeboard — X.Y.Z`, en français, pour les pilotes, sur le modèle de VMCT ; à faire valider par David). À la fusion, `.github/workflows/release.yml` construit l'exe sous Windows et publie la release `vX.Y.Z` ; une fusion sans changement de version ne publie rien.
 - La CI (`ci.yml`) tourne sur chaque PR et sur les poussées vers `develop` et `main`.
 
 ## Démarche par défaut
