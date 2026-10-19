@@ -44,7 +44,18 @@ Il vient de VEAF/joystick-diagrams-dcs-world-plugin, où ses règles sont docume
 Ajouts propres à ce dépôt :
 
 - le type d'avion de chaque profil, lu dans les appels `make_flyable` du `entry.lua` du module : c'est le nom du dossier kneeboard (`A-10C II` → `A-10C_2`) ;
-- un périphérique sans profil de base, ou d'un module non installé, montre ce que son diff ajoute plutôt que rien.
+- un périphérique sans profil de base, ou d'un module non installé, montre ce que son diff ajoute plutôt que rien ;
+- le retrait de liaisons (enregistrements `remove`) : le moteur recalcule alors le diff de chaque périphérique concerné comme DCS le fait en enregistrant (`saveDeviceProfile`), contre les défauts du module sans le diff livré avec lui ;
+- les combinaisons dont la touche n'est pas une entrée du périphérique sont écartées, comme DCS le fait (`getKeyBelongToDevice`) : le profil joystick du C-130J déclare des touches clavier.
+
+Le recalcul couvre les touches (combinaisons ajoutées, retirées) et les axes (plus les combinaisons dont le filtre a changé, comparé comme DCS : valeurs par défaut de `createAxisFilter`, valeurs de cran jamais comparées) ; le diff de retour de force est recopié depuis le fichier, relu par `lua_tables`.
+Une entrée de diff qui ne correspond plus à aucune commande disparaît, comme quand DCS enregistre ; une entrée dont la commande a un numéro `iCommand` inconnu fait refuser l'écriture, pour ne pas perdre la liaison.
+Un diff vide est supprimé, comme DCS le fait : le périphérique retombe sur les défauts du module, et sur le diff livré avec lui s'il y en a un.
+Prouvé le 2026-10-19 contre DCS : 4 vues retirées à la main dans l'écran des commandes (manche Orion, F-16C_50), la même opération faite par l'appli sur le même état de départ donne le même fichier octet pour octet, et le palonnier que DCS a réécrit au passage aussi.
+Sur une copie fidèle d'un vrai `Saved Games` (commandes communautaires comprises), réécrire les 57 diffs sans rien retirer laisse les liaisons de 55 périphériques identiques ; les 2 autres ne contenaient que des entrées périmées, leur fichier est supprimé et ils retombent sur les défauts, sans effet en jeu.
+
+`luae.exe` ouvre les fichiers par la bibliothèque C, limitée à 260 caractères sous Windows : un diff au chemin plus long n'est pas lu.
+Le recalcul le prendrait pour un diff absent ; `dcs_config.new_diffs` refuse donc d'écrire quand le diff de l'utilisateur existe et que le moteur ne l'a pas lu.
 
 Les noms de commande affichés sont traduits par `l10n/<langue>/LC_MESSAGES/input.mo`, comme le jeu le fait, anglais compris (« Trim: Nose Up » s'affiche « Trim Hat - NOSE UP » dans l'A-10C II).
 

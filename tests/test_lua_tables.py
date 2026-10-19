@@ -181,3 +181,163 @@ def test_the_api_refuses_to_disable_while_dcs_runs(make_client, saved):
     )
     assert response.status_code == 409
     assert (saved / "Config" / "Input" / "disabled.lua").read_bytes() == before
+
+
+STICK = "Fake Stick {84180FE0-BDD3-11ea-8001-444553540000}"
+THROTTLE = "Fake Throttle {84180FE0-BDD3-11ea-8002-444553540000}"
+SENSOR_UP = "d3004pnilunilcd13vd1vpnilvunil"
+MASTER_ARM = "d3003pnilunilcd12vd1vpnilvunil"
+
+
+def key_bindings(saved, lua, device):
+    from hotas_kneeboard.engine import load_effective_bindings
+
+    result = load_effective_bindings(INSTALL, saved, ["FakePlane"], lua)
+    found = next(d for d in result["profiles"]["FakePlane"]["devices"] if d["name"] == device)
+    return {(b["hash"], b["key"], tuple(b["reformers"])) for b in found["bindings"] if b["kind"] == "key"}
+
+
+def remove(saved, tmp_path, lua, device, removals):
+    from hotas_kneeboard.dcs_config import remove_bindings
+
+    full = [{"profile": "FakePlane", "device": device, **r} for r in removals]
+    return remove_bindings(
+        INSTALL,
+        saved,
+        BackupStore(tmp_path / "backups"),
+        full,
+        "essai",
+        is_running=closed,
+        lua_interpreter=lua,
+    )
+
+
+def test_removing_a_default_binding_writes_a_removed_entry(lua, saved, tmp_path):
+    path = saved / "Config" / "Input" / "FakePlane" / "joystick" / f"{STICK}.diff.lua"
+    before, bindings = read_table(INSTALL, path, lua), key_bindings(saved, lua, STICK)
+    remove(saved, tmp_path, lua, STICK, [{"hash": SENSOR_UP, "key": "JOY_BTN_POV1_U"}])
+    after = read_table(INSTALL, path, lua)
+    assert after["keyDiffs"][SENSOR_UP] == {"name": "Sensor Up", "removed": [{"key": "JOY_BTN_POV1_U"}]}
+    assert {k: v for k, v in after["keyDiffs"].items() if k != SENSOR_UP} == before["keyDiffs"]
+    assert after["axisDiffs"] == before["axisDiffs"]
+    assert key_bindings(saved, lua, STICK) == bindings - {(SENSOR_UP, "JOY_BTN_POV1_U", ())}
+
+
+def test_removing_a_binding_the_user_added_drops_its_entry(lua, saved, tmp_path):
+    path = saved / "Config" / "Input" / "FakePlane" / "joystick" / f"{STICK}.diff.lua"
+    remove(saved, tmp_path, lua, STICK, [{"hash": MASTER_ARM, "key": "JOY_BTN4", "reformers": ["JOY_BTN5"]}])
+    assert MASTER_ARM not in read_table(INSTALL, path, lua)["keyDiffs"]
+    assert (MASTER_ARM, "JOY_BTN4", ("JOY_BTN5",)) not in key_bindings(saved, lua, STICK)
+
+
+def test_without_a_user_diff_the_module_diff_is_copied_in(lua, saved, tmp_path):
+    path = saved / "Config" / "Input" / "FakePlane" / "joystick" / f"{THROTTLE}.diff.lua"
+    path.unlink()
+    shipped = read_table(
+        INSTALL, INSTALL / "Mods/aircraft/FakePlane/Input/FakePlane/joystick/Fake Throttle.diff.lua", lua
+    )
+    remove(saved, tmp_path, lua, THROTTLE, [{"hash": SENSOR_UP, "key": "JOY_BTN_POV1_U"}])
+    written = read_table(INSTALL, path, lua)
+    assert written["keyDiffs"][SENSOR_UP]["removed"] == [{"key": "JOY_BTN_POV1_U"}]
+    for part in ("axisDiffs", "ffDiffs"):
+        assert written.get(part) == shipped.get(part)
+
+
+def test_an_error_on_one_device_writes_nothing(lua, saved, tmp_path):
+    stick = saved / "Config" / "Input" / "FakePlane" / "joystick" / f"{STICK}.diff.lua"
+    before = stick.read_bytes()
+    with pytest.raises(DcsConfigError):
+        from hotas_kneeboard.dcs_config import remove_bindings
+
+        remove_bindings(
+            INSTALL,
+            saved,
+            BackupStore(tmp_path / "backups"),
+            [
+                {"profile": "FakePlane", "device": STICK, "hash": SENSOR_UP, "key": "JOY_BTN_POV1_U"},
+                {"profile": "NotAModule", "device": STICK, "hash": SENSOR_UP, "key": "JOY_BTN_POV1_U"},
+            ],
+            "essai",
+            is_running=closed,
+            lua_interpreter=lua,
+        )
+    assert stick.read_bytes() == before
+
+
+def test_an_entry_no_command_has_is_dropped_as_dcs_does(lua, saved, tmp_path):
+    path = saved / "Config" / "Input" / "FakePlane" / "joystick" / f"{STICK}.diff.lua"
+    diff = read_table(INSTALL, path, lua)
+    diff["keyDiffs"]["d9999pnilunilcd12vd1vpnilvunil"] = {"name": "Gone", "added": [{"key": "JOY_BTN30"}]}
+    write_table(INSTALL, path, "diff", diff, lua)
+    remove(saved, tmp_path, lua, STICK, [{"hash": SENSOR_UP, "key": "JOY_BTN_POV1_U"}])
+    assert "d9999pnilunilcd12vd1vpnilvunil" not in read_table(INSTALL, path, lua)["keyDiffs"]
+
+
+def test_a_device_name_with_a_comma_is_accepted(lua):
+    from hotas_kneeboard.engine import _loader_input
+
+    data = _loader_input(
+        "i", "s", ["P"], [{"profile": "P", "device": "Pedals, USB {1}", "hash": "h", "key": "K"}]
+    )
+    assert b"remove\tP\tPedals, USB {1}\th\tK\t\n" in data
+
+
+def test_axis_entries_are_recomputed_as_dcs_does(lua, saved, tmp_path):
+    path = saved / "Config" / "Input" / "FakePlane" / "joystick" / f"{STICK}.diff.lua"
+    diff = read_table(INSTALL, path, lua)
+    kept = dict(diff["axisDiffs"])
+    # an axis the defaults do not bind: removing it changes nothing, DCS writes no entry for it
+    diff["axisDiffs"]["a2099cd14"] = {"name": "Gone axis", "removed": [{"key": "JOY_SLIDER1"}]}
+    write_table(INSTALL, path, "diff", diff, lua)
+    remove(saved, tmp_path, lua, STICK, [{"hash": SENSOR_UP, "key": "JOY_BTN_POV1_U"}])
+    assert read_table(INSTALL, path, lua)["axisDiffs"] == kept
+
+
+def test_a_user_diff_the_interpreter_could_not_read_stops_everything(monkeypatch, saved, tmp_path):
+    from hotas_kneeboard import dcs_config
+
+    path = saved / "Config" / "Input" / "FakePlane" / "joystick" / f"{STICK}.diff.lua"
+    before = path.read_bytes()
+    rewrite = {
+        "profile": "FakePlane",
+        "device": STICK,
+        "diff": {"keyDiffs": {}, "axisDiffs": {}, "source": None},
+    }
+    monkeypatch.setattr(dcs_config, "load_effective_bindings", lambda *a, **k: {"rewrites": [rewrite]})
+    with pytest.raises(DcsConfigError, match="illisible"):
+        dcs_config.remove_bindings(
+            INSTALL,
+            saved,
+            BackupStore(tmp_path / "backups"),
+            [{"profile": "FakePlane", "device": STICK, "hash": SENSOR_UP, "key": "JOY_BTN_POV1_U"}],
+            "essai",
+            is_running=closed,
+        )
+    assert path.read_bytes() == before
+
+
+def test_an_axis_filter_is_written_only_when_it_differs(lua, saved, tmp_path):
+    path = saved / "Config" / "Input" / "FakePlane" / "joystick" / f"{STICK}.diff.lua"
+    diff = read_table(INSTALL, path, lua)
+    default = {
+        "curvature": [0],
+        "deadzone": 0,
+        "invert": False,
+        "saturationX": 1,
+        "saturationY": 1,
+        "slider": False,
+    }
+    # the default axis of "Zoom" (JOY_Y) given back its default filter: no "changed" entry any more
+    diff["axisDiffs"]["a2001cd14"]["changed"][0]["filter"] = default
+    write_table(INSTALL, path, "diff", diff, lua)
+    remove(saved, tmp_path, lua, STICK, [{"hash": SENSOR_UP, "key": "JOY_BTN_POV1_U"}])
+    assert "a2001cd14" not in read_table(INSTALL, path, lua)["axisDiffs"]
+
+
+def test_a_too_long_diff_path_is_flagged_on_the_page(monkeypatch):
+    from hotas_kneeboard import engine
+
+    monkeypatch.setattr(engine.sys, "platform", "win32")
+    result = {"profiles": {"P": {"devices": [{"name": "D" * 300, "error": None}]}}}
+    engine._flag_long_paths(result, Path("C:/Saved Games/DCS"))
+    assert result["profiles"]["P"]["devices"][0]["error"] == engine.PATH_TOO_LONG

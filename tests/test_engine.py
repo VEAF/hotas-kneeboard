@@ -64,6 +64,12 @@ def test_module_defaults_are_included(result):
     assert ("JOY_X", (), "Roll") in stick  # from DefaultAssignments
 
 
+def test_a_keyboard_key_in_a_joystick_profile_is_dropped_as_dcs_does(result):
+    stick = bindings(result, "FakePlane", STICK)
+    assert ("JOY_BTN8", (), "Gear Up") in stick
+    assert not [b for b in stick if not b[0].startswith("JOY_")]
+
+
 def test_removed_default_is_gone(result):
     stick = bindings(result, "FakePlane", STICK)
     assert not [b for b in stick if b[0] == "JOY_BTN2"]

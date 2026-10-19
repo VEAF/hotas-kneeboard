@@ -17,6 +17,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path, PurePosixPath
 
+from .engine import EffectiveBindingsError, load_effective_bindings
 from .lua_tables import LuaTableError, read_table, write_table
 
 _logger = logging.getLogger(__name__)
@@ -384,3 +385,83 @@ def forget_device(
         return [p.parent.parent.name for p in paths]
 
     return guarded_write(saved_games_dir, backups, f"avant d'oublier {device}", change, is_running=is_running)
+
+
+# --- removing key bindings: each device's diff rewritten as DCS saves it -------------------------
+
+
+def new_diffs(
+    install_dir: Path, saved_games_dir: Path, removals: list[dict], lua_interpreter=None
+) -> list[dict]:
+    """New diff of each (profile, device) concerned by ``removals`` (``profile``, ``device`` = the
+    diff file's name without ``.diff.lua``, ``hash``, ``key``, ``reformers``), as DCS would save it:
+    ``[{"profile", "device", "path", "diff"}]``, ``diff`` None when nothing differs from the
+    module's defaults (DCS then deletes the file). Raises when one of them cannot be computed."""
+    profiles = sorted({r["profile"] for r in removals})
+    try:
+        result = load_effective_bindings(install_dir, saved_games_dir, profiles, lua_interpreter, removals)
+    except EffectiveBindingsError as error:
+        raise DcsConfigError(f"Calcul impossible, rien n'a été modifié : {error}") from error
+    out = []
+    for rewrite in result.get("rewrites", []):
+        where = f"{rewrite['device']} ({rewrite['profile']})"
+        if rewrite.get("error"):
+            raise DcsConfigError(f"{where} : {rewrite['error']} ; rien n'a été modifié")
+        source = rewrite["diff"].get("source")
+        input_dir = input_dir_of(saved_games_dir)
+        path = input_dir / rewrite["profile"] / "joystick" / f"{rewrite['device']}.diff.lua"
+        # luae.exe cannot open a path of 260 characters or more: a user diff it did not read would be
+        # taken for no diff at all, and the user's bindings lost
+        if path.is_file() and not (source and Path(source) == path):
+            raise DcsConfigError(
+                f"{where} : diff illisible par l'interpréteur de DCS (chemin de {len(str(path))} caractères ?) ;"
+                " rien n'a été modifié"
+            )
+        try:
+            old = read_table(install_dir, Path(source), lua_interpreter) if source else {}
+        except LuaTableError as error:
+            raise DcsConfigError(f"{where} : {error} ; rien n'a été modifié") from error
+        if not isinstance(old, dict):
+            raise DcsConfigError(f"{where} : diff inattendu ; rien n'a été modifié")
+        # key and axis diffs recomputed as DCS does; the force feedback one is kept as it is
+        diff = {
+            "ffDiffs": old.get("ffDiffs"),
+            "axisDiffs": rewrite["diff"]["axisDiffs"],
+            "keyDiffs": rewrite["diff"]["keyDiffs"],
+        }
+        diff = {k: v for k, v in diff.items() if v}
+        out.append(
+            {"profile": rewrite["profile"], "device": rewrite["device"], "path": path, "diff": diff or None}
+        )
+    return out
+
+
+def remove_bindings(
+    install_dir: Path,
+    saved_games_dir: Path,
+    backups: BackupStore,
+    removals: list[dict],
+    reason: str,
+    *,
+    is_running: Callable[[], bool] = dcs_running,
+    lua_interpreter=None,
+) -> tuple[Backup, list[dict]]:
+    """Removes key bindings (see ``new_diffs``) and writes each device's diff as DCS would: every
+    diff is computed before the first is written, so that an error changes nothing."""
+
+    def change(_input_dir: Path) -> list[dict]:
+        rewrites = new_diffs(install_dir, saved_games_dir, removals, lua_interpreter)
+        try:
+            for r in rewrites:
+                if r["diff"] is None:
+                    r["path"].unlink(missing_ok=True)
+                else:
+                    r["path"].parent.mkdir(parents=True, exist_ok=True)
+                    write_table(install_dir, r["path"], "diff", r["diff"], lua_interpreter)
+        except (OSError, LuaTableError) as error:
+            raise DcsConfigError(
+                f"Écriture interrompue ({error}) : la sauvegarde d'avant est en tête de liste"
+            ) from error
+        return rewrites
+
+    return guarded_write(saved_games_dir, backups, reason, change, is_running=is_running)

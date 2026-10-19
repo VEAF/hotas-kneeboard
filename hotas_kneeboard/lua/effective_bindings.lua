@@ -13,11 +13,15 @@
 --   install <DCS install>        saved <Saved Games/DCS>      casefold <1 if paths ignore case>
 --   profile <unit name>          (one line per profile to compute)
 --   dir <directory>              followed by one "entry <name>" line per directory entry
+--   remove <profile> <device> <hash> <key> <reformers>
+--                                a key binding to remove (reformers comma-separated, may be empty):
+--                                the output then holds "rewrites", the new diff of each device
+--                                concerned, as DCS would save it (see diffAfterRemovals)
 -- Lua 5.1 can neither list a directory nor take a non-ASCII path on the command line (luae.exe
 -- reads its arguments in the ANSI code page but opens files in UTF-8), hence stdin and listings.
 
 local DCS_ROOT, SAVED_GAMES, CASEFOLD
-local requested, listings = {}, {}
+local requested, listings, removals = {}, {}, {}
 
 local function norm(path) return (path:gsub('\\', '/')) end
 local function dirKey(path)
@@ -35,6 +39,11 @@ do
 		elseif kind == 'profile' then table.insert(requested, value)
 		elseif kind == 'dir' then currentDir = {} listings[value] = currentDir
 		elseif kind == 'entry' and currentDir then table.insert(currentDir, value)
+		elseif kind == 'remove' then
+			local profile, device, hash, key, reformers = value:match('^(.-)\t(.-)\t(.-)\t(.-)\t(.*)$')
+			local list = {}
+			for r in (reformers or ''):gmatch('[^,]+') do table.insert(list, r) end
+			table.insert(removals, {profile = profile, device = device, hash = hash, key = key, reformers = list})
 		end
 	end
 	if not (DCS_ROOT and SAVED_GAMES) then
@@ -192,6 +201,24 @@ local function loadDiffFile(filename)
 	return res
 end
 
+-- DCS drops from a profile every combo whose key is not an input of that kind of device (Data.lua,
+-- validateDeviceProfileCommand_, through InputUtils.getKeyBelongToDevice): the C-130J's joystick
+-- default.lua binds keyboard keys ("G", "LShift - D"…), which no joystick shows. The joystick inputs
+-- of Scripts/Input/InputEvents.lua are exactly those named JOY_….
+local function dropForeignCombos(commands, deviceType)
+	if deviceType ~= 'joystick' then return end
+	for _, command in ipairs(commands or {}) do
+		local combos = command.combos
+		if combos then
+			for i = #combos, 1, -1 do
+				local key = combos[i].key
+				if key and key:sub(1, 4) ~= 'JOY_' then table.remove(combos, i) end
+			end
+			if #combos == 0 then command.combos = nil end
+		end
+	end
+end
+
 -- Base profile of a device, as DCS picks it (Data.lua, loadProfileDefaultDeviceProfile_): its
 -- template, else default.lua; for a unit profile, then the same two in the Default unit.
 local DEFAULT_UNIT_FOLDER = 'Config/Input/Aircrafts/Default/'
@@ -201,7 +228,11 @@ local function loadBase(baseFolder, deviceName, deviceType, unitProfile)
 	for _, folder in ipairs(folders) do
 		for _, file in ipairs({folder .. templateName(deviceName) .. '.lua', folder .. 'default.lua'}) do
 			local base = loadProfileFile(file, deviceName, folder)
-			if base then return base, file end
+			if base then
+				dropForeignCombos(base.keyCommands, deviceType)
+				dropForeignCombos(base.axisCommands, deviceType)
+				return base, file
+			end
 		end
 	end
 end
@@ -633,6 +664,160 @@ local function deviceBindings(baseFolder, userFolder, deviceName, unitProfile)
 	}
 end
 
+-- Combo equality as DCS sees it (Data.lua, getCombosKeysAreEqual_): same key, same reformers in
+-- any order
+local function sameReformers(r1, r2)
+	r1, r2 = r1 or {}, r2 or {}
+	if #r1 ~= #r2 then return false end
+	for _, a in ipairs(r1) do
+		local found = false
+		for _, b in ipairs(r2) do
+			if a == b then found = true break end
+		end
+		if not found then return false end
+	end
+	return true
+end
+
+local function findCombo(combos, combo)
+	for i, c in ipairs(combos or {}) do
+		if c.key == combo.key and sameReformers(c.reformers, combo.reformers) then return i end
+	end
+end
+
+-- An axis filter with DCS's defaults filled in (Data.lua, createAxisFilter)
+local function axisFilter(f)
+	f = f or {}
+	return {
+		deadzone = f.deadzone or 0, saturationX = f.saturationX or 1, saturationY = f.saturationY or 1,
+		hardwareDetentMax = f.hardwareDetentMax or 0, hardwareDetentAB = f.hardwareDetentAB or 0,
+		hardwareDetent = not not f.hardwareDetent, slider = not not f.slider, invert = not not f.invert,
+		curvature = f.curvature or {0},
+	}
+end
+
+-- Data.lua, getFiltersAreEqual_ and compareFilters_, as they are: the detent values are compared
+-- with themselves there, so they never make two filters differ
+local function sameFilters(f1, f2)
+	if f1 == f2 then return true end
+	f1, f2 = axisFilter(f1), axisFilter(f2)
+	if not (f1.deadzone == f2.deadzone and f1.saturationX == f2.saturationX
+		and f1.saturationY == f2.saturationY and f1.hardwareDetent == f2.hardwareDetent
+		and f1.slider == f2.slider and f1.invert == f2.invert and #f1.curvature == #f2.curvature) then
+		return false
+	end
+	for i, v in ipairs(f1.curvature) do
+		if v ~= f2.curvature[i] then return false end
+	end
+	return true
+end
+
+-- Data.lua, cleanupCombo_: the fields a diff keeps of a combo; an added combo loses a filter equal
+-- to the default one
+local function cleanCombo(combo, dropDefaultFilter)
+	local reformers = combo.reformers
+	if reformers and not next(reformers) then reformers = nil end
+	local filter = combo.filter
+	if dropDefaultFilter and filter and sameFilters(axisFilter(filter), axisFilter()) then filter = nil end
+	return {key = combo.key, reformers = reformers, filter = filter, column = combo.column}
+end
+
+-- Diffs of one kind of command (Data.lua, saveDeviceProfile, calcDiff): for each command, the combos
+-- added to and removed from the defaults, and for an axis the combos whose filter changed. One
+-- command per hash, its combos those of the last command of that hash (addProfileKeyCommand). Its
+-- name is only a label (DCS matches by hash): the one the diff already holds, else the first
+-- command's, as DCS names a command after the first device that has it.
+local function commandDiffs(effectiveCommands, pristineCommands, infos, oldDiffs, isAxis)
+	local byHash, order = {}, {}
+	for i, c in ipairs(effectiveCommands or {}) do
+		-- an axis command without action has no hash for DCS, which leaves it out (addProfileAxisCommand)
+		if not (isAxis and c.action == nil) then
+			local hash = hashOf(c, infos)
+			if not byHash[hash] then
+				local old = oldDiffs and oldDiffs[hash]
+				byHash[hash] = {name = old and old.name or c.name}
+				table.insert(order, hash)
+			end
+			byHash[hash].combos = c.combos or {}
+			byHash[hash].base = pristineCommands[i].combos or {}
+		end
+	end
+	local diffs = {}
+	for _, hash in ipairs(order) do
+		local command = byHash[hash]
+		local added, removed, changed
+		for _, combo in ipairs(command.combos) do
+			local i = findCombo(command.base, combo)
+			if not i then
+				added = added or {}
+				table.insert(added, cleanCombo(combo, true))
+			elseif isAxis and not sameFilters(combo.filter, command.base[i].filter) then
+				changed = changed or {}
+				table.insert(changed, cleanCombo(combo))
+			end
+		end
+		for _, combo in ipairs(command.base) do
+			if not findCombo(command.combos, combo) then
+				removed = removed or {}
+				table.insert(removed, cleanCombo(combo))
+			end
+		end
+		if added or removed or changed then
+			if hash:find(SYMBOL_PREFIX, 1, true) then return nil, 'command not identified: ' .. tostring(command.name) end
+			diffs[hash] = {name = command.name, added = added, removed = removed, changed = changed}
+		end
+	end
+	return asObject(diffs)
+end
+
+-- DCS drops a diff entry that matches no command (a command changed since the diff was written);
+-- here it may also be a command whose iCommand number is not known, whose binding a rewrite would
+-- lose: refused
+local function checkUnmatched(unmatched, pristineCommands, infos)
+	local unresolved = {}
+	for _, c in ipairs(pristineCommands or {}) do
+		if c.name and hashOf(c, infos):find(SYMBOL_PREFIX, 1, true) then unresolved[c.name] = true end
+	end
+	for _, u in ipairs(unmatched) do
+		if unresolved[u.name] then return 'command not identified: ' .. u.name end
+	end
+end
+
+-- New diff of one device after removing some of its key bindings, as DCS writes it when it saves its
+-- controls (Data.lua, saveDeviceProfile): key and axis diffs recomputed against the module's
+-- defaults (without the diff shipped with the module).
+-- Returns {keyDiffs = …, axisDiffs = …, source = the diff file read, nil for none}, or nil and an
+-- error. The force feedback diff is not recomputed: the caller keeps the one of the source file.
+local function diffAfterRemovals(baseFolder, userFolder, deviceName, unitProfile, toRemove)
+	local effective = loadBase(baseFolder, deviceName, 'joystick', unitProfile)
+	local pristine = loadBase(baseFolder, deviceName, 'joystick', unitProfile)
+	if not (effective and pristine) then return nil, 'no base profile' end
+	-- the user's diff, else the one shipped with the module, which DCS copies into the user's
+	local diffSource = userFolder .. deviceName .. '.diff.lua'
+	local diff = loadDiffFile(diffSource)
+	if not diff then
+		diffSource = baseFolder .. templateName(deviceName) .. '.diff.lua'
+		diff = loadDiffFile(diffSource)
+		if not diff then diffSource = nil end
+	end
+	diff = diff or {}
+	local err = checkUnmatched(applyDiff(effective.keyCommands, diff.keyDiffs, KEY_HASH), pristine.keyCommands, KEY_HASH)
+		or checkUnmatched(applyDiff(effective.axisCommands, diff.axisDiffs, AXIS_HASH), pristine.axisCommands, AXIS_HASH)
+	if err then return nil, err end
+	for _, c in ipairs(effective.keyCommands or {}) do
+		local hash = hashOf(c, KEY_HASH)
+		for _, r in ipairs(toRemove) do
+			local i = r.hash == hash and findCombo(c.combos, r)
+			if i then table.remove(c.combos, i) end
+		end
+	end
+	local keyDiffs, keyErr = commandDiffs(effective.keyCommands, pristine.keyCommands, KEY_HASH, diff.keyDiffs, false)
+	if not keyDiffs then return nil, keyErr end
+	local axisDiffs, axisErr = commandDiffs(effective.axisCommands, pristine.axisCommands, AXIS_HASH, diff.axisDiffs, true)
+	if not axisDiffs then return nil, axisErr end
+	return {keyDiffs = keyDiffs, axisDiffs = axisDiffs, source = diffSource}
+end
+
 -- Main program
 if #requested == 0 then requested = listDir(SAVED_GAMES .. 'Config/Input/') end
 
@@ -665,7 +850,35 @@ for _, name in ipairs(requested) do
 	result[name] = entry
 end
 
+-- New diffs after the removals, one per (profile, device)
+local rewrites = {}
+do
+	local groups, order = {}, {}
+	for _, r in ipairs(removals) do
+		local id = r.profile .. '\t' .. r.device
+		if not groups[id] then
+			groups[id] = {profile = r.profile, device = r.device, list = {}}
+			table.insert(order, id)
+		end
+		table.insert(groups[id].list, r)
+	end
+	for _, id in ipairs(order) do
+		local g = groups[id]
+		local profile = profiles[g.profile]
+		local userFolder = SAVED_GAMES .. 'Config/Input/' .. g.profile .. '/joystick/'
+		local entry = {profile = g.profile, device = g.device, diff_file = userFolder .. g.device .. '.diff.lua'}
+		if not profile then
+			entry.error = 'module not installed'
+		else
+			local diff, err = diffAfterRemovals(profile.folder .. 'joystick/', userFolder, g.device, profile.unit, g.list)
+			entry.diff, entry.error = diff, err
+		end
+		table.insert(rewrites, entry)
+	end
+end
+
 io.write(jsonEncode({
+	rewrites = rewrites,
 	injector = injectorActive,
 	learned_symbols = learned,
 	symbol_conflicts = asObject(conflicts),

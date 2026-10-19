@@ -20,3 +20,8 @@ Chaque lot ajoute ses entrées à la fin de `[Unreleased]` ; une release les pas
 - Fenêtre « Commandes DCS » : toute modification des commandes de DCS est refusée tant que le jeu tourne et précédée d'une sauvegarde de `Saved Games\DCS\Config\Input` ; les 20 dernières sauvegardes sont listées et restaurables (INVESTIGATE-EDIT-DCS-BINDINGS, #30).
 - Désactivation et réactivation d'un périphérique dans DCS depuis la fenêtre « Commandes DCS », écrites comme le jeu les écrit ; pastille « désactivé » dans la liste des périphériques (INVESTIGATE-EDIT-DCS-BINDINGS, #33).
 - Oubli d'un périphérique que DCS n'a pas vu lors de ses deux derniers lancements (vJoy désinstallé, périphérique renommé) : ses commandes sont supprimées dans tous les modules, après une sauvegarde (INVESTIGATE-EDIT-DCS-BINDINGS, #34).
+
+### Corrigé
+
+- Les touches clavier qu'un module déclare dans son profil joystick (le C-130J : « G », « LShift - D »…) n'apparaissent plus sur les pages des joysticks : DCS les écarte aussi ; vérifié identique à MAKE HTML sur le C-130J (INVESTIGATE-EDIT-DCS-BINDINGS, #31).
+- Un fichier de commandes dont le chemin dépasse 260 caractères, que l'interpréteur de DCS ne peut pas lire, est signalé sur sa page (« chemin trop long ») au lieu d'afficher les défauts du module sans prévenir (#31).

@@ -23,6 +23,9 @@ LUA_SCRIPT = Path(__file__).parent / "lua" / "effective_bindings.lua"
 DCS_INTERPRETER = Path("bin") / "luae.exe"
 REGISTRY_ROOT = r"Software\Eagle Dynamics"
 TIMEOUT_SECONDS = 120
+# Windows' MAX_PATH, terminating null included: luae.exe cannot open a longer path
+MAX_PATH = 260
+PATH_TOO_LONG = "path too long"
 # Command line of the interpreter, ASCII only: reads the script's length, the script, and runs it
 BOOTSTRAP = "local n = tonumber(io.read('*l')) assert(loadstring(io.read(n), '=effective_bindings.lua'))()"
 
@@ -101,7 +104,9 @@ def _directory_listings(install: str, saved_games: str) -> dict[str, list[str]]:
     return listings
 
 
-def _loader_input(install: str, saved_games: str, profiles: list[str]) -> bytes:
+def _loader_input(
+    install: str, saved_games: str, profiles: list[str], removals: list[dict] | None = None
+) -> bytes:
     """stdin of the interpreter: the script, then the records it reads (see its header)"""
     # Lua reads stdin in text mode on Windows: a CR would shift the script length
     script = LUA_SCRIPT.read_bytes().replace(b"\r\n", b"\n")
@@ -111,6 +116,15 @@ def _loader_input(install: str, saved_games: str, profiles: list[str]) -> bytes:
         f"casefold\t{1 if sys.platform == 'win32' else 0}",
     ]
     records += [f"profile\t{profile}" for profile in profiles]
+    for r in removals or []:
+        fields = [r["profile"], r["device"], r["hash"], r["key"]]
+        reformers = list(r.get("reformers") or [])
+        # tab-separated record, reformers comma-joined: only they may not hold a comma
+        if any(c in field for field in fields + reformers for c in "\t\n") or any(
+            "," in x for x in reformers
+        ):
+            raise EffectiveBindingsError(f"liaison à retirer illisible : {r}")
+        records.append("remove\t" + "\t".join([*fields, ",".join(reformers)]))
     for directory, entries in _directory_listings(install, saved_games).items():
         records.append(f"dir\t{directory}")
         records += [f"entry\t{entry}" for entry in entries if "\n" not in entry]
@@ -123,6 +137,7 @@ def load_effective_bindings(
     saved_games_dir: Path,
     profiles: list[str],
     lua_interpreter: Path | str | None = None,
+    removals: list[dict] | None = None,
 ) -> dict:
     """Runs the Lua loader and returns its JSON output.
 
@@ -145,7 +160,7 @@ def load_effective_bindings(
     try:
         completed = subprocess.run(
             command,
-            input=_loader_input(install, saved_games, profiles),
+            input=_loader_input(install, saved_games, profiles, removals),
             capture_output=True,
             timeout=TIMEOUT_SECONDS,
             check=False,
@@ -166,7 +181,22 @@ def load_effective_bindings(
         raise EffectiveBindingsError(f"invalid output from the Lua loader: {error}") from error
     if not isinstance(result.get("profiles"), dict):
         raise EffectiveBindingsError("invalid output from the Lua loader: no profiles")
+    _flag_long_paths(result, Path(saved_games_dir))
     return result
+
+
+def _flag_long_paths(result: dict, saved_games_dir: Path) -> None:
+    """luae.exe opens files through the C library, limited to MAX_PATH on Windows: a diff whose path
+    is longer is not read, and its device shows the module's defaults. Such a device is marked
+    ``error = PATH_TOO_LONG`` rather than shown as if nothing were wrong."""
+    if sys.platform != "win32":
+        return
+    for profile, entry in result["profiles"].items():
+        for device in entry.get("devices", []):
+            path = saved_games_dir / "Config" / "Input" / profile / "joystick" / f"{device['name']}.diff.lua"
+            if len(str(path)) >= MAX_PATH:
+                _logger.warning(f"DCS: {path} is too long for DCS's Lua interpreter, not read")
+                device["error"] = PATH_TOO_LONG
 
 
 def list_user_profiles(saved_games_dir: Path) -> list[str]:

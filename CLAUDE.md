@@ -46,6 +46,7 @@ Pour chaque demande, dans l'ordre :
 
 - `hotas_kneeboard/` : le serveur FastAPI.
   - `engine.py` + `lua/effective_bindings.lua` : le moteur, repris de VEAF/joystick-diagrams-dcs-world-plugin. Il exécute le Lua avec l'interpréteur de DCS (`bin/luae.exe`) : défauts du module + diff de l'utilisateur, comme `Scripts/Input/Data.lua`.
+    Il sait aussi recalculer le diff d'un périphérique après retrait de liaisons de touche, comme DCS l'écrit en enregistrant (`saveDeviceProfile`) ; `dcs_config.remove_bindings` écrit le résultat.
   - `pages.py` : regroupement par entrée et par calque de modificateurs, appariement des positions relâchées `_OFF`.
   - `dcs.py` : détection de l'install, de Saved Games et de la langue ; traduction des noms de commande par `l10n/<langue>/LC_MESSAGES/input.mo`, comme le jeu.
   - `templates.py` : format des gabarits (docstring) et bibliothèque : gabarits livrés (`library/`, les 45 convertis, à ne pas éditer à la main) puis ceux de l'utilisateur (`%APPDATA%/HOTAS Kneeboard/templates/`), qui passent devant ; enregistrement, suppression, export et import en un fichier zip.

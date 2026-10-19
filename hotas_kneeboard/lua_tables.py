@@ -88,7 +88,9 @@ def write_table(
     """Writes ``local <name> = {…}return <name>`` as DCS does; through a temporary file, so that a
     failure leaves the old file as it was."""
     path = Path(path)
-    tmp = path.with_name(f".{path.name}.{uuid.uuid4().hex}.tmp")
+    # short: luae.exe opens files through the C library, limited to 260 characters on Windows, and a
+    # device name alone can take a hundred
+    tmp = path.with_name(f".hk-{uuid.uuid4().hex[:12]}.tmp")
     source = to_lua(value).encode("ascii")
     try:
         _run(
