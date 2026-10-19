@@ -82,6 +82,7 @@ export interface Settings {
   device_order: Record<string, string[]>
   /** device names (without GUID) hidden in every module */
   hidden_devices: string[]
+  buttonless_devices: string[] // names without GUID: axes only (pedals), their generic buttons removable
   layer_mode: LayerMode
   page_height: number
   /** drawings whose template has a cut line (split_at) become several pages */
@@ -241,4 +242,24 @@ export interface BindingsRemoved {
   backup: DcsBackup
   removed: number
   asked: number
+}
+
+/** The buttons DCS gives a device marked as having none (GET /api/dcs-config/generic-buttons) */
+export interface GenericButtonsDevice {
+  device: string // full name, with its GUID
+  name: string
+  modules: {
+    profile: string
+    unit_type: string | null
+    file: string
+    bindings: { hash: string; key: string; reformers: string[]; command: string }[]
+    new_file: boolean
+    error: string | null
+  }[]
+}
+
+export interface GenericButtonsPreview {
+  all_modules: boolean
+  marked: string[]
+  devices: GenericButtonsDevice[]
 }

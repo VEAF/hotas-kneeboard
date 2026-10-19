@@ -3,6 +3,7 @@ import type {
   BindingsRemoved,
   BindingsResponse,
   DeviceBindingsResponse,
+  GenericButtonsPreview,
   DcsBackup,
   DcsBackupsResponse,
   DcsDevicesResponse,
@@ -75,6 +76,10 @@ export const api = {
       '/api/dcs-config/hat-views',
       json('POST', { devices, every_device: everyDevice, all_modules: allModules }),
     ),
+  genericButtons: (allModules: boolean) =>
+    request<GenericButtonsPreview>(`/api/dcs-config/generic-buttons?all_modules=${allModules}`),
+  removeGenericButtons: (allModules: boolean) =>
+    request<HatViewsResult>('/api/dcs-config/generic-buttons', json('POST', { all_modules: allModules })),
   modifiers: () => request<ModifiersResponse>('/api/dcs-config/modifiers'),
   fixModifiers: () => request<ModifiersFixed>('/api/dcs-config/modifiers/fix', { method: 'POST' }),
   restoreModifiers: (profile: string, backup: string) =>

@@ -171,6 +171,18 @@ Avec TrackIR ou la VR, elles ne servent à rien et encombrent les pages ; la sec
   Un fichier qui ne garde plus aucune différence avec les réglages par défaut est supprimé, comme le fait DCS : le périphérique n'apparaît alors plus dans ce module de l'application, ce n'est pas une perte.
 - Pour revenir en arrière, restaure la sauvegarde « avant le retrait des vues du chapeau » dans la liste des sauvegardes.
 
+### Périphériques sans boutons
+
+Quand un module n'a rien prévu pour un périphérique, DCS lui donne les liaisons de « n'importe quel joystick » : un palonnier reçoit un tir d'arme sur le bouton 2, une direction de roulette sur le 4, un recentrage de vue sur le 5… boutons qu'il n'a pas.
+DCS n'écrit nulle part combien de boutons a un périphérique : c'est toi qui le dis.
+
+1. Coche, dans la liste, les périphériques qui n'ont ni bouton ni chapeau (le palonnier) ; l'application s'en souvient.
+2. **Chercher** : l'aperçu donne, par périphérique et par module, les boutons génériques qui partiraient.
+3. **Retirer…** puis **Retirer** : une seule sauvegarde avant, les commandes relues après l'écriture et comparées à l'aperçu ; **Annuler ce retrait** restaure la sauvegarde.
+
+Seules partent les liaisons de bouton et de chapeau qui viennent de ce profil générique : ce que tu as mis toi-même sur le périphérique, ce que le module prévoit pour ce matériel précis, et tous les axes restent.
+Par défaut, seuls les modules où le périphérique est configuré sont touchés ; l'option « Tous les modules installés » crée un fichier dans chacun, pour qu'un nouvel avion soit déjà propre.
+
 ### Retirer des liaisons
 
 Le bouton **Liaisons**, au-dessus de la page, liste toutes les liaisons du périphérique dans ce module : l'entrée (« Bouton 1 », « Axe Z »), le modificateur s'il y en a, la commande, et son origine.
