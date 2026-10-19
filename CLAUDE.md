@@ -3,16 +3,38 @@
 Application locale (serveur Python + interface web, livrée en un `.exe`) qui dessine les liaisons HOTAS de DCS sur l'image de chaque périphérique, et les exporte en pages kneeboard (PNG) et en PDF.
 GPL v2, imposée par les gabarits repris de Joystick Diagrams.
 
-## Suivi
+## Suivi : lots et tickets dans GitHub, comme VMCT
 
-PRD = issue [#1](https://github.com/VEAF/hotas-kneeboard/issues/1), un ticket par lot (L1 #2, L2 #3, L3 #4).
+Même organisation que VEAF-Mission-Creation-Tools (VMCT), avec des tickets GitHub à la place des fichiers de `.backlog/` ; le détail est dans [`docs/agents/issue-tracker.md`](docs/agents/issue-tracker.md) et [`docs/agents/triage-labels.md`](docs/agents/triage-labels.md).
+
+- Le PRD du produit est [#1](https://github.com/VEAF/hotas-kneeboard/issues/1) ; ses lots en sont les sous-tickets (feuille de route et avancement).
+- Un **lot** est un ticket étiqueté `lot`, titré `<LOT-ID> — …` (`FEAT-…`, `FIX-…`, `CHORE-…`, `DOC-…`, `INVESTIGATE-…`), son PRD dans le corps, ses conditions de fin en cases à cocher.
+- Ses **tickets** sont ses sous-tickets, étiquetés `ticket`, titrés `<LOT-ID> NN — …`, numérotés dans l'ordre des dépendances ; ils se découpent avec `/to-tickets` avant d'écrire du code (c'est David qui le lance, le skill ne peut pas être appelé par un agent).
+- Le **statut** est une étiquette : ⬜ ready · 🔄 in-progress · 🧑 waiting-human · ⏸ paused. Fermé « completed » = ✅ done, fermé « not planned » = 🚫 won't fix.
+  Un changement de statut se fait sur le ticket au moment où il arrive.
 
 ## Branches et releases
 
-- `develop` reçoit le travail ; `main` ne reçoit que des releases.
-- Un lot = une branche `feat/<lot>` créée depuis `develop`, une PR vers `develop` qui ferme le ticket du lot.
-- Une release = une PR de `develop` vers `main`, qui monte la version dans `pyproject.toml` et `hotas_kneeboard/__init__.py` (les deux doivent être égales). À la fusion, `.github/workflows/release.yml` construit l'exe sous Windows et publie la release `vX.Y.Z` ; une fusion sans changement de version ne publie rien.
+- `develop` est la branche par défaut et reçoit le travail ; `main` ne reçoit que des releases.
+- Un lot = une branche `feature/<LOT-ID>`, `fix/<LOT-ID>` ou `chore/<LOT-ID>` créée depuis `develop`, **une seule PR** vers `develop` pour tout le lot, qui ferme ses tickets et le lot (`Closes #…`).
+- Une release = une PR de `develop` vers `main`, qui monte la version dans `pyproject.toml` et `hotas_kneeboard/__init__.py` (les deux doivent être égales) et passe la section `[Unreleased]` de `CHANGELOG.md` sous le numéro de version. À la fusion, `.github/workflows/release.yml` construit l'exe sous Windows et publie la release `vX.Y.Z` ; une fusion sans changement de version ne publie rien.
 - La CI (`ci.yml`) tourne sur chaque PR et sur les poussées vers `develop` et `main`.
+
+## Démarche par défaut
+
+Pour chaque demande, dans l'ordre :
+
+0. **Se synchroniser** : `git fetch` puis `git pull --ff-only` sur `develop` avant de lire les tickets ou le code.
+1. **Analyser** la demande ; une question ou une analyse sans code s'arrête là. En commençant un ticket, le reformuler en 1 à 3 phrases (ce qu'il est, ce que « fini » veut dire) avant tout outil.
+2. **Le lot** : s'il n'existe pas, créer son ticket `lot` (PRD dans le corps, statut ⬜ ready) en sous-ticket de #1, et faire découper ses tickets par `/to-tickets`.
+3. **La branche** depuis `develop` (`feature/`, `fix/` ou `chore/<LOT-ID>`) ; le lot et le ticket en cours passent à 🔄 in-progress.
+4. **Coder** : code, tests, documentation de `docs/` touchée par le changement.
+5. **Tester** et passer la porte de qualité (commandes ci-dessous) ; tout corriger avant de continuer.
+6. **`CHANGELOG.md`** : une entrée claire à la fin de `[Unreleased]` ; ne jamais monter la version hors d'une release.
+7. **Si David doit tester à la main** : s'arrêter et attendre son feu vert ; le ticket passe à 🧑 waiting-human.
+8. **Committer** (Conventional Commits, en anglais) et pousser ; **ouvrir la PR** vers `develop`.
+9. **Relire** la PR avec `pr-code-review`, attendre la CI ; corriger, puis fusionner quand les deux sont propres.
+10. **Après la fusion** : revenir sur `develop`, `pull`, cocher les conditions de fin tenues, et le dire à David.
 
 ## Documentation
 
@@ -51,6 +73,16 @@ cd web && npm ci && npx vue-tsc -b && npx vitest run && npm run build
 - Vérifier contre DCS : cliquer MAKE HTML dans les commandes du jeu, puis `uv run python scripts/compare_make_html.py "A-10C II" "F-16C_50"` ; la dernière ligne est le verdict.
 - Reconvertir les gabarits : `uv run python scripts/convert_jd_templates.py <joystick-diagrams>/templates`.
 - Construire l'exe : `pwsh packaging/build.ps1` → `dist/HOTAS-Kneeboard.exe`. La publication se fait par la fusion d'une release dans `main` (ci-dessus).
+
+## Agent skills
+
+### Issue tracker
+
+Les lots, PRD et tickets sont des tickets GitHub de `VEAF/hotas-kneeboard` : un lot = un ticket `lot` avec son PRD, ses tickets = ses sous-tickets `ticket`. Voir `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Une seule étiquette de statut (⬜ ready · 🔄 in-progress · 🧑 waiting-human · ⏸ paused ; fermé = ✅ done ou 🚫 won't fix), rapportée aux rôles de tri de Matt dans `docs/agents/triage-labels.md`.
 
 ## Règles
 
