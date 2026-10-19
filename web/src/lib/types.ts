@@ -160,6 +160,33 @@ export interface DcsDevicesResponse {
   log_date: string | null // when DCS last wrote dcs.log
 }
 
+/** A device whose hat carries some of the 8 generic views ("View Up slow"…) of DCS's defaults */
+export interface HatViewsDevice {
+  device: string // full name, with its GUID
+  hat_only_views: boolean // the user placed nothing on its hat, in any module: offered by default
+  own_hat: { profile: string; key: string; command: string }[] // a few of the hat bindings the user placed
+  own_hat_count: number
+  modules: {
+    profile: string
+    unit_type: string | null
+    file: string // the diff file's device name
+    views: string[] // keys of the views to remove (JOY_BTN_POV1_U…)
+    new_file: boolean // no diff there yet: one is created
+    error: string | null // left out
+  }[]
+}
+
+export interface HatViewsPreview {
+  all_modules: boolean
+  devices: HatViewsDevice[]
+}
+
+export interface HatViewsResult {
+  backup: DcsBackup
+  written: { profile: string; device: string; removed: number; expected: number; deleted: boolean; created: boolean }[]
+  differences: string[] // what the bindings read again say differently from the preview
+}
+
 export interface DcsBackupsResponse {
   folder: string
   dcs_running: boolean | null // null: could not be checked

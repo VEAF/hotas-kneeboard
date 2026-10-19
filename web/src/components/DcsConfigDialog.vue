@@ -1,15 +1,17 @@
 <script setup lang="ts">
 // Changes to DCS's own controls files (Saved Games\DCS\Config\Input): devices disabled in DCS,
-// and the backups made before each change, listed and restorable.
+// devices DCS no longer sees, the generic hat views removed in bulk, and the backups made before
+// each change, listed and restorable.
 
 import { computed, ref, watch } from 'vue'
 import Button from 'primevue/button'
+import Checkbox from 'primevue/checkbox'
 import Dialog from 'primevue/dialog'
 import ToggleSwitch from 'primevue/toggleswitch'
 import { useToast } from 'primevue/usetoast'
 import { api } from '../lib/api'
 import { useStore } from '../lib/store'
-import type { DcsBackupsResponse, DcsDevicesResponse } from '../lib/types'
+import type { DcsBackupsResponse, DcsDevicesResponse, HatViewsDevice, HatViewsPreview, HatViewsResult } from '../lib/types'
 
 const visible = defineModel<boolean>('visible', { required: true })
 const store = useStore()
@@ -83,9 +85,101 @@ async function forget(device: string) {
   }
 }
 
+// --- the 8 generic hat views, removed in bulk ------------------------------------------------------
+// computed on demand: reading every module takes a few seconds
+const hat = ref<HatViewsPreview | null>(null)
+const hatError = ref('')
+const hatLoading = ref(false)
+const everyDevice = ref(false)
+const allModules = ref(false)
+const hatChosen = ref<Set<string>>(new Set())
+const hatConfirming = ref(false)
+const hatResult = ref<HatViewsResult | null>(null)
+
+const hatSelectable = (d: HatViewsDevice) => everyDevice.value || d.hat_only_views
+const hatOk = (d: HatViewsDevice) => d.modules.filter((m) => !m.error)
+
+async function loadHat() {
+  hatLoading.value = true
+  hatError.value = ''
+  hatConfirming.value = false
+  try {
+    hat.value = await api.hatViews(allModules.value)
+    resetHatChoice()
+  } catch (e) {
+    hat.value = null
+    hatError.value = (e as Error).message
+  } finally {
+    hatLoading.value = false
+  }
+}
+
+function resetHatChoice() {
+  hatChosen.value = new Set((hat.value?.devices ?? []).filter(hatSelectable).map((d) => d.device))
+}
+
+function toggleHat(device: string, on: boolean) {
+  const next = new Set(hatChosen.value)
+  if (on) next.add(device)
+  else next.delete(device)
+  hatChosen.value = next
+}
+
+watch(allModules, () => {
+  if (hat.value) loadHat()
+})
+watch(everyDevice, resetHatChoice)
+
+const hatTodo = computed(() => (hat.value?.devices ?? []).filter((d) => hatSelectable(d) && hatChosen.value.has(d.device)))
+const hatTotals = computed(() => {
+  const modules = hatTodo.value.flatMap(hatOk)
+  return {
+    views: modules.reduce((n, m) => n + m.views.length, 0),
+    files: modules.length,
+    created: modules.filter((m) => m.new_file).length,
+  }
+})
+const plural = (n: number, word: string, many = `${word}s`) => `${n} ${n > 1 ? many : word}`
+const hatSummary = (d: HatViewsDevice) => {
+  const ok = hatOk(d)
+  const created = ok.filter((m) => m.new_file).length
+  return (
+    `${plural(ok.reduce((n, m) => n + m.views.length, 0), 'vue')} dans ${plural(ok.length, 'module')}` +
+    (created ? ` (${plural(created, 'nouveau fichier', 'nouveaux fichiers')})` : '')
+  )
+}
+
+async function removeHat() {
+  hatConfirming.value = false
+  working.value = 'hat'
+  try {
+    const result = await api.removeHatViews(hatTodo.value.map((d) => d.device), everyDevice.value, allModules.value)
+    hatResult.value = result
+    const removed = result.written.reduce((n, w) => n + w.removed, 0)
+    const files = result.written.filter((w) => w.removed > 0).length
+    const differ = result.differences.length > 0
+    toast.add({
+      severity: differ ? 'warn' : 'success',
+      summary: differ ? 'Vues retirées, avec des écarts' : 'Vues du chapeau retirées',
+      detail:
+        `${plural(removed, 'vue retirée', 'vues retirées')} dans ${plural(files, 'fichier')}` +
+        (differ ? ' : voir le détail dans la fenêtre' : ", relu et conforme à l'aperçu"),
+      life: 8000,
+    })
+    await Promise.all([load(), store.load(true), loadHat()])
+  } catch (e) {
+    toast.add({ severity: 'error', summary: 'Retrait impossible', detail: (e as Error).message, life: 10000 })
+    await load()
+  } finally {
+    working.value = ''
+  }
+}
+
 watch(visible, (open) => {
   confirming.value = null
   forgetting.value = null
+  hatConfirming.value = false
+  hatResult.value = null
   if (open) load()
 })
 
@@ -208,6 +302,82 @@ async function restore(id: string) {
 
       <section>
         <div class="head">
+          <h3 class="eyebrow">Vues du chapeau</h3>
+          <Button size="small" severity="secondary" icon="pi pi-search" :label="hat ? 'Relire' : 'Chercher'" :loading="hatLoading" :disabled="!!working" @click="loadHat" />
+        </div>
+        <p class="intro">
+          Tous les modules mettent les 8 vues lentes (« View Up slow »…) sur le premier chapeau de chaque périphérique, même un palonnier, un ICP ou un MFD.
+          Avec TrackIR ou la VR, elles ne servent à rien et encombrent les pages. Seules ces 8 liaisons par défaut sont retirées ; ce que tu as mis toi-même sur un chapeau reste.
+        </p>
+        <div class="options">
+          <label><Checkbox v-model="everyDevice" binary :disabled="!!working || hatLoading" /> Tous les périphériques, chapeaux utilisés compris</label>
+          <label><Checkbox v-model="allModules" binary :disabled="!!working || hatLoading" /> Tous les modules installés, pas seulement ceux que tu as configurés (crée un fichier par module)</label>
+        </div>
+        <p v-if="hatError" class="warn" role="alert">{{ hatError }}</p>
+        <template v-if="hat">
+          <ul v-if="hat.devices.length" class="rows devices hat">
+            <li v-for="d in hat.devices" :key="d.device" :class="{ off: !hatSelectable(d) }">
+              <Checkbox
+                :model-value="hatSelectable(d) && hatChosen.has(d.device)"
+                binary
+                :disabled="!hatSelectable(d) || !!working"
+                :aria-label="`Retirer les vues du chapeau de ${d.device}`"
+                @update:model-value="toggleHat(d.device, $event)"
+              />
+              <span class="dev">
+                <span class="t">{{ d.device.replace(/\s*\{[^}]*\}$/, '') }}</span>
+                <span class="s">{{ guid(d.device) }} · {{ hatSummary(d) }}</span>
+                <span v-if="!d.hat_only_views" class="s why">
+                  Chapeau utilisé ({{ d.own_hat.map((o) => `${o.command} en ${o.key.replace('JOY_BTN_', '')}, ${o.profile}`).join(' ; ') }}{{ d.own_hat_count > d.own_hat.length ? '…' : '' }})<template v-if="!everyDevice"> : coche « Tous les périphériques » pour en retirer quand même les vues par défaut</template>
+                </span>
+                <details v-if="hatSelectable(d)">
+                  <summary>Modules</summary>
+                  <ul class="modules">
+                    <li v-for="m in d.modules" :key="m.profile">
+                      {{ m.profile }} · {{ plural(m.views.length, 'vue') }}<template v-if="m.new_file"> · nouveau fichier</template><template v-if="m.error"> · ignoré : {{ m.error }}</template>
+                    </li>
+                  </ul>
+                </details>
+              </span>
+            </li>
+          </ul>
+          <p v-else class="intro">Aucun périphérique ne porte ces vues dans {{ allModules ? 'les modules installés' : 'les modules configurés' }}.</p>
+          <div v-if="hat.devices.length" class="head">
+            <span class="intro">{{ plural(hatTotals.views, 'vue') }} à retirer dans {{ plural(hatTotals.files, 'fichier') }}<template v-if="hatTotals.created">, dont {{ plural(hatTotals.created, 'créé', 'créés') }}</template>.</span>
+            <span class="act">
+              <template v-if="hatConfirming">
+                <Button size="small" severity="danger" label="Retirer" @click="removeHat" />
+                <Button size="small" text label="Annuler" @click="hatConfirming = false" />
+              </template>
+              <Button
+                v-else
+                size="small"
+                icon="pi pi-eraser"
+                label="Retirer…"
+                :loading="working === 'hat'"
+                :disabled="!!working || !hatTotals.views || data?.dcs_running !== false"
+                @click="hatConfirming = true"
+              />
+            </span>
+          </div>
+          <p v-if="hatConfirming" class="intro">Une seule sauvegarde est faite avant, restaurable ci-dessous ; les commandes sont relues après l'écriture.</p>
+        </template>
+        <div v-if="hatResult" class="result" role="status">
+          <p v-if="!hatResult.differences.length">Relu après l'écriture : conforme à l'aperçu.</p>
+          <template v-else>
+            <p><i class="pi pi-exclamation-triangle" /> Relu après l'écriture, des écarts avec l'aperçu :</p>
+            <ul><li v-for="(text, i) in hatResult.differences" :key="i">{{ text }}</li></ul>
+          </template>
+          <p v-if="hatResult.written.some((w) => w.deleted)">
+            Fichier supprimé, comme DCS le fait quand il ne reste aucune différence avec les réglages par défaut :
+            {{ hatResult.written.filter((w) => w.deleted).map((w) => `${w.device} (${w.profile})`).join(', ') }}.
+            Ce périphérique n'apparaît plus dans ces modules de l'application : ce n'est pas une perte.
+          </p>
+        </div>
+      </section>
+
+      <section>
+        <div class="head">
           <h3 class="eyebrow">Sauvegardes</h3>
           <Button size="small" severity="secondary" icon="pi pi-save" label="Sauvegarder maintenant" :loading="working === 'backup'" :disabled="!!working" @click="backupNow" />
         </div>
@@ -261,5 +431,14 @@ h3 { margin: 0; }
 .dev .t { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .dev .s { font: 12px var(--f-mono); color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .act { display: flex; gap: 4px; justify-content: flex-end; }
+.options { display: flex; flex-direction: column; gap: 4px; margin: 6px 0; font-size: 13px; }
+.options label { display: flex; align-items: center; gap: 8px; }
+.hat li { grid-template-columns: auto minmax(0, 1fr); align-items: start; }
+.hat li.off .t { color: var(--ink-3); }
+.dev .why { white-space: normal; }
+.hat details { font-size: 12px; color: var(--ink-3); }
+.hat .modules { margin: 2px 0 0; padding-left: 16px; }
+.result { font-size: 13px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; }
+.result p, .result ul { margin: 0 0 4px; }
 @media (max-width: 600px) { .rows li { grid-template-columns: 1fr auto; } .reason, .n { grid-column: 1; } }
 </style>
