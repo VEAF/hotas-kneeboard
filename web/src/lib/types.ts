@@ -229,6 +229,7 @@ export interface DeviceBinding extends BindingRef {
   category: string | null
   // placed by the user; by the module for this very device; by the module's profile of any joystick
   origin: 'user' | 'device' | 'generic'
+  removable: boolean // false: an engine command whose number is unknown, its removal cannot be written
 }
 
 export interface DeviceBindingsResponse {
@@ -253,6 +254,7 @@ export interface GenericButtonsDevice {
     unit_type: string | null
     file: string
     bindings: { hash: string; key: string; reformers: string[]; command: string }[]
+    unknown: { key: string; command: string }[] // generic too, but not removable (engine command number unknown)
     new_file: boolean
     error: string | null
   }[]

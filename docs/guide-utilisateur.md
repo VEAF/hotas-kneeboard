@@ -181,6 +181,7 @@ DCS n'écrit nulle part combien de boutons a un périphérique : c'est toi qui l
 3. **Retirer…** puis **Retirer** : une seule sauvegarde avant, les commandes relues après l'écriture et comparées à l'aperçu ; **Annuler ce retrait** restaure la sauvegarde.
 
 Seules partent les liaisons de bouton et de chapeau qui viennent de ce profil générique : ce que tu as mis toi-même sur le périphérique, ce que le module prévoit pour ce matériel précis, et tous les axes restent.
+Une liaison dont l'application ne connaît pas le numéro de commande de DCS (le tir secondaire et la tourelle de Combined Arms) ne peut pas être retirée d'ici : l'aperçu la montre à part, retire-la dans l'écran des commandes du jeu.
 Par défaut, seuls les modules où le périphérique est configuré sont touchés ; l'option « Tous les modules installés » crée un fichier dans chacun, pour qu'un nouvel avion soit déjà propre.
 
 ### Retirer des liaisons

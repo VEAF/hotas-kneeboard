@@ -590,6 +590,9 @@ def test_the_api_lists_a_device_bindings_with_their_origin(make_client):
         (b["kind"], b["key"], tuple(b["reformers"])): b for b in device_rows(make_client(), STICK)["bindings"]
     }
     assert stick[("key", "JOY_BTN_POV1_U", ())]["origin"] == "generic"
+    # an engine command whose number is unknown: listed, not removable
+    assert stick[("key", "JOY_BTN_POV1_U", ())]["removable"] is True
+    assert stick[("key", "JOY_BTN7", ())]["removable"] is False
 
 
 def test_a_binding_the_module_ships_for_the_device_is_not_the_user_s(lua, saved):
@@ -674,6 +677,9 @@ def test_generic_buttons_of_a_device_without_any(lua, saved):
     assert ("JOY_BTN_POV1_U", ()) in keys
     # placed by the user: stays
     assert ("JOY_BTN4", ("JOY_BTN5",)) not in keys
+    # an engine command whose number is unknown: not offered, its removal could not be written
+    assert ("JOY_BTN7", ()) not in keys
+    assert {b["key"] for m in devices[0]["modules"] for b in m["unknown"]} == {"JOY_BTN7"}
 
 
 def test_removing_the_generic_buttons_keeps_the_user_s_and_the_axes(lua, saved, tmp_path):
@@ -705,7 +711,10 @@ def test_the_api_previews_then_removes_the_generic_buttons(make_client, saved):
     assert [d["name"] for d in preview["devices"]] == ["Fake Stick"]
     response = client.post("/api/dcs-config/generic-buttons", json={})
     assert response.status_code == 200 and response.json()["differences"] == []
-    assert client.get("/api/dcs-config/generic-buttons").json()["devices"] == []
+    # nothing removable left; the one whose engine command is unknown stays, shown apart
+    after = client.get("/api/dcs-config/generic-buttons").json()["devices"]
+    assert [b for d in after for m in d["modules"] for b in m["bindings"]] == []
+    assert {b["key"] for d in after for m in d["modules"] for b in m["unknown"]} == {"JOY_BTN7"}
     restored = client.post(f"/api/dcs-config/backups/{response.json()['backup']['id']}/restore")
     assert restored.status_code == 200 and path.read_bytes() == before
 

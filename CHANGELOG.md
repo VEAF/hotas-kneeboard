@@ -20,6 +20,7 @@ Chaque lot ajoute ses entrées à la fin de `[Unreleased]` ; une release les pas
 - Boutons VectorXR manquants : les profils PivotXR (vues rapides, recentrage, activation) n'apparaissaient pas quand le module était enregistré éteint, alors qu'ils servent en vol ; l'étiquette nomme maintenant le profil (« PivotXR snapviews : vue Right MFD »).
 - Un gabarit choisi à la main par erreur (le manche Warthog dessiné avec l'image de sa manette des gaz, signalé par un pilote) se voit et se défait : entrée **Automatique** en tête de la liste, qui nomme le gabarit reconnu, pastille « choix manuel » quand le choix diffère de celui-ci, liste plus large et nom complet en infobulle.
 - Sécurité : un nom de module ou de périphérique contenant une tabulation ou un retour à la ligne est refusé avant d'aller au moteur, qui aurait pu lire d'autres dossiers et y exécuter des fichiers Lua ; les liaisons d'un périphérique ne se lisent que pour un module configuré, et une requête venue d'un autre site est refusée, lecture comprise.
+- « Retrait impossible : command not identified » en retirant les boutons d'un périphérique dans tous les modules installés : une liaison dont l'application ne connaît pas le numéro de commande de DCS (le tir secondaire et la tourelle de Combined Arms, `ground_unit`) faisait tout refuser ; elle est maintenant montrée à part, à retirer dans le jeu, et le reste se retire.
 
 ## [0.1.0] - 2026-10-19
 

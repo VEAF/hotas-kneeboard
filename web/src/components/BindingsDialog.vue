@@ -39,6 +39,8 @@ const ORIGINS = {
   },
 } as const
 
+const UNKNOWN_HINT =
+  "Le numéro de cette commande de DCS est inconnu de l'application : elle ne saurait pas écrire son retrait comme le jeu. Retire-la dans l'écran des commandes de DCS."
 const id = (b: DeviceBinding) => `${b.kind}|${b.hash}|${b.key}|${b.reformers.join('+')}`
 const modifier = (b: DeviceBinding) => b.reformers.map(inputName).join(' + ')
 
@@ -155,12 +157,13 @@ async function undo() {
             <tr><th /><th>Entrée</th><th>Modificateur</th><th>Commande</th><th>Origine</th></tr>
           </thead>
           <tbody>
-            <tr v-for="b in rows" :key="id(b)" :class="{ on: picked.has(id(b)) }" @click="data.editable && toggle(b, !picked.has(id(b)))">
+            <tr v-for="b in rows" :key="id(b)" :class="{ on: picked.has(id(b)), fixed: !b.removable }" @click="data.editable && b.removable && toggle(b, !picked.has(id(b)))">
               <td @click.stop>
                 <Checkbox
                   :model-value="picked.has(id(b))"
                   binary
-                  :disabled="!data.editable"
+                  :disabled="!data.editable || !b.removable"
+                  v-tooltip.right="b.removable ? undefined : UNKNOWN_HINT"
                   :aria-label="`Retirer ${b.command} de ${inputName(b.key)}`"
                   @update:model-value="(on: boolean) => toggle(b, on)"
                 />
@@ -211,6 +214,7 @@ th { text-align: left; font-weight: 600; color: var(--ink-3); position: sticky; 
 th, td { padding: 5px 6px; border-bottom: 1px solid var(--line); }
 tbody tr { cursor: pointer; }
 tbody tr.on { background: var(--sel); }
+tbody tr.fixed { cursor: default; color: var(--ink-3); }
 .mono { font-family: var(--f-mono); white-space: nowrap; }
 .empty, .center { padding: 12px; color: var(--ink-3); text-align: center; }
 .error { color: var(--bad); }
