@@ -11,7 +11,8 @@ to every device, hat or not.
 
 With --device, checks instead the named devices without having them: their bindings are those
 DCS gives them by default in every installed module, as if they were plugged in with no diff
-(a module where you configured the device keeps your diff).
+(a module where you configured the device keeps your diff). What a module gives any joystick
+from its default.lua is left out: it says nothing of the device.
 
 Usage: uv run python scripts/check_templates.py [--install DIR] [--saved-games DIR]
        [--device "Throttle - HOTAS Warthog" ...]
@@ -28,21 +29,41 @@ from hotas_kneeboard.settings import SettingsStore, data_dir
 from hotas_kneeboard.templates import BUNDLED_DIR, TemplateLibrary
 
 GENERIC_VIEW = ("View ", "slow")
+# a device no module has a profile for: it gets each module's default.lua, as any joystick
+GENERIC_DEVICE = "HOTAS Kneeboard generic joystick"
 
 
 def generic_view_only(commands: set[str]) -> bool:
     return all(c.startswith(GENERIC_VIEW[0]) and c.endswith(GENERIC_VIEW[1]) for c in commands)
 
 
+def binding_id(b: dict) -> tuple:
+    return b["kind"], b["hash"], b["key"], tuple(sorted(b.get("reformers") or []))
+
+
+def device_specific(device: dict, generic: set[tuple]) -> dict:
+    """On a module's default.lua, the device gets what any joystick gets (a panel gets an X axis,
+    a stick the Ka-50's Shkval slew): keep only what differs, the diff the module ships for it."""
+    if not device.get("base_file", "").replace("\\", "/").endswith("/default.lua"):
+        return device
+    return device | {"bindings": [b for b in device["bindings"] if binding_id(b) not in generic]}
+
+
 def bound_inputs(
     result, translate, settings, library, wanted: set[str]
 ) -> dict[str, dict[str, dict[str, set[str]]]]:
     """template id -> device name -> input -> commands, over every module; only the ``wanted``
-    devices (lower case) when given"""
+    devices (lower case) when given, without what DCS gives any joystick"""
     bound: dict[str, dict[str, dict[str, set[str]]]] = {}
     for profile in result["profiles"].values():
+        generic = {
+            binding_id(b)
+            for d in profile["devices"]
+            if d["name"] == GENERIC_DEVICE
+            for b in d.get("bindings", [])
+        }
         for device in profile["devices"]:
-            page = build_page(device, translate)
+            page = build_page(device_specific(device, generic) if wanted else device, translate)
             if wanted and page.name.lower() not in wanted:
                 continue
             chosen = settings.device_templates.get(page.name)
@@ -79,7 +100,11 @@ def main() -> int:
     wanted = {name.lower() for name in args.device}
     profiles = list_user_profiles(saved)
     result = load_effective_bindings(
-        install, saved, profiles, extra_devices=args.device, all_installed=bool(wanted)
+        install,
+        saved,
+        profiles,
+        extra_devices=[*args.device, GENERIC_DEVICE] if wanted else [],
+        all_installed=bool(wanted),
     )
     bound = bound_inputs(result, translate, settings, library, wanted)
 

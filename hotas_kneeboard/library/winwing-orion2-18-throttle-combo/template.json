@@ -1,7 +1,10 @@
 {
  "format": 1,
  "name": "Orion2 18 Throttle Combo",
- "devices": [],
+ "devices": [
+  "WINWING Orion Throttle Base II + F18 HANDLE",
+  "WINWING THROTTLE BASE2 + F18 HANDLE"
+ ],
  "image": "background.svg",
  "size": [
   1157.0,

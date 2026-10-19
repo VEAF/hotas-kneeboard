@@ -1,7 +1,9 @@
 {
  "format": 1,
  "name": "PTO Panel of Take Off",
- "devices": [],
+ "devices": [
+  "WINWING F18 TAKEOFF PANEL"
+ ],
  "image": "background.svg",
  "size": [
   1157.0,

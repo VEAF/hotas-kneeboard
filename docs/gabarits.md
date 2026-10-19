@@ -64,7 +64,10 @@ Il affiche, pour chaque gabarit, le nombre d'entrées trouvées et les jetons qu
 
 **À savoir :**
 
-- les noms DCS ne sont connus que pour 13 gabarits ; les autres se choisissent à la main, une fois, et l'application s'en souvient ;
+- les noms DCS ne sont connus que pour 20 gabarits ; les autres se choisissent à la main, une fois, et l'application s'en souvient ;
+- les noms WinWing viennent de la liste des périphériques que DCS reconnaît (`Scripts\Input\DefaultAssignments.lua`) et des profils livrés par les modules, anciens noms de firmware compris (`WINWING THROTTLE BASE2 + …`) ; les firmwares récents s'appellent `WINCTRL …`, et ne sont connus que ceux vus sur un vrai PC ;
+- un nom partagé par deux gabarits n'est mis sur aucun des deux : le T.16000M gaucher ou droitier, le JGRIP-F16 avec ou sans kit vibreur, le throttle F/A-18 avec ou sans axes, l'UFC et le HUD F/A-18 branchés ensemble (`WINWING UFC1 + HUD1`) ;
+- les gabarits Virpil n'ont pas de nom DCS, et n'en auront pas : le nom que Windows donne à un périphérique Virpil est celui du socle (« VPC Stick MT-50CM3 »), pas de la poignée qui est dessus, et le logiciel de configuration de Virpil permet de le changer ; choisis le gabarit de ta poignée à la main ;
 - la numérotation des gabarits convertis est celle que Joystick Diagrams a dessinée, pas forcément celle du périphérique : celui de l'Orion JGRIP-F16 n'a pas de case pour la gâchette (bouton 1) ni pour les boutons 2 et 21 à 29 ;
 - aucun gabarit n'est encore marqué vérifié.
 
@@ -73,7 +76,7 @@ Il affiche, pour chaque gabarit, le nombre d'entrées trouvées et les jetons qu
 Avec le périphérique branché :
 
 1. `uv run python scripts/check_templates.py` liste, pour tes périphériques, les entrées liées dans DCS qui n'ont pas de case sur leur gabarit (les vues génériques que DCS met sur le hat de tout périphérique sont ignorées).
-   Sans le périphérique, `--device "Throttle - HOTAS Warthog"` (le nom DCS, sans GUID, option répétable) fait le même contrôle sur les liaisons que DCS lui donne par défaut dans chaque module installé (tes modifications comptent là où tu en as fait) : ça trouve les cases qui manquent, pas les erreurs de numérotation, que seul le vrai périphérique montre.
+   Sans le périphérique, `--device "Throttle - HOTAS Warthog"` (le nom DCS, sans GUID, option répétable) fait le même contrôle sur les liaisons que DCS lui donne par défaut dans chaque module installé (tes modifications comptent là où tu en as fait), sans ce qu'un module donne à n'importe quel joystick faute de profil pour celui-là (les axes et le chapeau de son `default.lua`) : ça trouve les cases qui manquent, pas les erreurs de numérotation, que seul le vrai périphérique montre.
 2. Dans l'application, ouvre la page du périphérique, **Modifier**, puis **Vérifier** : appuie sur chaque bouton, déplace ou ajoute les cases (voir l'[éditeur](editeur-de-gabarits.md#vérifier-la-numérotation-sur-le-périphérique)).
 3. Indique ton pseudo, **Marquer vérifié**, enregistre : ta version passe devant celle de la bibliothèque, sur ton PC.
 

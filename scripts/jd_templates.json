@@ -65,6 +65,7 @@
   },
   "Thrustmaster/Thrustmaster Warthog - Joystick.svg": {
    "id": "thrustmaster-warthog-joystick",
+   "maintained": true,
    "devices": [
     "Joystick - HOTAS Warthog"
    ]
@@ -140,7 +141,9 @@
   },
   "WinWing/18-UFC Unit1/WinWing 18-UFC Unit 1.svg": {
    "id": "winwing-18-ufc-unit-1",
-   "devices": []
+   "devices": [
+    "WINWING UFC1"
+   ]
   },
   "WinWing/ICP/ICP.svg": {
    "id": "winwing-icp",
@@ -152,14 +155,16 @@
    "id": "winwing-mfd-unit1",
    "devices": [
     "WINWING MFD1-L",
-    "WINWING MFD1-R"
+    "WINWING MFD1-R",
+    "WINWING MFD1-C"
    ]
   },
   "WinWing/Orion2 16(EX) Joystick Combo/16EX Metal Joystick Grip(None Shaker Kit)/WINWING Orion Joystick Base 2 + JGRIP-F16.svg": {
    "id": "winwing-orion-joystick-base-2-jgrip-f16-no-shaker",
    "devices": [
     "WINCTRL Orion Joystick Base Metal 2 + JGRIP-F16",
-    "WINWING Orion Joystick Base 2 + JGRIP-F16"
+    "WINWING Orion Joystick Base 2 + JGRIP-F16",
+    "WINWING JOYSTICK BASE2 + JGRIP-F16"
    ]
   },
   "WinWing/Orion2 16(EX) Joystick Combo/16EX Metal Joystick Grip(with Shaker Kit)/WINWING Orion Joystick Base 2 + JGRIP-F16.svg": {
@@ -168,18 +173,26 @@
   },
   "WinWing/Orion2 16EX Throttle Combo/Orion2 16EX Throttle Combo.svg": {
    "id": "winwing-orion2-16ex-throttle-combo",
-   "devices": [],
+   "devices": [
+    "WINWING Orion Throttle Base II + TGRIP-F16",
+    "WINWING THROTTLE BASE2 + TGRIP-F16"
+   ],
    "split_at": [
     568
    ]
   },
   "WinWing/Orion2 18 Joystick Combo/Orion2 18 Joystick Combo.svg": {
    "id": "winwing-orion2-18-joystick-combo",
-   "devices": []
+   "devices": [
+    "WINWING JOYSTICK BASE2 + F18 GRIP"
+   ]
   },
   "WinWing/Orion2 18 Throttle Combo/Orion2 18 Throttle Combo.svg": {
    "id": "winwing-orion2-18-throttle-combo",
-   "devices": [],
+   "devices": [
+    "WINWING Orion Throttle Base II + F18 HANDLE",
+    "WINWING THROTTLE BASE2 + F18 HANDLE"
+   ],
    "split_at": [
     566
    ]
@@ -202,7 +215,10 @@
    "id": "winwing-orion-throttle-base-ii-f15ex-handle-l-f15ex-handle-r",
    "devices": [
     "WINCTRL Orion Throttle Base II + F15EX HANDLE L + F15 HANDLE R",
-    "WINWING Orion Throttle Base II + F15EX HANDLE L + F15EX HANDLE R"
+    "WINWING Orion Throttle Base II + F15EX HANDLE L + F15EX HANDLE R",
+    "WINWING Orion Throttle Base II + F15EX HANDLE L + F15 HANDLE R",
+    "WINWING THROTTLE BASE2 + F15EX HANDLE L + F15 HANDLE R",
+    "WINWING THROTTLE BASE2 + F15EX HANDLE L + F15EX HANDLE R"
    ],
    "split_at": [
     566
@@ -210,15 +226,21 @@
   },
   "WinWing/PCR Panel of Combat Ready/PCR Panel of Combat Ready.svg": {
    "id": "winwing-pcr-panel-of-combat-ready",
-   "devices": []
+   "devices": [
+    "WINWING F18 COMBAT READY PANEL"
+   ]
   },
   "WinWing/PTO 2 Panel of Take Off/PTO 2 Panel of Take Off.svg": {
    "id": "winwing-pto-2-panel-of-take-off",
-   "devices": []
+   "devices": [
+    "WINWING F18 TAKEOFF PANEL 2"
+   ]
   },
   "WinWing/PTO Panel of Take Off/PTO Panel of Take Off.svg": {
    "id": "winwing-pto-panel-of-take-off",
-   "devices": []
+   "devices": [
+    "WINWING F18 TAKEOFF PANEL"
+   ]
   },
   "WinWing/T1-SUPER TARUS THROTTLE/T1-SUPER TARUS THROTTLE.svg": {
    "id": "winwing-t1-super-tarus-throttle",
