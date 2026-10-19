@@ -21,3 +21,27 @@ Elle peut maintenant servir aux escadrilles qui ne lisent pas le français : l'i
 - Le guide d'utilisation, l'éditeur de gabarits, les gabarits et le développement existent en anglais, avec des captures de l'interface anglaise : <https://veaf.github.io/hotas-kneeboard/latest/en/>.
 - Le site a un sélecteur de langue, et le livre de l'application ouvre la documentation dans la langue de l'interface.
 - Le guide d'utilisation montre maintenant chaque écran en image, dans les deux langues.
+
+---
+
+## 🇬🇧 In English
+
+**This version speaks English.**
+Squadrons that do not read French can now use it: the interface, its messages and the whole documentation exist in English, and French is still there.
+
+**Documentation**: https://veaf.github.io/hotas-kneeboard/0.2.1/en/
+
+### 🌍 English or French
+
+- **The interface follows your browser's language**: French if your browser is in French, English otherwise.
+  You can choose it in the settings (cog wheel), **Interface language**; the change applies at once.
+- **The app's messages** (errors, backups, previews) are in the same language as the interface.
+- **Kneeboard pages never mix two languages**: the words the app writes on them ("released:", the template's credit line, the head of a list page) and the SRS and VectorXR actions follow the language of the DCS controls.
+  DCS in French, everything is in French; otherwise, everything is in English.
+- The command names do not change: they are still those DCS shows in its language.
+
+### 📖 The documentation in English
+
+- The user guide, the template editor, the templates and the development pages exist in English, with screenshots of the English interface.
+- The site has a language switcher, and the app's book opens the documentation in the interface's language.
+- The user guide now shows each screen as a picture, in both languages.
