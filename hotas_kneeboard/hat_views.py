@@ -221,9 +221,10 @@ def remove_hat_views(
         after = []
     for device in after:
         for m in device["modules"]:
-            if (m["profile"], m["file"].lower()) in expected:
+            planned = expected.get((m["profile"], m["file"].lower()))
+            if left := sorted(set(m["views"]) & set(planned["views"] if planned else [])):
                 differences.append(
-                    f"{m['file']} ({m['profile']}) : encore {', '.join(m['views'])} après l'écriture"
+                    f"{m['file']} ({m['profile']}) : encore {', '.join(left)} après l'écriture"
                 )
     return {"backup": backup.as_dict(), "written": written, "differences": differences}
 
