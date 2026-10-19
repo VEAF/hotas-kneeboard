@@ -354,6 +354,7 @@ export function useStore() {
     setHidden,
     load,
     changeSettings,
+    flushSettings,
     saveReading,
     orderedDevices,
     isExported,

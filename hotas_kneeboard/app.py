@@ -40,6 +40,8 @@ from .dcs_config import (
     set_device_disabled,
 )
 from .engine import EffectiveBindingsError, list_user_profiles, load_effective_bindings
+from .generic_buttons import is_generic_base, remove_generic_buttons
+from .generic_buttons import plan as generic_buttons_plan
 from .hat_views import plan as hat_views_plan
 from .hat_views import remove_hat_views
 from .kneeboard import KneeboardError, write_pages
@@ -103,6 +105,10 @@ class BindingsRemoval(BaseModel):
     profile: str  # the folder in Saved Games/DCS/Config/Input
     device: str  # full name, with its GUID: the diff file's name
     bindings: list[BindingRef]
+
+
+class GenericButtonsRemoval(BaseModel):
+    all_modules: bool = False
 
 
 class ModifiersRestore(BaseModel):
@@ -195,11 +201,6 @@ class Bindings:
         # in the order of the names shown, which the module list and "all the modules" follow
         profiles.sort(key=lambda p: p["display_name"].casefold())
         return {"profiles": profiles, "error": None}
-
-
-def is_generic_base(base_file: str | None) -> bool:
-    """A device DCS gives the profile of any joystick: the module has no profile for it"""
-    return bool(base_file) and base_file.replace("\\", "/").lower().endswith("/default.lua")
 
 
 def binding_origin(binding: dict, generic_base: bool) -> str:
@@ -510,6 +511,44 @@ def create_app(
                 backups,
                 body.devices,
                 every_device=body.every_device,
+                all_modules=body.all_modules,
+                is_running=is_dcs_running,
+                lua_interpreter=lua_interpreter,
+            )
+        except DcsConfigError as error:
+            raise HTTPException(409, str(error)) from error
+        finally:
+            # even a write stopped halfway may have changed files
+            bindings.invalidate()
+        return result
+
+    @app.get("/api/dcs-config/generic-buttons")
+    def get_generic_buttons(all_modules: bool = False) -> dict:
+        """Preview: the buttons DCS gives the devices marked as having none, and where"""
+        install, saved = install_and_saved()
+        names = store.load().buttonless_devices
+        try:
+            devices = generic_buttons_plan(
+                install, saved, names, all_modules=all_modules, lua_interpreter=lua_interpreter
+            )
+        except DcsConfigError as error:
+            raise HTTPException(422, str(error)) from error
+        translate = command_translator(install, current_dirs()["language"])
+        for d in devices:
+            for m in d["modules"]:
+                for b in m["bindings"]:
+                    b["command"] = translate(b["command"])
+        return {"all_modules": all_modules, "marked": names, "devices": devices}
+
+    @app.post("/api/dcs-config/generic-buttons")
+    def post_generic_buttons(body: GenericButtonsRemoval) -> dict:
+        install, saved = install_and_saved()
+        try:
+            result = remove_generic_buttons(
+                install,
+                saved,
+                backups,
+                store.load().buttonless_devices,
                 all_modules=body.all_modules,
                 is_running=is_dcs_running,
                 lua_interpreter=lua_interpreter,

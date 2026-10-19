@@ -662,3 +662,58 @@ def test_the_api_refuses_to_remove_while_dcs_runs(make_client, saved):
     )
     assert response.status_code == 409
     assert path.read_bytes() == before
+
+
+def test_generic_buttons_of_a_device_without_any(lua, saved):
+    from hotas_kneeboard.generic_buttons import plan
+
+    devices = plan(INSTALL, saved, ["Fake Stick", "Fake Throttle"], lua_interpreter=lua)
+    # the throttle has a profile of its own in the module: nothing generic on it
+    assert [d["name"] for d in devices] == ["Fake Stick"]
+    keys = {(b["key"], tuple(b["reformers"])) for m in devices[0]["modules"] for b in m["bindings"]}
+    assert ("JOY_BTN_POV1_U", ()) in keys
+    # placed by the user: stays
+    assert ("JOY_BTN4", ("JOY_BTN5",)) not in keys
+
+
+def test_removing_the_generic_buttons_keeps_the_user_s_and_the_axes(lua, saved, tmp_path):
+    from hotas_kneeboard.generic_buttons import remove_generic_buttons
+
+    axes = axis_bindings(saved, lua, STICK)
+    result = remove_generic_buttons(
+        INSTALL,
+        saved,
+        BackupStore(tmp_path / "backups"),
+        ["fake stick"],
+        is_running=closed,
+        lua_interpreter=lua,
+    )
+    assert result["differences"] == []
+    left = key_bindings(saved, lua, STICK)
+    assert (MASTER_ARM, "JOY_BTN4", ("JOY_BTN5",)) in left
+    assert (SENSOR_UP, "JOY_BTN_POV1_U", ()) not in left
+    assert axis_bindings(saved, lua, STICK) == axes
+
+
+def test_the_api_previews_then_removes_the_generic_buttons(make_client, saved):
+    client = make_client()
+    path = saved / "Config" / "Input" / "FakePlane" / "joystick" / f"{STICK}.diff.lua"
+    before = path.read_bytes()
+    assert client.get("/api/dcs-config/generic-buttons").json()["devices"] == []  # nothing marked yet
+    assert client.put("/api/settings", json={"buttonless_devices": ["Fake Stick"]}).status_code == 200
+    preview = client.get("/api/dcs-config/generic-buttons").json()
+    assert [d["name"] for d in preview["devices"]] == ["Fake Stick"]
+    response = client.post("/api/dcs-config/generic-buttons", json={})
+    assert response.status_code == 200 and response.json()["differences"] == []
+    assert client.get("/api/dcs-config/generic-buttons").json()["devices"] == []
+    restored = client.post(f"/api/dcs-config/backups/{response.json()['backup']['id']}/restore")
+    assert restored.status_code == 200 and path.read_bytes() == before
+
+
+def test_every_installed_module_reaches_where_the_device_has_no_diff(lua, saved):
+    from hotas_kneeboard.generic_buttons import plan
+
+    devices = plan(INSTALL, saved, ["Fake Throttle"], all_modules=True, lua_interpreter=lua)
+    modules = {m["profile"]: m["new_file"] for d in devices for m in d["modules"]}
+    # no profile for the throttle in these modules: the profile of any joystick, a new diff
+    assert modules.get("CommunityPlane") is True
