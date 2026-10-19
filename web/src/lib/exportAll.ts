@@ -19,3 +19,12 @@ export interface ModuleFailure {
 export function failuresDetail(failures: ModuleFailure[]): string {
   return failures.map((f) => `${f.module} : ${f.error}`).join('\n')
 }
+
+/** An export of all the modules in progress (ExportProgressDialog) */
+export interface ExportProgress {
+  title: string // "Kneeboard de tous les modules"
+  done: number // modules finished
+  total: number
+  module: string // the one in progress, or the last step ("Écriture du PDF…")
+  stopping: boolean // Arrêter was clicked: the module in progress ends first
+}

@@ -10,11 +10,12 @@ import PagePreview from './components/PagePreview.vue'
 import SettingsDialog from './components/SettingsDialog.vue'
 import ShortcutsDialog from './components/ShortcutsDialog.vue'
 import DcsConfigDialog from './components/DcsConfigDialog.vue'
+import ExportProgressDialog from './components/ExportProgressDialog.vue'
 import EditorView from './editor/EditorView.vue'
 import { editor } from './editor/state'
 import { api } from './lib/api'
 import { docUrl } from './lib/docs'
-import { exportableModules, failuresDetail, type ModuleFailure } from './lib/exportAll'
+import { exportableModules, failuresDetail, type ExportProgress, type ModuleFailure } from './lib/exportAll'
 import type { Profile } from './lib/types'
 import SplitButton from 'primevue/splitbutton'
 import { useStore } from './lib/store'
@@ -50,8 +51,11 @@ onMounted(() => store.load())
 
 /** "All the modules": the aircraft with a device ticked, in the list order */
 const allModules = computed(() => exportableModules(store.profiles.value, store.isExported))
-/** Where an export of all the modules is: "7/20 F-16C_50" */
-const progress = ref('')
+/** An export of all the modules in progress, shown in a modal dialog */
+const progress = ref<ExportProgress | null>(null)
+function stopExport() {
+  if (progress.value) progress.value.stopping = true
+}
 
 async function writeKneeboardOf(p: Profile) {
   const pages = await store.modulePages(p)
@@ -86,23 +90,28 @@ async function exportKneeboardAll() {
   busy.value = 'kneeboard'
   const failures: ModuleFailure[] = []
   let pages = 0
+  let tried = 0
+  progress.value = { title: 'Kneeboard de tous les modules', done: 0, total: list.length, module: '', stopping: false }
   try {
-    for (const [i, p] of list.entries()) {
-      progress.value = `${i + 1}/${list.length} ${p.name}`
+    for (const p of list) {
+      if (progress.value.stopping) break
+      progress.value.module = p.name
       try {
         pages += (await writeKneeboardOf(p)).written.length
       } catch (e) {
         failures.push({ module: p.name, error: (e as Error).message })
       }
+      progress.value.done = ++tried
     }
   } finally {
     busy.value = ''
-    progress.value = ''
+    progress.value = null
   }
-  const done = list.length - failures.length
+  const done = tried - failures.length
+  const stopped = tried < list.length ? ` (arrêté : ${list.length - tried} non exportés)` : ''
   toast.add({
-    severity: failures.length ? (done ? 'warn' : 'error') : 'success',
-    summary: `Kneeboard : ${pages} pages, ${done} module${done > 1 ? 's' : ''} sur ${list.length}`,
+    severity: failures.length ? (done ? 'warn' : 'error') : stopped ? 'info' : 'success',
+    summary: `Kneeboard : ${pages} pages, ${done} module${done > 1 ? 's' : ''} sur ${list.length}${stopped}`,
     detail: failures.length ? `Échec :\n${failuresDetail(failures)}` : 'Saved Games\\DCS\\Kneeboard\\, un dossier par avion',
     life: failures.length ? 15000 : 6000,
   })
@@ -128,13 +137,20 @@ async function exportPdfAll() {
   const list = allModules.value
   if (!list.length || busy.value) return
   busy.value = 'pdf'
+  progress.value = { title: 'PDF de tous les modules', done: 0, total: list.length, module: '', stopping: false }
   try {
     const pages = []
-    for (const [i, p] of list.entries()) {
-      progress.value = `${i + 1}/${list.length} ${p.name}`
+    for (const p of list) {
+      progress.value.module = p.name
       pages.push(...(await store.modulePages(p)))
+      progress.value.done++
+      // stopped: no PDF at all, a part of the modules would pass for all of them
+      if (progress.value.stopping) {
+        toast.add({ severity: 'info', summary: 'PDF de tous les modules arrêté', detail: 'Aucun fichier écrit.', life: 5000 })
+        return
+      }
     }
-    progress.value = 'PDF…'
+    progress.value.module = 'Écriture du PDF…'
     await pagesPdf(pages, 'HOTAS - tous les modules.pdf')
     toast.add({
       severity: 'success',
@@ -146,7 +162,7 @@ async function exportPdfAll() {
     toast.add({ severity: 'error', summary: 'PDF impossible', detail: (e as Error).message, life: 10000 })
   } finally {
     busy.value = ''
-    progress.value = ''
+    progress.value = null
   }
 }
 
@@ -158,11 +174,11 @@ const allHint = computed(() =>
 const pdfReady = computed(() => !!store.profile.value && exportedCount.value > 0 && !busy.value)
 const kneeboardMenu = computed(() => [
   { label: 'Ce module (Ctrl+E)', icon: 'pi pi-send', disabled: !canKneeboard.value, command: exportKneeboard },
-  { label: `Tous les modules (Ctrl+Maj+E) — ${allHint.value}`, icon: 'pi pi-clone', disabled: !allModules.value.length || !!busy.value, command: exportKneeboardAll },
+  { label: `Tous les modules (Maj+E) — ${allHint.value}`, icon: 'pi pi-clone', disabled: !allModules.value.length || !!busy.value, command: exportKneeboardAll },
 ])
 const pdfMenu = computed(() => [
   { label: 'Ce module (Ctrl+P)', icon: 'pi pi-file-pdf', disabled: !pdfReady.value, command: exportPdf },
-  { label: `Tous les modules, un seul PDF (Ctrl+Maj+P) — ${allHint.value}`, icon: 'pi pi-clone', disabled: !allModules.value.length || !!busy.value, command: exportPdfAll },
+  { label: `Tous les modules, un seul PDF (Maj+P) — ${allHint.value}`, icon: 'pi pi-clone', disabled: !allModules.value.length || !!busy.value, command: exportPdfAll },
 ])
 
 async function refresh() {
@@ -179,7 +195,7 @@ function typing(event: KeyboardEvent): boolean {
   if (target.closest('input[type=checkbox]')) return event.key === ' '
   return !!target.closest('input, textarea, select, [contenteditable=""], [contenteditable=true], [role=combobox], .p-select-overlay, .p-listbox')
 }
-const dialogOpen = () => settingsOpen.value || helpOpen.value || dcsConfigOpen.value
+const dialogOpen = () => settingsOpen.value || helpOpen.value || dcsConfigOpen.value || !!progress.value
 
 function stepDevice(delta: number, move: boolean) {
   const list = store.devices.value
@@ -210,14 +226,12 @@ onKeyStroke((event) => {
   if (event.defaultPrevented || dialogOpen() || state.view !== 'pages') return
   const ctrl = event.ctrlKey || event.metaKey
   const key = event.key
-  if (ctrl && key.toLowerCase() === 'e') {
+  if (ctrl && !event.shiftKey && key.toLowerCase() === 'e') {
     event.preventDefault()
-    if (event.shiftKey) exportKneeboardAll()
-    else exportKneeboard()
-  } else if (ctrl && key.toLowerCase() === 'p') {
+    exportKneeboard()
+  } else if (ctrl && !event.shiftKey && key.toLowerCase() === 'p') {
     event.preventDefault()
-    if (event.shiftKey) exportPdfAll()
-    else exportPdf()
+    exportPdf()
   } else if (key === 'F5') {
     event.preventDefault()
     refresh()
@@ -236,6 +250,12 @@ onKeyStroke((event) => {
     if (store.device.value) store.setHidden(store.device.value.name, !store.isHidden(store.device.value.name))
   } else if (key.toLowerCase() === 'l' && !event.altKey) {
     store.changeSettings({ layer_mode: state.settings?.layer_mode === 'split' ? 'merge' : 'split' })
+  } else if (event.shiftKey && !event.altKey && key.toLowerCase() === 'e') {
+    // every module: Shift alone, Ctrl+Shift+E and Ctrl+Shift+P are the browser's (Firefox: network
+    // monitor, private window)
+    exportKneeboardAll()
+  } else if (event.shiftKey && !event.altKey && key.toLowerCase() === 'p') {
+    exportPdfAll()
   } else if (key === '/') {
     event.preventDefault()
     modules.value?.focusSearch()
@@ -270,7 +290,6 @@ onKeyStroke((event) => {
       <Button icon="pi pi-question-circle" text rounded aria-label="Raccourcis clavier (?)" v-tooltip.bottom="'Raccourcis clavier (?)'" @click="helpOpen = true" />
       <Button as="a" :href="docUrl(state.version)" target="_blank" rel="noopener" icon="pi pi-book" text rounded aria-label="Documentation" v-tooltip.bottom="'Documentation (nouvel onglet)'" />
       <div v-if="state.view === 'pages'" class="exports">
-        <span v-if="progress" class="progress" role="status">{{ progress }}</span>
         <SplitButton
           label="PDF"
           :icon="busy === 'pdf' ? 'pi pi-spin pi-spinner' : 'pi pi-file-pdf'"
@@ -330,6 +349,7 @@ onKeyStroke((event) => {
     <SettingsDialog v-model:visible="settingsOpen" />
     <ShortcutsDialog v-model:visible="helpOpen" />
     <DcsConfigDialog v-model:visible="dcsConfigOpen" />
+    <ExportProgressDialog :progress="progress" @stop="stopExport" />
     <Toast position="bottom-center" />
   </div>
 </template>
@@ -346,7 +366,6 @@ onKeyStroke((event) => {
 .exports { display: flex; gap: 8px; margin-left: 6px; padding-left: 14px; border-left: 1px solid var(--line); }
 .exports .p-button { font-weight: 600; }
 .exports { align-items: center; }
-.progress { font-family: var(--f-mono); font-size: 12px; color: var(--ink-2); white-space: nowrap; }
 .banner { display: flex; align-items: center; gap: 10px; padding: 8px 14px; background: color-mix(in srgb, var(--warn) 18%, var(--panel)); border-bottom: 1px solid var(--line); }
 .cols { flex: 1; min-height: 0; display: grid; grid-template-columns: 230px 300px minmax(0, 1fr); }
 .col { border-right: 1px solid var(--line); display: flex; flex-direction: column; min-width: 0; min-height: 0; }

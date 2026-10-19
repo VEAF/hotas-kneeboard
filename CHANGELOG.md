@@ -8,7 +8,7 @@ Chaque lot ajoute ses entrées à la fin de `[Unreleased]` ; une release les pas
 ### Ajouté
 
 - Lien vers la documentation de ta version dans la barre du haut et dans la fenêtre des raccourcis.
-- Export de tous les modules d'un coup, vers leur kneeboard (Ctrl+Maj+E) ou en un seul PDF (Ctrl+Maj+P), depuis la flèche à côté de chaque bouton d'export : les avions qui ont un périphérique coché, avec la progression à l'écran ; un module en échec n'arrête pas les autres.
+- Export de tous les modules d'un coup, vers leur kneeboard (Maj+E) ou en un seul PDF (Maj+P), depuis la flèche à côté de chaque bouton d'export : les avions qui ont un périphérique coché, avec une fenêtre de progression qui permet d'arrêter ; un module en échec n'arrête pas les autres.
 
 ### Corrigé
 
