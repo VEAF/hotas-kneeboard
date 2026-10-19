@@ -238,13 +238,17 @@ CREATED_DEVICE = re.compile(r"INPUT \(Main\): created \[[^\]]*\] with full id \[
 
 
 def seen_devices(saved_games_dir: Path) -> list[str]:
-    """Full names (with GUID) of the devices DCS created at its last start, from ``Logs/dcs.log``:
-    the exact spelling DCS uses, whose GUID case may differ from a diff file's name."""
-    try:
-        text = (Path(saved_games_dir) / "Logs" / "dcs.log").read_text(encoding="utf-8", errors="replace")
-    except OSError:
-        return []
-    return list(dict.fromkeys(CREATED_DEVICE.findall(text)))
+    """Full names (with GUID) of the devices DCS created in its last two sessions (``Logs/dcs.log``,
+    then ``dcs.log.old``): the exact spelling DCS uses, whose GUID case may differ from a diff
+    file's name."""
+    names = []
+    for log in ("dcs.log", "dcs.log.old"):
+        try:
+            text = (Path(saved_games_dir) / "Logs" / log).read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+        names += CREATED_DEVICE.findall(text)
+    return list(dict.fromkeys(names))
 
 
 def read_disabled(install_dir: Path, saved_games_dir: Path, lua_interpreter=None) -> dict:
@@ -301,3 +305,82 @@ def set_device_disabled(
         saved_games_dir, backups, f"avant la {action} de {logged or device}", change, is_running=is_running
     )
     return backup
+
+
+# --- devices DCS no longer sees: their diffs in every profile ------------------------------------
+
+
+def dcs_log_date(saved_games_dir: Path) -> datetime | None:
+    """When DCS last wrote its log (usually the end of its last session); None without a log"""
+    try:
+        return datetime.fromtimestamp((Path(saved_games_dir) / "Logs" / "dcs.log").stat().st_mtime)
+    except OSError:
+        return None
+
+
+def device_diffs(saved_games_dir: Path) -> dict[str, list[Path]]:
+    """Joystick diff files of every profile, by device full name in lower case"""
+    found: dict[str, list[Path]] = {}
+    for path in sorted(input_dir_of(saved_games_dir).glob("*/joystick/*.diff.lua")):
+        found.setdefault(path.name.removesuffix(".diff.lua").lower(), []).append(path)
+    return found
+
+
+def absent_devices(saved_games_dir: Path, disabled: list[str]) -> list[dict]:
+    """Devices with diffs that DCS did not create in its last two sessions: unplugged, renamed or gone.
+    Empty when the log names no device at all: nothing to compare with. A disabled device is left
+    out: DCS may not log it although it is plugged."""
+    seen = {d.lower() for d in seen_devices(saved_games_dir)}
+    if not seen:
+        return []
+    skip = seen | {d.lower() for d in disabled}
+    return [
+        {
+            "device": paths[0].name.removesuffix(".diff.lua"),
+            "profiles": [p.parent.parent.name for p in paths],
+        }
+        for key, paths in sorted(device_diffs(saved_games_dir).items())
+        if key not in skip
+    ]
+
+
+def forget_device(
+    saved_games_dir: Path,
+    backups: BackupStore,
+    device: str,
+    disabled: list[str],
+    *,
+    is_running: Callable[[], bool] = dcs_running,
+) -> tuple[Backup, list[str]]:
+    """Deletes the device's diff in every profile, after a backup; returns the profiles touched.
+    Refused for a device DCS created in its last two sessions (it is plugged, its settings are in
+    use) and for a disabled one (``disabled``: it may be plugged without being logged)."""
+
+    def targets() -> list[Path]:
+        if device.lower() in {d.lower() for d in seen_devices(saved_games_dir)}:
+            raise DcsConfigError(
+                f"{device} est branché (vu par DCS lors de ses deux derniers lancements) : rien n'a été supprimé"
+            )
+        if device.lower() in {d.lower() for d in disabled}:
+            raise DcsConfigError(
+                f"{device} est désactivé dans DCS : réactive-le d'abord, rien n'a été supprimé"
+            )
+        paths = device_diffs(saved_games_dir).get(device.lower(), [])
+        if not paths:
+            raise DcsConfigError(f"Aucune commande enregistrée pour {device}")
+        return paths
+
+    targets()  # refused before any backup
+
+    def change(_input_dir: Path) -> list[str]:
+        paths = targets()  # again under the write lock: the files may have changed meanwhile
+        try:
+            for path in paths:
+                path.unlink(missing_ok=True)
+        except OSError as error:
+            raise DcsConfigError(
+                f"Suppression interrompue ({error}) : la sauvegarde d'avant est en tête de liste"
+            ) from error
+        return [p.parent.parent.name for p in paths]
+
+    return guarded_write(saved_games_dir, backups, f"avant d'oublier {device}", change, is_running=is_running)

@@ -106,11 +106,20 @@ Le bouton à curseurs, en haut, ouvre la fenêtre **Commandes DCS** : ce que l'a
 
 ### Désactiver un périphérique
 
-La liste **Périphériques désactivés dans DCS** reprend tous les périphériques connus : ceux configurés dans un module, et ceux que DCS a vus à son dernier lancement (« vu au dernier lancement de DCS », lu dans `Saved Games\DCS\Logs\dcs.log`).
+La liste **Périphériques désactivés dans DCS** reprend tous les périphériques connus : ceux configurés dans un module, et ceux que DCS a vus lors de ses deux derniers lancements (« vu par DCS récemment », lu dans `Saved Games\DCS\Logs\dcs.log` et `dcs.log.old`).
 
 - L'interrupteur désactive le périphérique comme le bouton « Désactiver » de l'écran des commandes du jeu : DCS l'ignore dans tous les modules, et ses commandes sont gardées pour sa réactivation.
 - C'est utile pour un périphérique branché dont DCS n'a pas besoin : une manette Bluetooth, un vJoy.
 - Dans la liste des périphériques d'un module, un périphérique désactivé porte la pastille **désactivé**.
+
+### Oublier un périphérique absent
+
+La liste **Périphériques absents** montre les périphériques qui ont des commandes enregistrées, mais que DCS n'a pas vus lors de ses deux derniers lancements : un vJoy désinstallé, un périphérique renommé par une mise à jour de son pilote, un manche revendu.
+Elle ne sait pas faire la différence avec un périphérique simplement débranché ces jours-là : c'est à toi de choisir.
+
+- **Oublier…** puis **Oublier** supprime les commandes du périphérique dans tous les modules, après une sauvegarde : une restauration les fait revenir.
+- Un périphérique que DCS a vu récemment n'est jamais proposé, et un périphérique désactivé non plus : branché, il pourrait ne pas apparaître dans le journal de DCS.
+- Sans journal de DCS, ou si le journal ne nomme aucun périphérique, la liste est vide : lance DCS une fois, périphériques branchés.
 
 ## Réglages
 

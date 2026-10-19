@@ -4,9 +4,18 @@ import pytest
 from fastapi.testclient import TestClient
 
 from hotas_kneeboard.app import create_app
-from hotas_kneeboard.dcs_config import BackupStore, DcsConfigError, guarded_write, restore
+from hotas_kneeboard.dcs_config import (
+    BackupStore,
+    DcsConfigError,
+    absent_devices,
+    forget_device,
+    guarded_write,
+    restore,
+)
 from hotas_kneeboard.settings import Settings, SettingsStore
 from hotas_kneeboard.templates import TemplateLibrary
+
+from .test_engine import find_lua51
 
 
 def snapshot(folder):
@@ -162,7 +171,7 @@ def make_client(saved, tmp_path):
         app = create_app(
             store,
             TemplateLibrary([tmp_path / "templates"], user_dir=tmp_path / "user"),
-            lua_interpreter="lua",
+            lua_interpreter=find_lua51() or "lua",
             backups=BackupStore(tmp_path / "backups"),
             is_dcs_running=lambda: running,
         )
@@ -194,3 +203,75 @@ def test_the_api_refuses_to_restore_while_dcs_runs(make_client, saved):
     assert response.status_code == 409
     assert "DCS est lancé" in response.json()["detail"]
     assert (saved / "Config" / "Input" / "disabled.lua").read_text(encoding="utf-8") == "changed"
+
+
+def log(saved, *devices):
+    (saved / "Logs").mkdir(exist_ok=True)
+    lines = [f"INFO    INPUT (Main): created [x] with full id [{d}],JOYSTICK|STANDARD" for d in devices]
+    (saved / "Logs" / "dcs.log").write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def add_diff(saved, profile, device):
+    folder = saved / "Config" / "Input" / profile / "joystick"
+    folder.mkdir(parents=True, exist_ok=True)
+    (folder / f"{device}.diff.lua").write_bytes(b"local diff = {}\nreturn diff")
+
+
+def test_absent_devices_are_those_dcs_did_not_create(saved):
+    add_diff(saved, "F-16C_50", "Ghost {2}")
+    add_diff(saved, "F-16C_50", "Stick {1}")
+    add_diff(saved, "F-16C_50", "Off {3}")
+    log(saved, "Stick {1}")
+    absent = absent_devices(saved, disabled=["Off {3}"])
+    assert absent == [{"device": "Ghost {2}", "profiles": ["F-16C_50"]}]
+
+
+def test_without_a_log_no_device_is_called_absent(saved):
+    add_diff(saved, "F-16C_50", "Ghost {2}")
+    assert absent_devices(saved, disabled=[]) == []
+
+
+def test_forgetting_a_device_deletes_its_diffs_after_a_backup(saved, tmp_path):
+    add_diff(saved, "A-10C II", "Ghost {2}")
+    add_diff(saved, "F-16C_50", "ghost {2}")
+    log(saved, "Stick {1}")
+    backups = BackupStore(tmp_path / "backups")
+    backup, profiles = forget_device(saved, backups, "Ghost {2}", [], is_running=closed)
+    assert sorted(profiles) == ["A-10C II", "F-16C_50"]
+    assert not list((saved / "Config" / "Input").glob("*/joystick/[Gg]host*"))
+    assert (saved / "Config" / "Input" / "A-10C II" / "joystick" / "Stick {1}.diff.lua").exists()
+    restore(saved, backups, backup.id, closed)
+    assert len(list((saved / "Config" / "Input").glob("*/joystick/[Gg]host*"))) == 2
+
+
+def test_a_device_dcs_sees_is_never_forgotten(saved, tmp_path):
+    log(saved, "Stick {1}")
+    with pytest.raises(DcsConfigError, match="branché"):
+        forget_device(saved, BackupStore(tmp_path / "backups"), "stick {1}", [], is_running=closed)
+    assert (saved / "Config" / "Input" / "A-10C II" / "joystick" / "Stick {1}.diff.lua").exists()
+
+
+def test_the_api_forgets_an_absent_device(make_client, saved):
+    if not find_lua51():
+        pytest.skip("no Lua 5.1 interpreter (set DCS_TEST_LUA): disabled.lua is read with it")
+    add_diff(saved, "F-16C_50", "Ghost {2}")
+    log(saved, "Stick {1}")
+    client = make_client()
+    response = client.post("/api/dcs-config/devices/forget", json={"device": "Ghost {2}"})
+    assert response.status_code == 200
+    assert response.json()["profiles"] == ["F-16C_50"]
+    assert (
+        make_client(running=True)
+        .post("/api/dcs-config/devices/forget", json={"device": "Stick {1}"})
+        .status_code
+        == 409
+    )
+
+
+def test_a_disabled_device_is_never_forgotten(saved, tmp_path):
+    add_diff(saved, "F-16C_50", "Off {3}")
+    log(saved, "Stick {1}")
+    with pytest.raises(DcsConfigError, match="désactivé"):
+        forget_device(saved, BackupStore(tmp_path / "backups"), "off {3}", ["Off {3}"], is_running=closed)
+    assert (saved / "Config" / "Input" / "F-16C_50" / "joystick" / "Off {3}.diff.lua").exists()
+    assert BackupStore(tmp_path / "backups").list() == []

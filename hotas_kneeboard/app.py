@@ -23,8 +23,11 @@ from .dcs_config import (
     BackupNotFoundError,
     BackupStore,
     DcsConfigError,
+    absent_devices,
+    dcs_log_date,
     dcs_running,
     disabled_devices,
+    forget_device,
     restore,
     seen_devices,
     set_device_disabled,
@@ -66,6 +69,10 @@ class TemplateSave(BaseModel):
 class DeviceDisabled(BaseModel):
     device: str  # full name, with its GUID
     disabled: bool
+
+
+class DeviceForget(BaseModel):
+    device: str  # full name, with its GUID
 
 
 class TemplateImport(BaseModel):
@@ -364,7 +371,27 @@ def create_app(
             disabled = disabled_devices(install, saved, lua_interpreter)
         except DcsConfigError as error:
             raise HTTPException(422, str(error)) from error
-        return {"disabled": disabled, "seen": seen_devices(saved)}
+        logged = dcs_log_date(saved)
+        return {
+            "disabled": disabled,
+            "seen": seen_devices(saved),
+            "absent": absent_devices(saved, disabled),
+            "log_date": logged.isoformat(timespec="seconds") if logged else None,
+        }
+
+    @app.post("/api/dcs-config/devices/forget")
+    def post_forget_device(body: DeviceForget) -> dict:
+        dirs = current_dirs()
+        if dirs["problems"]:
+            raise HTTPException(409, " ; ".join(dirs["problems"]))
+        install, saved = Path(dirs["install_dir"]), Path(dirs["saved_games_dir"])
+        try:
+            disabled = disabled_devices(install, saved, lua_interpreter)
+            backup, profiles = forget_device(saved, backups, body.device, disabled, is_running=is_dcs_running)
+        except DcsConfigError as error:
+            raise HTTPException(409, str(error)) from error
+        bindings.invalidate()
+        return {"profiles": profiles, "backup": backup.as_dict()}
 
     @app.put("/api/dcs-config/devices/disabled")
     def put_device_disabled(body: DeviceDisabled) -> dict:

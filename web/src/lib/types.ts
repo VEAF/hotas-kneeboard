@@ -155,7 +155,9 @@ export interface DcsBackup {
 
 export interface DcsDevicesResponse {
   disabled: string[] // full names, as in disabled.lua
-  seen: string[] // devices DCS created at its last start (Logs/dcs.log)
+  seen: string[] // devices DCS created in its last two sessions (Logs/dcs.log, dcs.log.old)
+  absent: { device: string; profiles: string[] }[] // devices with diffs DCS did not see
+  log_date: string | null // when DCS last wrote dcs.log
 }
 
 export interface DcsBackupsResponse {

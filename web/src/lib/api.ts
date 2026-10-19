@@ -59,6 +59,8 @@ export const api = {
   dcsDevices: () => request<DcsDevicesResponse>('/api/dcs-config/devices'),
   setDeviceDisabled: (device: string, disabled: boolean) =>
     request<{ backup: DcsBackup }>('/api/dcs-config/devices/disabled', json('PUT', { device, disabled })),
+  forgetDevice: (device: string) =>
+    request<{ profiles: string[]; backup: DcsBackup }>('/api/dcs-config/devices/forget', json('POST', { device })),
   dcsBackups: () => request<DcsBackupsResponse>('/api/dcs-config/backups'),
   createDcsBackup: () => request<DcsBackup>('/api/dcs-config/backups', { method: 'POST' }),
   restoreDcsBackup: (id: string) =>

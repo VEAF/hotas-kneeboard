@@ -11,7 +11,7 @@ hotas_kneeboard/          serveur FastAPI (127.0.0.1 seulement)
   dcs.py                  détection de DCS, de Saved Games, de la langue ; traduction des commandes
   templates.py            format et bibliothèque des gabarits
   kneeboard.py            écriture des pages PNG
-  dcs_config.py           modifications des commandes de DCS : refus si DCS tourne, sauvegarde et restauration, périphériques désactivés
+  dcs_config.py           modifications des commandes de DCS : refus si DCS tourne, sauvegarde et restauration, périphériques désactivés ou oubliés
   lua_tables.py + lua/    lecture et écriture des fichiers Lua de DCS, avec le sérialiseur du jeu
   settings.py             réglages (%APPDATA%/HOTAS Kneeboard/settings.json)
   app.py                  routes HTTP

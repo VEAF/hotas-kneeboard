@@ -64,8 +64,28 @@ async function setDisabled(fullName: string, disabled: boolean) {
   }
 }
 
+// --- devices DCS did not see lately: their diffs can be deleted --------------------------------------
+const forgetting = ref<string | null>(null) // device awaiting confirmation
+
+async function forget(device: string) {
+  forgetting.value = null
+  working.value = `forget:${device}`
+  try {
+    const result = await api.forgetDevice(device)
+    toast.add({ severity: 'success', summary: 'Périphérique oublié', detail: `${device} : commandes supprimées dans ${result.profiles.join(', ')}`, life: 6000 })
+    await load()
+    await store.load(true)
+  } catch (e) {
+    toast.add({ severity: 'error', summary: 'Suppression impossible', detail: (e as Error).message, life: 10000 })
+    await load()
+  } finally {
+    working.value = ''
+  }
+}
+
 watch(visible, (open) => {
   confirming.value = null
+  forgetting.value = null
   if (open) load()
 })
 
@@ -135,7 +155,7 @@ async function restore(id: string) {
           <li v-for="d in knownDevices" :key="d.fullName">
             <span class="dev">
               <span class="t">{{ d.name }}</span>
-              <span class="s">{{ guid(d.fullName) }}{{ d.seen ? ' · vu au dernier lancement de DCS' : '' }}</span>
+              <span class="s">{{ guid(d.fullName) }}{{ d.seen ? ' · vu par DCS récemment' : '' }}</span>
             </span>
             <ToggleSwitch
               :model-value="d.disabled"
@@ -145,6 +165,45 @@ async function restore(id: string) {
             />
           </li>
         </ul>
+      </section>
+
+      <section v-if="devices">
+        <h3 class="eyebrow">Périphériques absents</h3>
+        <p v-if="!devices.seen.length" class="intro">
+          Le journal de DCS ne nomme aucun périphérique : impossible de dire lesquels sont absents. Lance DCS une fois, périphériques branchés.
+        </p>
+        <template v-else>
+          <p class="intro">
+            Ces périphériques ont des commandes enregistrées, mais DCS ne les a pas vus lors de ses deux derniers lancements<template v-if="devices.log_date"> (journal écrit le {{ date(devices.log_date) }})</template>.
+            Débranchés ce jour-là, ou partis pour de bon : à toi de voir.
+            « Oublier » supprime leurs commandes dans tous les modules, après une sauvegarde.
+          </p>
+          <ul v-if="devices.absent.length" class="rows devices">
+            <li v-for="d in devices.absent" :key="d.device">
+              <span class="dev">
+                <span class="t">{{ d.device.replace(/\s*\{[^}]*\}$/, '') }}</span>
+                <span class="s">{{ guid(d.device) }} · {{ d.profiles.length }} module{{ d.profiles.length > 1 ? 's' : '' }} : {{ d.profiles.join(', ') }}</span>
+              </span>
+              <span class="act">
+                <template v-if="forgetting === d.device">
+                  <Button size="small" severity="danger" label="Oublier" @click="forget(d.device)" />
+                  <Button size="small" text label="Annuler" @click="forgetting = null" />
+                </template>
+                <Button
+                  v-else
+                  size="small"
+                  text
+                  icon="pi pi-trash"
+                  label="Oublier…"
+                  :loading="working === `forget:${d.device}`"
+                  :disabled="!!working || data?.dcs_running !== false"
+                  @click="forgetting = d.device"
+                />
+              </span>
+            </li>
+          </ul>
+          <p v-else class="intro">Aucun : DCS a vu tous les périphériques qui ont des commandes.</p>
+        </template>
       </section>
 
       <section>
