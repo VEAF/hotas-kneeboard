@@ -822,14 +822,19 @@ local function diffAfterRemovals(baseFolder, userFolder, deviceName, unitProfile
 	local err = checkUnmatched(applyDiff(effective.keyCommands, diff.keyDiffs, KEY_HASH), pristine.keyCommands, KEY_HASH)
 		or checkUnmatched(applyDiff(effective.axisCommands, diff.axisDiffs, AXIS_HASH), pristine.axisCommands, AXIS_HASH)
 	if err then return nil, err end
-	local removed = 0
+	-- counted once per binding: a module may declare a command twice (same hash), both lose the combo
+	local removed, counted = 0, {}
 	for _, c in ipairs(effective.keyCommands or {}) do
 		local hash = hashOf(c, KEY_HASH)
 		for _, r in ipairs(toRemove) do
 			local i = r.hash == hash and findCombo(c.combos, r)
 			if i then
 				table.remove(c.combos, i)
-				removed = removed + 1
+				local id = hash .. '|' .. comboHash(r)
+				if not counted[id] then
+					counted[id] = true
+					removed = removed + 1
+				end
 			end
 		end
 	end
