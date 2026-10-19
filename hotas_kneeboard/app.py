@@ -303,13 +303,14 @@ def create_app(
         return bindings.get(current_dirs(), library, refresh)
 
     @app.get("/api/programs")
-    def get_programs() -> dict:
+    def get_programs(pages: str | None = None) -> dict:
         """Buttons other programs use (SRS, VectorXR, entered by hand); read each time: cheap, and
-        the user may change them while the app runs"""
+        the user may change them while the app runs. Their actions in ``pages``, the language of the
+        pages they are drawn on; the problems in the request's, shown in the interface."""
         dirs = current_dirs()
         saved = dirs["saved_games_dir"]
         profiles = list_user_profiles(Path(saved)) if saved else []
-        return read_programs(store.load().srs_dir, profiles)
+        return read_programs(store.load().srs_dir, profiles, pages)
 
     @app.get("/api/templates")
     def list_templates() -> list[dict]:

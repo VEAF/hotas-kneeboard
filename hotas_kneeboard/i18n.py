@@ -48,14 +48,15 @@ def catalog(language: str) -> dict[str, str]:
 def system_language() -> str | None:
     """The user's language as the system gives it, if the app speaks it"""
     if sys.platform == "win32":
+        # Windows' display language, not its regional format (dates, numbers: Control Panel\International);
         # locale.getlocale() says nothing on Windows until setlocale(), which acts on the whole process
         try:
-            import winreg
+            import ctypes
 
-            with winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Control Panel\International") as key:
-                return normalize(winreg.QueryValueEx(key, "LocaleName")[0])  # "fr-FR"
-        except OSError:
+            primary = ctypes.windll.kernel32.GetUserDefaultUILanguage() & 0x3FF  # LANGID -> language
+        except (AttributeError, OSError):
             return None
+        return {0x0C: "fr", 0x09: "en"}.get(primary)
     for name in ("LC_ALL", "LC_MESSAGES", "LANG"):
         if value := os.environ.get(name):
             return normalize(value)

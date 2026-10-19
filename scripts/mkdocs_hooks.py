@@ -20,7 +20,7 @@ BLOB = "https://github.com/VEAF/hotas-kneeboard/blob/develop"
 _LINK = re.compile(r"\]\((?!https?://|#)([^)]+)\)")
 _FRENCH = '<a id="fr"></a>'
 # the anchors and the "read it in the other language" lines, for GitHub only
-_GITHUB_ONLY = re.compile(r'^(<a id="(en|fr)"></a>|> 🇫🇷 .*|> 🇬🇧 .*|---)\n', re.MULTILINE)
+_GITHUB_ONLY = re.compile(r'^(<a id="(en|fr)"></a>|> 🇫🇷 .*|> 🇬🇧 .*)\n', re.MULTILINE)
 
 
 def _site_link(match: re.Match) -> str:
@@ -33,6 +33,8 @@ def _site_link(match: re.Match) -> str:
 def split_readme(readme: str) -> dict[str, str]:
     """``{"index.en.md": English part, "index.md": French part}``, ready for the site"""
     english, french = readme.split(_FRENCH, 1)
+    # the rule between the two languages, not any other one
+    english = english.rstrip().removesuffix("---")
     return {
         name: _LINK.sub(_site_link, _GITHUB_ONLY.sub("", text)).strip() + "\n"
         for name, text in (("index.en.md", english), ("index.md", french))

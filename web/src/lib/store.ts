@@ -160,10 +160,14 @@ async function saveReading(changes: Pick<Settings, 'dcs_install_dir' | 'saved_ga
   await load(true)
 }
 
-/** The interface's language (null: the browser's): applied at once, the pages are drawn again */
-function setUiLanguage(ui_language: string | null): void {
+/** The interface's language (null: the browser's): applied at once; saved, then everything read
+ * again, so that the server's messages already shown (DCS problems, errors) speak it too. The pages
+ * do not change: they speak the commands' language. */
+async function setUiLanguage(ui_language: string | null): Promise<void> {
   setLanguage(ui_language)
   changeSettings({ ui_language })
+  await flushSettings()
+  await load()
 }
 
 // --- derived -------------------------------------------------------------------------------

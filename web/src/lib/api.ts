@@ -55,8 +55,8 @@ export const api = {
   saveSettings: (changes: Partial<Settings>) =>
     request<{ dcs: DcsState; settings: Settings }>('/api/settings', json('PUT', changes)),
   bindings: (refresh = false) => request<BindingsResponse>(`/api/bindings${refresh ? '?refresh=true' : ''}`),
-  /** in `language`: their actions are drawn on the pages, which speak the commands' language */
-  programs: (language: string) => request<ProgramsResponse>('/api/programs', { headers: { 'Accept-Language': language } }),
+  /** the actions in `pages`, the language of the pages they are drawn on (the problems in the interface's) */
+  programs: (pages: string) => request<ProgramsResponse>(`/api/programs?pages=${encodeURIComponent(pages)}`),
   templates: () => request<TemplateSummary[]>('/api/templates'),
   template: (id: string) => request<Template>(`/api/templates/${encodeURIComponent(id)}`),
   templateImageUrl: (id: string) => `/api/templates/${encodeURIComponent(id)}/image`,

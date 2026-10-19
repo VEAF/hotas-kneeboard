@@ -13,10 +13,11 @@ import logging
 import os
 import re
 import sys
+from contextlib import nullcontext
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
-from .i18n import t
+from .i18n import language, t
 
 _logger = logging.getLogger(__name__)
 
@@ -289,17 +290,24 @@ def read_vectorxr(path: Path) -> list[ProgramBinding]:
 # --- everything --------------------------------------------------------------------------------
 
 
-def read_programs(srs_dir_setting: str | None, dcs_profiles: list[str]) -> dict:
+def read_programs(
+    srs_dir_setting: str | None, dcs_profiles: list[str], actions_language: str | None = None
+) -> dict:
     """What the programs read directly give the pages: VectorXR's bindings, which hold in every
     module, each SRS profile's bindings, and the SRS profile matched by name to each DCS module.
-    The user's choices (another SRS profile, entries by hand, colours) are applied by the UI."""
+    The user's choices (another SRS profile, entries by hand, colours) are applied by the UI.
+
+    The actions are named in ``actions_language`` (the pages' language) when given, the problems in
+    the current one (the interface's)."""
     problems: list[str] = []
+    actions = (lambda: language(actions_language)) if actions_language else nullcontext
 
     vectorxr = vectorxr_settings_file()
     vectorxr_bindings: list[dict] = []
     if vectorxr and vectorxr.is_file():
         try:
-            vectorxr_bindings = [b.as_dict() for b in read_vectorxr(vectorxr)]
+            with actions():
+                vectorxr_bindings = [b.as_dict() for b in read_vectorxr(vectorxr)]
         except (OSError, ValueError, KeyError, TypeError, IndexError) as error:
             problems.append(t("programs.vectorxr_unreadable", error=error))
     else:
@@ -313,7 +321,8 @@ def read_programs(srs_dir_setting: str | None, dcs_profiles: list[str]) -> dict:
     srs_bindings: dict[str, list[dict]] = {}
     for name in srs_names:
         try:
-            srs_bindings[name] = [b.as_dict() for b in read_srs_profile(folder / f"{name}.cfg")]
+            with actions():
+                srs_bindings[name] = [b.as_dict() for b in read_srs_profile(folder / f"{name}.cfg")]
         except (OSError, configparser.Error) as error:
             problems.append(t("programs.srs_unreadable", name=name, error=error))
 
