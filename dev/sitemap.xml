@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+         <loc>https://veaf.github.io/hotas-kneeboard/dev/developpement/</loc>
+         <lastmod>2026-10-19</lastmod>
+    </url>
+    <url>
+         <loc>https://veaf.github.io/hotas-kneeboard/dev/editeur-de-gabarits/</loc>
+         <lastmod>2026-10-19</lastmod>
+    </url>
+    <url>
+         <loc>https://veaf.github.io/hotas-kneeboard/dev/gabarits/</loc>
+         <lastmod>2026-10-19</lastmod>
+    </url>
+    <url>
+         <loc>https://veaf.github.io/hotas-kneeboard/dev/guide-utilisateur/</loc>
+         <lastmod>2026-10-19</lastmod>
+    </url>
+    <url>
+         <loc>https://veaf.github.io/hotas-kneeboard/dev/</loc>
+         <lastmod>2026-10-19</lastmod>
+    </url>
+</urlset>
