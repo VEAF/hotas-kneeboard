@@ -369,12 +369,15 @@ def create_app(
         bindings.invalidate()
         return {"restored": backup_id, "backup_before": before.as_dict()}
 
-    @app.get("/api/dcs-config/devices")
-    def dcs_devices() -> dict:
+    def install_and_saved() -> tuple[Path, Path]:
         dirs = current_dirs()
         if dirs["problems"]:
             raise HTTPException(409, " ; ".join(dirs["problems"]))
-        install, saved = Path(dirs["install_dir"]), Path(dirs["saved_games_dir"])
+        return Path(dirs["install_dir"]), Path(dirs["saved_games_dir"])
+
+    @app.get("/api/dcs-config/devices")
+    def dcs_devices() -> dict:
+        install, saved = install_and_saved()
         try:
             disabled = disabled_devices(install, saved, lua_interpreter)
         except DcsConfigError as error:
@@ -389,10 +392,7 @@ def create_app(
 
     @app.post("/api/dcs-config/devices/forget")
     def post_forget_device(body: DeviceForget) -> dict:
-        dirs = current_dirs()
-        if dirs["problems"]:
-            raise HTTPException(409, " ; ".join(dirs["problems"]))
-        install, saved = Path(dirs["install_dir"]), Path(dirs["saved_games_dir"])
+        install, saved = install_and_saved()
         try:
             disabled = disabled_devices(install, saved, lua_interpreter)
             backup, profiles = forget_device(saved, backups, body.device, disabled, is_running=is_dcs_running)
@@ -403,10 +403,7 @@ def create_app(
 
     @app.put("/api/dcs-config/devices/disabled")
     def put_device_disabled(body: DeviceDisabled) -> dict:
-        dirs = current_dirs()
-        if dirs["problems"]:
-            raise HTTPException(409, " ; ".join(dirs["problems"]))
-        install, saved = Path(dirs["install_dir"]), Path(dirs["saved_games_dir"])
+        install, saved = install_and_saved()
         try:
             backup = set_device_disabled(
                 install,
@@ -421,12 +418,6 @@ def create_app(
             raise HTTPException(409, str(error)) from error
         bindings.invalidate()
         return {"backup": backup.as_dict()}
-
-    def install_and_saved() -> tuple[Path, Path]:
-        dirs = current_dirs()
-        if dirs["problems"]:
-            raise HTTPException(409, " ; ".join(dirs["problems"]))
-        return Path(dirs["install_dir"]), Path(dirs["saved_games_dir"])
 
     @app.get("/api/dcs-config/hat-views")
     def get_hat_views(all_modules: bool = False) -> dict:

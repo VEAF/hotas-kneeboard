@@ -55,6 +55,7 @@ async function setDisabled(fullName: string, disabled: boolean) {
   working.value = `device:${fullName}`
   try {
     await api.setDeviceDisabled(fullName, disabled)
+    forgetHatPreview()
     toast.add({ severity: 'success', summary: disabled ? 'Périphérique désactivé dans DCS' : 'Périphérique réactivé dans DCS', detail: fullName, life: 4000 })
     await load()
     await store.load(true)
@@ -74,6 +75,7 @@ async function forget(device: string) {
   working.value = `forget:${device}`
   try {
     const result = await api.forgetDevice(device)
+    forgetHatPreview()
     toast.add({ severity: 'success', summary: 'Périphérique oublié', detail: `${device} : commandes supprimées dans ${result.profiles.join(', ')}`, life: 6000 })
     await load()
     await store.load(true)
@@ -128,7 +130,16 @@ function toggleHat(device: string, on: boolean) {
 watch(allModules, () => {
   if (hat.value) loadHat()
 })
-watch(everyDevice, resetHatChoice)
+// the option adds or removes the devices it concerns, the user's other choices stay
+watch(everyDevice, (every) => {
+  const next = new Set(hatChosen.value)
+  for (const d of hat.value?.devices ?? []) {
+    if (d.hat_only_views) continue
+    if (every) next.add(d.device)
+    else next.delete(d.device)
+  }
+  hatChosen.value = next
+})
 
 const hatTodo = computed(() => (hat.value?.devices ?? []).filter((d) => hatSelectable(d) && hatChosen.value.has(d.device)))
 const hatTotals = computed(() => {
@@ -149,11 +160,37 @@ const hatSummary = (d: HatViewsDevice) => {
   )
 }
 
+/** What the server did, against the preview the user confirmed: a module of the preview not
+ * written, or written with another count, is a difference too */
+function comparedWithPreview(result: HatViewsResult, shown: HatViewsDevice[]): HatViewsResult {
+  const differences = [...result.differences]
+  const written = new Map(result.written.map((w) => [`${w.profile}\t${w.device.toLowerCase()}`, w]))
+  for (const d of shown) {
+    for (const m of hatOk(d)) {
+      const w = written.get(`${m.profile}\t${m.file.toLowerCase()}`)
+      if (!w) differences.push(`${m.file} (${m.profile}) : prévu à l'aperçu, rien n'a été écrit`)
+      else if (w.removed !== m.views.length && w.removed === w.expected)
+        differences.push(`${m.file} (${m.profile}) : ${w.removed} vue(s) retirée(s), ${m.views.length} à l'aperçu`)
+    }
+  }
+  return { ...result, differences }
+}
+
+/** The preview no longer says what the files hold: it must be computed again */
+function forgetHatPreview() {
+  hat.value = null
+  hatConfirming.value = false
+}
+
 async function removeHat() {
   hatConfirming.value = false
   working.value = 'hat'
+  const shown = hatTodo.value
   try {
-    const result = await api.removeHatViews(hatTodo.value.map((d) => d.device), everyDevice.value, allModules.value)
+    const result = comparedWithPreview(
+      await api.removeHatViews(shown.map((d) => d.device), everyDevice.value, allModules.value),
+      shown,
+    )
     hatResult.value = result
     const removed = result.written.reduce((n, w) => n + w.removed, 0)
     const files = result.written.filter((w) => w.removed > 0).length
@@ -178,8 +215,8 @@ async function removeHat() {
 watch(visible, (open) => {
   confirming.value = null
   forgetting.value = null
-  hatConfirming.value = false
   hatResult.value = null
+  forgetHatPreview()
   if (open) load()
 })
 
@@ -205,6 +242,8 @@ async function restore(id: string) {
   working.value = id
   try {
     await api.restoreDcsBackup(id)
+    forgetHatPreview()
+    hatResult.value = null
     toast.add({
       severity: 'success',
       summary: 'Commandes DCS restaurées',

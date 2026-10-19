@@ -267,3 +267,17 @@ def test_the_api_previews_then_removes_and_the_pages_follow(client):
     assert response.json()["differences"] == []
     assert before and pedal_views() == []
     assert [d["device"] for d in client.get("/api/dcs-config/hat-views").json()["devices"]] == [BOX, STICK]
+
+
+def test_a_diff_shipped_with_the_module_is_not_the_users(lua, saved, tmp_path):
+    install = tmp_path / "DCS World"
+    shutil.copytree(INSTALL, install)
+    write_table(
+        install,
+        install / "Mods/aircraft/ViewPlane/Input/ViewPlane/joystick/Test Box.diff.lua",
+        "diff",
+        {"keyDiffs": {TRIM_UP: {"name": "Trim Up", "added": [{"key": "JOY_BTN_POV1_L"}]}}},
+        lua,
+    )
+    devices = by_device(plan(install, saved, all_modules=True, lua_interpreter=lua))
+    assert devices[BOX]["hat_only_views"] and devices[BOX]["own_hat"] == []

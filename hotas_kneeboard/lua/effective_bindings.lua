@@ -631,6 +631,7 @@ local function deviceBindings(baseFolder, userFolder, deviceName, unitProfile)
 	end
 	local diffFile = userFolder .. deviceName .. '.diff.lua'
 	local diff = loadDiffFile(diffFile)
+	local userDiff = diff
 	if not diff then
 		diffFile = baseFolder .. templateName(deviceName) .. '.diff.lua'
 		diff = loadDiffFile(diffFile)
@@ -640,10 +641,10 @@ local function deviceBindings(baseFolder, userFolder, deviceName, unitProfile)
 		table.insert(unmatched, u)
 	end
 
-	-- combos the diff adds or changes: placed by the user (or by the diff shipped with the module)
+	-- combos the user's diff adds or changes: placed by the user (not by a diff shipped with the module)
 	local fromDiff = {}
 	for _, kind in ipairs({'key', 'axis'}) do
-		for hash, d in pairs(diff and diff[kind .. 'Diffs'] or {}) do
+		for hash, d in pairs(userDiff and userDiff[kind .. 'Diffs'] or {}) do
 			for _, field in ipairs({'added', 'changed'}) do
 				for _, combo in ipairs(d[field] or {}) do fromDiff[hash .. '|' .. comboHash(combo)] = true end
 			end

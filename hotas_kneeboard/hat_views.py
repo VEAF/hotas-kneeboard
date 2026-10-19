@@ -13,7 +13,6 @@ stays. The scope is the profiles with a folder in ``Config/Input``, or, with
 ``all_modules``, every installed module (a diff is then created where the device has none).
 Error messages reach the user as they are: they are in French."""
 
-import logging
 from collections.abc import Callable
 from pathlib import Path
 
@@ -28,8 +27,6 @@ from .dcs_config import (
     seen_devices,
 )
 from .engine import PATH_TOO_LONG, EffectiveBindingsError, load_effective_bindings
-
-_logger = logging.getLogger(__name__)
 
 # key -> command hash of the 8 views in common_joystick_binding.lua (pressed = iCommandView…Slow,
 # up = iCommandViewStop)

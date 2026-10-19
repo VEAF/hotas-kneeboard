@@ -397,7 +397,7 @@ def new_diffs(
     diff file's name without ``.diff.lua``, ``hash``, ``key``, ``reformers``), as DCS would save it:
     ``[{"profile", "device", "path", "diff", "removed"}]``, ``diff`` None when nothing differs from
     the module's defaults (DCS then deletes the file), ``removed`` the number of bindings actually
-    found and removed. Raises when one of them cannot be computed."""
+    found and removed (None if the engine did not say). Raises when one of them cannot be computed."""
     profiles = sorted({r["profile"] for r in removals})
     try:
         result = load_effective_bindings(install_dir, saved_games_dir, profiles, lua_interpreter, removals)
@@ -437,7 +437,7 @@ def new_diffs(
                 "device": rewrite["device"],
                 "path": path,
                 "diff": diff or None,
-                "removed": rewrite.get("removed") or 0,
+                "removed": rewrite.get("removed"),
             }
         )
     return out
@@ -461,7 +461,7 @@ def remove_bindings(
         rewrites = new_diffs(install_dir, saved_games_dir, removals, lua_interpreter)
         try:
             for r in rewrites:
-                r["written"] = r["removed"] > 0
+                r["written"] = r["removed"] is None or r["removed"] > 0
                 if not r["written"]:
                     continue
                 if r["diff"] is None:
