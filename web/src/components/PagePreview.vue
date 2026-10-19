@@ -9,6 +9,9 @@ import { loadTemplate, useStore } from '../lib/store'
 import { editor, fromTemplate, newDraft, open } from '../editor/state'
 import type { Page } from '../render/page'
 import type { LayerMode } from '../lib/types'
+import OtherProgramsDialog from './OtherProgramsDialog.vue'
+
+const programsOpen = ref(false)
 
 const store = useStore()
 const { state } = store
@@ -137,7 +140,22 @@ async function editTemplate() {
 
 let generation = 0
 watch(
-  () => [store.device.value, store.profile.value?.name, templateId.value, layerMode.value, state.settings?.split_wide] as const,
+  () =>
+    [
+      store.device.value,
+      store.profile.value?.name,
+      templateId.value,
+      layerMode.value,
+      state.settings?.split_wide,
+      // other programs: what is read, and the user's choices about them
+      state.programs,
+      JSON.stringify([
+        state.settings?.srs_profiles,
+        state.settings?.program_bindings,
+        state.settings?.hidden_programs,
+        state.settings?.program_colors,
+      ]),
+    ] as const,
   async ([d, profileName]) => {
     const current = ++generation
     error.value = ''
@@ -195,6 +213,14 @@ watch(
           v-tooltip.bottom="templateId === NO_TEMPLATE ? 'Créer un gabarit pour ce périphérique' : 'Modifier le gabarit dans l\'éditeur'"
           @click="editTemplate"
         />
+        <Button
+          size="small"
+          severity="secondary"
+          icon="pi pi-th-large"
+          label="Autres logiciels"
+          v-tooltip.bottom="'Boutons utilisés par SRS, VectorXR ou un logiciel saisi à la main'"
+          @click="programsOpen = true"
+        />
         <label class="ctl">
           <span class="eyebrow">Calques</span>
           <SelectButton
@@ -208,6 +234,7 @@ watch(
           />
         </label>
       </div>
+      <OtherProgramsDialog v-model:visible="programsOpen" />
     </header>
     <div class="stage-wrap">
       <div ref="stage" class="stage" :class="{ single: pages.length === 1, paired: columns === 2 }" @wheel="onWheel">

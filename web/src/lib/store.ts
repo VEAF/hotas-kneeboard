@@ -2,10 +2,22 @@
 
 import { computed, reactive, ref, shallowRef } from 'vue'
 import { api } from './api'
-import type { BindingsResponse, DcsState, Device, Profile, Settings, Template, TemplateSummary } from './types'
+import type {
+  BindingsResponse,
+  DcsState,
+  Device,
+  ManualProgramBinding,
+  ProgramBinding,
+  ProgramsResponse,
+  Profile,
+  Settings,
+  Template,
+  TemplateSummary,
+} from './types'
 import { canvasMeasurer, type Measurer } from '../render/text'
 import { devicePages, type Page } from '../render/page'
 import { FONT_CSS } from '../render/export'
+import { marksFor, programStyles, SRS } from '../render/programs'
 
 export interface LoadedTemplate {
   data: Template
@@ -17,6 +29,8 @@ const state = reactive({
   dcs: null as DcsState | null,
   settings: null as Settings | null,
   bindings: null as BindingsResponse | null,
+  /** buttons other programs use, as read from SRS and VectorXR */
+  programs: null as ProgramsResponse | null,
   templates: [] as TemplateSummary[],
   loading: false,
   error: '' as string,
@@ -82,9 +96,10 @@ async function load(refresh = false): Promise<void> {
     state.settingsFile = current.settings_file
     state.dcs = current.dcs
     state.settings = current.settings
-    const [bindings, templates] = await Promise.all([api.bindings(refresh), api.templates()])
+    const [bindings, templates, programs] = await Promise.all([api.bindings(refresh), api.templates(), api.programs()])
     state.bindings = bindings
     state.templates = templates
+    state.programs = programs
     if (refresh) templateCache.clear()
     const profiles = bindings.profiles
     if (!profiles.some((p) => p.name === state.profileName)) state.profileName = profiles[0]?.name ?? ''
@@ -214,11 +229,81 @@ function moveDevice(profileName: string, from: number, to: number): void {
   changeSettings({ device_order: { ...state.settings.device_order, [profileName]: names } })
 }
 
+// --- other programs ------------------------------------------------------------------------
+
+/** SRS profile of a DCS module: the user's choice, else the one matched by name (null: none) */
+function srsProfileFor(profileName: string): string | null {
+  const chosen = state.settings?.srs_profiles[profileName]
+  const known = state.programs?.srs.profiles ?? []
+  if (chosen !== undefined && (chosen === '' || known.includes(chosen))) return chosen || null
+  return state.programs?.srs.matched[profileName] ?? null
+}
+
+function setSrsProfile(profileName: string, srsProfile: string | null | undefined): void {
+  if (!state.settings) return
+  const srs_profiles = { ...state.settings.srs_profiles }
+  if (srsProfile === undefined) delete srs_profiles[profileName]
+  else srs_profiles[profileName] = srsProfile ?? ''
+  changeSettings({ srs_profiles })
+}
+
+/** Other programs' buttons read in a module: its SRS profile's, VectorXR's */
+function readProgramBindings(profileName: string): ProgramBinding[] {
+  const srs = srsProfileFor(profileName)
+  return [...(srs ? (state.programs?.srs.bindings[srs] ?? []) : []), ...(state.programs?.vectorxr.bindings ?? [])]
+}
+
+/** Every other program's button in a module: read, then entered by hand */
+function programBindings(profileName: string): ProgramBinding[] {
+  return [...readProgramBindings(profileName), ...(state.settings?.program_bindings ?? [])]
+}
+
+/** Every program known: read (SRS when found, VectorXR when it binds something) and by hand */
+const programNames = computed(() => {
+  const names = new Set<string>()
+  if (state.programs?.srs.profiles.length) names.add(SRS)
+  for (const b of state.programs?.vectorxr.bindings ?? []) names.add(b.program)
+  for (const b of state.settings?.program_bindings ?? []) names.add(b.program)
+  return [...names].sort((a, b) => a.localeCompare(b))
+})
+
+const styles = computed(() => programStyles(programNames.value, state.settings?.program_colors ?? {}))
+
+function isProgramShown(program: string): boolean {
+  return !state.settings?.hidden_programs.includes(program)
+}
+
+function setProgramShown(program: string, shown: boolean): void {
+  if (!state.settings) return
+  const others = state.settings.hidden_programs.filter((p) => p !== program)
+  changeSettings({ hidden_programs: shown ? others : [...others, program] })
+}
+
+function setProgramColor(program: string, color: string): void {
+  if (!state.settings) return
+  changeSettings({ program_colors: { ...state.settings.program_colors, [program]: color } })
+}
+
+function setManualBindings(program_bindings: ManualProgramBinding[]): void {
+  changeSettings({ program_bindings })
+}
+
+/** SRS's folder changed: read the programs again */
+async function saveSrsDir(srs_dir: string | null): Promise<void> {
+  if (!state.settings) return
+  clearTimeout(saveTimer)
+  await flushSettings()
+  const saved = await api.saveSettings({ srs_dir })
+  state.settings = saved.settings
+  state.programs = await api.programs()
+}
+
 async function pagesOf(profileName: string, d: Device): Promise<Page[]> {
   const id = templateIdFor(d)
   const [m, template] = await Promise.all([getMeasurer(), id ? loadTemplate(id) : Promise.resolve(null)])
+  const marks = marksFor(d.guid, programBindings(profileName), state.settings?.hidden_programs ?? [])
   return devicePages(
-    { profile: profileName, device: d, template, measurer: m, fontCss: FONT_CSS },
+    { profile: profileName, device: d, template, measurer: m, fontCss: FONT_CSS, programs: { marks, styles: styles.value } },
     state.settings?.layer_mode ?? 'merge',
     state.settings?.split_wide ?? true,
   )
@@ -258,5 +343,16 @@ export function useStore() {
     moveDevice,
     pagesOf,
     modulePages,
+    srsProfileFor,
+    setSrsProfile,
+    readProgramBindings,
+    programBindings,
+    programNames,
+    programStyles: styles,
+    isProgramShown,
+    setProgramShown,
+    setProgramColor,
+    setManualBindings,
+    saveSrsDir,
   }
 }

@@ -2,6 +2,7 @@ import type {
   BindingsResponse,
   DcsState,
   KneeboardResult,
+  ProgramsResponse,
   Settings,
   StateResponse,
   Template,
@@ -41,6 +42,7 @@ export const api = {
   saveSettings: (changes: Partial<Settings>) =>
     request<{ dcs: DcsState; settings: Settings }>('/api/settings', json('PUT', changes)),
   bindings: (refresh = false) => request<BindingsResponse>(`/api/bindings${refresh ? '?refresh=true' : ''}`),
+  programs: () => request<ProgramsResponse>('/api/programs'),
   templates: () => request<TemplateSummary[]>('/api/templates'),
   template: (id: string) => request<Template>(`/api/templates/${encodeURIComponent(id)}`),
   templateImageUrl: (id: string) => `/api/templates/${encodeURIComponent(id)}/image`,

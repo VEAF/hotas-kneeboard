@@ -83,6 +83,42 @@ export interface Settings {
   page_height: number
   /** drawings whose template has a cut line (split_at) become several pages */
   split_wide: boolean
+  /** SRS install folder; null: found in the registry */
+  srs_dir: string | null
+  /** DCS profile -> SRS profile chosen by the user ("" = none); not listed: matched by name */
+  srs_profiles: Record<string, string>
+  /** buttons of other programs entered by hand */
+  program_bindings: ManualProgramBinding[]
+  /** programs not shown on the pages */
+  hidden_programs: string[]
+  /** program -> colour, #rrggbb */
+  program_colors: Record<string, string>
+}
+
+/** A button another program uses: device by its GUID (lower case, no braces), input in DCS's names */
+export interface ProgramBinding {
+  program: string
+  device_guid: string
+  input: string
+  action: string
+}
+
+export interface ManualProgramBinding extends ProgramBinding {
+  /** shown in the list when the device is not plugged */
+  device_name: string
+}
+
+export interface ProgramsResponse {
+  srs: {
+    /** where the SRS profiles were found; null: SRS not found */
+    folder: string | null
+    profiles: string[]
+    /** DCS profile -> SRS profile matched by name (else SRS's default profile) */
+    matched: Record<string, string | null>
+    bindings: Record<string, ProgramBinding[]>
+  }
+  vectorxr: { file: string | null; bindings: ProgramBinding[] }
+  problems: string[]
 }
 
 export interface DcsState {

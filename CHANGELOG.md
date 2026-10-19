@@ -16,3 +16,4 @@ Chaque lot ajoute ses entrées à la fin de `[Unreleased]` ; une release les pas
 - Réglages : périphériques cachés dans tous les modules, langue des commandes, hauteur des pages, découpe des dessins trop larges.
 - Découpe en deux pages des dessins qui ont une ligne de découpe (les throttles WinWing Orion), placée dans l'éditeur pour les autres ; les deux moitiés côte à côte à l'écran.
 - Documentation en français : README, guide d'utilisation, éditeur, gabarits, développement.
+- Boutons des autres logiciels sur les pages, chacun dans sa couleur : SRS lu directement avec le profil de chaque avion, VectorXR lu directement, tout autre logiciel saisi à la main ; logiciels montrés et couleurs dans les réglages (FEAT-OTHER-APPS-BINDINGS, #24).
