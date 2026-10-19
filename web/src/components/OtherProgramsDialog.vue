@@ -93,7 +93,9 @@ function edit(index: number) {
 
 function remove(index: number) {
   store.setManualBindings(manual.value.filter((_, i) => i !== index))
+  // the entry being edited moves up when one before it goes
   if (editing.value === index) reset()
+  else if (editing.value !== null && editing.value > index) editing.value -= 1
 }
 
 function save() {
