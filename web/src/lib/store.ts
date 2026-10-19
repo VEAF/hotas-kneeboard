@@ -55,6 +55,12 @@ async function blobToDataUrl(blob: Blob): Promise<string> {
   })
 }
 
+/** Tooltip of a device whose layers use modifiers DCS drops (their device was renamed) */
+export function inactiveHint(modifiers: string[]): string {
+  const names = modifiers.join(', ')
+  return `${names} : DCS ignore ce modificateur, son périphérique a changé de nom. Ses liaisons s'affichent mais ne marchent pas en jeu. Réparer dans la fenêtre Commandes DCS.`
+}
+
 export function loadTemplate(id: string): Promise<LoadedTemplate> {
   let pending = templateCache.get(id)
   if (!pending) {

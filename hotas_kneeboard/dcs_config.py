@@ -19,6 +19,7 @@ from pathlib import Path, PurePosixPath
 
 from .engine import EffectiveBindingsError, load_effective_bindings
 from .lua_tables import LuaTableError, read_table, write_table
+from .pages import split_device_name
 
 _logger = logging.getLogger(__name__)
 
@@ -140,6 +141,21 @@ class BackupStore:
             if backup.id != protect:
                 self._path(backup.id).unlink(missing_ok=True)
 
+    def read_file(self, backup_id: str, name: str) -> bytes | None:
+        """One file of a backup (``name`` relative to ``Config/Input``, with ``/``); None when the
+        backup does not hold it."""
+        path = self._path(backup_id)
+        if not path.is_file():
+            raise BackupNotFoundError("sauvegarde introuvable")
+        try:
+            with zipfile.ZipFile(path) as archive:
+                try:
+                    return archive.read(name)
+                except KeyError:
+                    return None
+        except (OSError, zipfile.BadZipFile) as error:
+            raise DcsConfigError(f"Sauvegarde illisible : {error}") from error
+
     def extract(self, backup_id: str, target: Path) -> None:
         """Unzips a backup into ``target``, refusing any entry that would land outside it."""
         path = self._path(backup_id)
@@ -238,18 +254,24 @@ DISABLED_FILE = "disabled.lua"
 CREATED_DEVICE = re.compile(r"INPUT \(Main\): created \[[^\]]*\] with full id \[([^\]]+)\]")
 
 
-def seen_devices(saved_games_dir: Path) -> list[str]:
-    """Full names (with GUID) of the devices DCS created in its last two sessions (``Logs/dcs.log``,
-    then ``dcs.log.old``): the exact spelling DCS uses, whose GUID case may differ from a diff
-    file's name."""
-    names = []
+def _logged_devices(saved_games_dir: Path) -> list[list[str]]:
+    """Full names of the devices DCS created, per session: ``Logs/dcs.log`` (the last one), then
+    ``dcs.log.old``; a missing log gives an empty list."""
+    sessions = []
     for log in ("dcs.log", "dcs.log.old"):
         try:
             text = (Path(saved_games_dir) / "Logs" / log).read_text(encoding="utf-8", errors="replace")
         except OSError:
-            continue
-        names += CREATED_DEVICE.findall(text)
-    return list(dict.fromkeys(names))
+            text = ""
+        sessions.append(CREATED_DEVICE.findall(text))
+    return sessions
+
+
+def seen_devices(saved_games_dir: Path) -> list[str]:
+    """Full names (with GUID) of the devices DCS created in its last two sessions (``Logs/dcs.log``,
+    then ``dcs.log.old``): the exact spelling DCS uses, whose GUID case may differ from a diff
+    file's name."""
+    return list(dict.fromkeys(name for session in _logged_devices(saved_games_dir) for name in session))
 
 
 def read_disabled(install_dir: Path, saved_games_dir: Path, lua_interpreter=None) -> dict:
@@ -476,3 +498,223 @@ def remove_bindings(
         return rewrites
 
     return guarded_write(saved_games_dir, backups, reason, change, is_running=is_running)
+
+
+# --- modifiers on a renamed device: Config/Input/<profile>/modifiers.lua -------------------------
+#
+# DCS keeps a modifier only when its device is exactly the full name of a plugged device
+# (Scripts/Input/Data.lua, createProfileModifiers_: a string comparison, GUID case included). A
+# driver that renames a device keeps its GUID: the modifier is dropped silently, and the bindings
+# using it never fire. At its next save of that profile, DCS writes the modifiers without it.
+
+MODIFIERS_FILE = "modifiers.lua"
+# a device named with its GUID: a game device, the kind a rename drops (the keyboard has none)
+GUID_DEVICE = re.compile(rb'\["device"\] = "[^"]*\{[0-9A-Fa-f-]+\}"')
+
+
+def read_modifiers(install_dir: Path, path: Path, lua_interpreter=None) -> dict:
+    """``modifiers.lua`` as DCS wrote it: ``{name: {"device", "key", "switch"}}``"""
+    try:
+        value = read_table(install_dir, path, lua_interpreter)
+    except LuaTableError as error:
+        raise DcsConfigError(f"{path.parent.name}/{MODIFIERS_FILE} illisible : {error}") from error
+    if not isinstance(value, dict) or not all(isinstance(m, dict) for m in value.values()):
+        raise DcsConfigError(f"{path.parent.name}/{MODIFIERS_FILE} : contenu inattendu, rien n'a été modifié")
+    return value
+
+
+def current_device_names(saved_games_dir: Path) -> dict[str, list[str]]:
+    """Names DCS gives each device now, by GUID in lower case: those of the last session that
+    created it. Right after a driver renamed a device, ``dcs.log.old`` still has its old name and
+    ``dcs.log`` the new one; only the new one counts."""
+    current: dict[str, list[str]] = {}
+    for session in _logged_devices(saved_games_dir):  # the last session first
+        found: dict[str, list[str]] = {}
+        for name in session:
+            guid = split_device_name(name)[1].lower()
+            if guid and name not in found.get(guid, []):
+                found.setdefault(guid, []).append(name)
+        for guid, names in found.items():
+            current.setdefault(guid, names)
+    return current
+
+
+def renamed_device(device: str, current: dict[str, list[str]]) -> tuple[str | None, str | None]:
+    """``(name DCS now gives the device, problem)`` for a modifier's device (``current``: see
+    ``current_device_names``): ``(None, None)`` when DCS knows it as it is, when it has no GUID
+    (keyboard) or when DCS did not create it lately (unplugged); the current name when there is
+    exactly one for its GUID, whatever its case; a problem when there are several."""
+    guid = split_device_name(device)[1].lower()
+    names = current.get(guid, []) if guid else []
+    if not names or device in names:
+        return None, None
+    if len(names) > 1:
+        return None, f"plusieurs périphériques portent ce GUID ({', '.join(names)}) : à corriger dans DCS"
+    return (names[0], None) if names else (None, None)
+
+
+def modifier_issues(install_dir: Path, saved_games_dir: Path, lua_interpreter=None) -> list[dict]:
+    """Modifiers DCS drops because their device was renamed, in every profile:
+    ``[{"profile", "modifier", "key", "device", "new_device", "problem"}]``, ``new_device`` None and
+    ``problem`` set when it cannot be fixed. Empty when the log names no device: nothing to
+    compare with."""
+    current = current_device_names(saved_games_dir)
+    if not current:
+        return []
+    issues = []
+    for path in sorted(input_dir_of(saved_games_dir).glob(f"*/{MODIFIERS_FILE}")):
+        profile = path.parent.name
+        try:
+            modifiers = read_modifiers(install_dir, path, lua_interpreter)
+        except DcsConfigError as error:
+            _logger.warning(f"modifiers of {profile} skipped: {error}")
+            continue
+        for name, modifier in sorted(modifiers.items()):
+            device = modifier.get("device")
+            if not isinstance(device, str):
+                continue
+            new, problem = renamed_device(device, current)
+            if new or problem:
+                issues.append(
+                    {
+                        "profile": profile,
+                        "modifier": name,
+                        "key": modifier.get("key"),
+                        "device": device,
+                        "new_device": new,
+                        "problem": problem,
+                    }
+                )
+    return issues
+
+
+def _rename_modifiers(modifiers: dict, current: dict[str, list[str]]) -> list[tuple[str, str, str]]:
+    """Gives each fixable modifier of ``modifiers`` (changed in place) its device's new name;
+    returns ``(modifier, old device, new device)`` for each."""
+    fixed = []
+    for name, modifier in sorted(modifiers.items()):
+        device = modifier.get("device")
+        new = renamed_device(device, current)[0] if isinstance(device, str) else None
+        if new:
+            modifier["device"] = new
+            fixed.append((name, device, new))
+    return fixed
+
+
+def _fixed_list(profile: str, fixed: list[tuple[str, str, str]]) -> list[dict]:
+    return [{"profile": profile, "modifier": n, "device": old, "new_device": new} for n, old, new in fixed]
+
+
+def fix_modifiers(
+    install_dir: Path,
+    saved_games_dir: Path,
+    backups: BackupStore,
+    *,
+    is_running: Callable[[], bool] = dcs_running,
+    lua_interpreter=None,
+) -> tuple[Backup, list[dict]]:
+    """Gives every modifier of a renamed device the name DCS now uses, in every profile, after a
+    backup; returns what was fixed: ``[{"profile", "modifier", "device", "new_device"}]``. Every
+    file is read and checked before the first is written."""
+    if not any(i["new_device"] for i in modifier_issues(install_dir, saved_games_dir, lua_interpreter)):
+        raise DcsConfigError("Aucun modificateur à réparer")
+
+    def change(input_dir: Path) -> list[dict]:
+        current = current_device_names(saved_games_dir)
+        rewrites = []
+        for path in sorted(input_dir.glob(f"*/{MODIFIERS_FILE}")):
+            try:
+                modifiers = read_modifiers(install_dir, path, lua_interpreter)
+            except DcsConfigError as error:  # left as it is, as modifier_issues does
+                _logger.warning(f"modifiers of {path.parent.name} skipped: {error}")
+                continue
+            if fixed := _rename_modifiers(modifiers, current):
+                rewrites.append((path, modifiers, fixed))
+        try:
+            for path, modifiers, _ in rewrites:
+                write_table(install_dir, path, "modifiers", modifiers, lua_interpreter)
+        except (OSError, LuaTableError) as error:
+            raise DcsConfigError(
+                f"Écriture interrompue ({error}) : la sauvegarde d'avant est en tête de liste"
+            ) from error
+        return [item for path, _, fixed in rewrites for item in _fixed_list(path.parent.name, fixed)]
+
+    return guarded_write(
+        saved_games_dir, backups, "avant la réparation des modificateurs", change, is_running=is_running
+    )
+
+
+def deleted_modifiers(saved_games_dir: Path, backups: BackupStore) -> list[dict]:
+    """Profiles whose ``modifiers.lua`` is gone while one of the app's backups still holds one with
+    a modifier on a game device (DCS deletes the file when a dropped modifier leaves only the
+    defaults): ``[{"profile", "backup", "created"}]``, from the most recent such backup."""
+    input_dir = input_dir_of(saved_games_dir)
+    try:
+        missing = sorted(
+            p.name for p in input_dir.iterdir() if p.is_dir() and not (p / MODIFIERS_FILE).exists()
+        )
+    except OSError:
+        return []
+    found: dict[str, Backup] = {}
+    for backup in backups.list():  # most recent first
+        for profile in missing:
+            if profile in found:
+                continue
+            try:
+                data = backups.read_file(backup.id, f"{profile}/{MODIFIERS_FILE}")
+            except DcsConfigError as error:
+                _logger.warning(f"backup {backup.id} skipped: {error}")
+                break
+            if data and GUID_DEVICE.search(data):
+                found[profile] = backup
+    return [
+        {"profile": profile, "backup": b.id, "created": b.created.isoformat(timespec="seconds")}
+        for profile, b in sorted(found.items())
+    ]
+
+
+def restore_modifiers(
+    install_dir: Path,
+    saved_games_dir: Path,
+    backups: BackupStore,
+    profile: str,
+    backup_id: str,
+    *,
+    is_running: Callable[[], bool] = dcs_running,
+    lua_interpreter=None,
+) -> tuple[Backup, list[dict]]:
+    """Brings a profile's deleted ``modifiers.lua`` back from a backup, its renamed devices fixed
+    (see ``fix_modifiers``); only that file is written. Refused when the profile has one."""
+    data = backups.read_file(backup_id, f"{profile}/{MODIFIERS_FILE}")
+    if not data:
+        raise BackupNotFoundError(f"Cette sauvegarde n'a pas de {MODIFIERS_FILE} pour {profile}")
+
+    def change(input_dir: Path) -> list[dict]:
+        folder = input_dir / profile
+        if profile in ("", ".", "..") or folder.parent != input_dir or not folder.is_dir():
+            raise DcsConfigError(f"Profil introuvable : {profile}")
+        path = folder / MODIFIERS_FILE
+        if path.exists():
+            raise DcsConfigError(f"{profile} a déjà un {MODIFIERS_FILE} : rien n'a été modifié")
+        # read with DCS's interpreter, to be written back as DCS writes it; a short name, see write_table
+        tmp = folder / f".hk-{uuid.uuid4().hex[:12]}.tmp"
+        try:
+            tmp.write_bytes(data)
+            modifiers = read_modifiers(install_dir, tmp, lua_interpreter)
+        finally:
+            tmp.unlink(missing_ok=True)
+        fixed = _rename_modifiers(modifiers, current_device_names(saved_games_dir))
+        try:
+            write_table(install_dir, path, "modifiers", modifiers, lua_interpreter)
+        except (OSError, LuaTableError) as error:
+            raise DcsConfigError(f"{MODIFIERS_FILE} impossible à écrire : {error}") from error
+        return _fixed_list(profile, fixed)
+
+    return guarded_write(
+        saved_games_dir,
+        backups,
+        f"avant de ramener {MODIFIERS_FILE} de {profile}",
+        change,
+        is_running=is_running,
+        protect=backup_id,
+    )

@@ -4,10 +4,15 @@ from pathlib import Path
 import pytest
 
 from hotas_kneeboard.dcs_config import (
+    BackupNotFoundError,
     BackupStore,
     DcsConfigError,
+    deleted_modifiers,
     disabled_devices,
+    fix_modifiers,
+    modifier_issues,
     read_disabled,
+    restore_modifiers,
     seen_devices,
     set_device_disabled,
 )
@@ -341,3 +346,178 @@ def test_a_too_long_diff_path_is_flagged_on_the_page(monkeypatch):
     result = {"profiles": {"P": {"devices": [{"name": "D" * 300, "error": None}]}}}
     engine._flag_long_paths(result, Path("C:/Saved Games/DCS"))
     assert result["profiles"]["P"]["devices"][0]["error"] == engine.PATH_TOO_LONG
+
+
+# --- modifiers on a renamed device ---------------------------------------------------------------
+
+OLD_STICK = "Old Stick {84180FE0-BDD3-11ea-8001-444553540000}"
+LOGGED_STICK = "Fake Stick {84180fe0-bdd3-11ea-8001-444553540000}"
+KEYBOARD_SHIFT = {"device": "Keyboard", "key": "LShift", "switch": False}
+
+
+def modifiers_of(device):
+    # JOY_BTN5: the reformer the fixture's stick and throttle bindings use
+    return {
+        "JOY_BTN5": {"device": device, "key": "JOY_BTN5", "switch": False},
+        "LShift": dict(KEYBOARD_SHIFT),
+    }
+
+
+def log_devices(saved, *devices):
+    (saved / "Logs").mkdir(exist_ok=True)
+    lines = [f"INFO    INPUT (Main): created [x] with full id [{d}],JOYSTICK|STANDARD" for d in devices]
+    (saved / "Logs" / "dcs.log").write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+@pytest.fixture
+def renamed(lua, saved):
+    """FakePlane's JOY_BTN5 modifier on the stick's old name; DCS logged its new one"""
+    write_table(
+        INSTALL,
+        saved / "Config" / "Input" / "FakePlane" / "modifiers.lua",
+        "modifiers",
+        modifiers_of(OLD_STICK),
+        lua,
+    )
+    log_devices(saved, LOGGED_STICK, THROTTLE)
+    return saved / "Config" / "Input" / "FakePlane" / "modifiers.lua"
+
+
+def test_a_modifier_on_a_renamed_device_is_found(lua, saved, renamed):
+    assert modifier_issues(INSTALL, saved, lua) == [
+        {
+            "profile": "FakePlane",
+            "modifier": "JOY_BTN5",
+            "key": "JOY_BTN5",
+            "device": OLD_STICK,
+            "new_device": LOGGED_STICK,
+            "problem": None,
+        }
+    ]
+
+
+def test_a_guid_of_another_case_is_a_rename_too(lua, saved, renamed):
+    # DCS compares the strings: "11EA" in the file, "11ea" in the log drops the modifier
+    write_table(INSTALL, renamed, "modifiers", modifiers_of(LOGGED_STICK.upper()), lua)
+    assert [i["new_device"] for i in modifier_issues(INSTALL, saved, lua)] == [LOGGED_STICK]
+
+
+def test_an_unplugged_device_is_not_a_rename(lua, saved, renamed):
+    log_devices(saved, THROTTLE)
+    assert modifier_issues(INSTALL, saved, lua) == []
+    with pytest.raises(DcsConfigError, match="Aucun modificateur"):
+        fix_modifiers(INSTALL, saved, BackupStore(saved.parent / "b"), is_running=closed, lua_interpreter=lua)
+
+
+def test_right_after_a_rename_the_last_session_wins(lua, saved, renamed):
+    # first launch after the driver update: dcs.log.old still has the old name, dcs.log the new one
+    (saved / "Logs" / "dcs.log").replace(saved / "Logs" / "dcs.log.old")
+    (saved / "Logs" / "dcs.log.old").write_text(
+        f"INFO    INPUT (Main): created [x] with full id [{OLD_STICK}],JOYSTICK|STANDARD\n", encoding="utf-8"
+    )
+    log_devices(saved, LOGGED_STICK)
+    assert [i["new_device"] for i in modifier_issues(INSTALL, saved, lua)] == [LOGGED_STICK]
+
+
+def test_an_unreadable_file_does_not_stop_the_others(lua, saved, renamed, tmp_path):
+    broken = saved / "Config" / "Input" / "SecondPlane_pilot" / "modifiers.lua"
+    broken.parent.mkdir(parents=True, exist_ok=True)
+    broken.write_text("not lua at all {", encoding="utf-8")
+    _, fixed = fix_modifiers(
+        INSTALL, saved, BackupStore(tmp_path / "b"), is_running=closed, lua_interpreter=lua
+    )
+    assert [f["profile"] for f in fixed] == ["FakePlane"]
+    assert broken.read_text(encoding="utf-8") == "not lua at all {"
+
+
+def test_two_names_for_one_guid_are_refused(lua, saved, renamed):
+    log_devices(saved, LOGGED_STICK, "Other Stick {84180FE0-BDD3-11EA-8001-444553540000}")
+    [issue] = modifier_issues(INSTALL, saved, lua)
+    assert issue["new_device"] is None and "plusieurs" in issue["problem"]
+
+
+def test_fixing_writes_the_logged_name_as_dcs_writes_it(lua, saved, renamed, tmp_path):
+    backups = BackupStore(tmp_path / "backups")
+    backup, fixed = fix_modifiers(INSTALL, saved, backups, is_running=closed, lua_interpreter=lua)
+    assert fixed == [
+        {"profile": "FakePlane", "modifier": "JOY_BTN5", "device": OLD_STICK, "new_device": LOGGED_STICK}
+    ]
+    write_table(INSTALL, tmp_path / "expected.lua", "modifiers", modifiers_of(LOGGED_STICK), lua)
+    assert renamed.read_bytes() == (tmp_path / "expected.lua").read_bytes()
+    assert renamed.read_bytes().endswith(b"}\nreturn modifiers")
+    assert backup.reason == "avant la réparation des modificateurs"
+    assert modifier_issues(INSTALL, saved, lua) == []
+
+
+def test_nothing_is_fixed_while_dcs_runs(lua, saved, renamed, tmp_path):
+    before = renamed.read_bytes()
+    with pytest.raises(DcsConfigError, match="DCS est lancé"):
+        fix_modifiers(
+            INSTALL, saved, BackupStore(tmp_path / "b"), is_running=lambda: True, lua_interpreter=lua
+        )
+    assert renamed.read_bytes() == before
+
+
+def test_a_deleted_modifiers_file_comes_back_renamed(lua, saved, renamed, tmp_path):
+    backups = BackupStore(tmp_path / "backups")
+    taken = backups.create(saved / "Config" / "Input", "avant essai")
+    renamed.unlink()  # what DCS does when a dropped modifier leaves only the defaults
+    assert deleted_modifiers(saved, backups) == [
+        {"profile": "FakePlane", "backup": taken.id, "created": taken.created.isoformat(timespec="seconds")}
+    ]
+    backup, fixed = restore_modifiers(
+        INSTALL, saved, backups, "FakePlane", taken.id, is_running=closed, lua_interpreter=lua
+    )
+    assert [f["new_device"] for f in fixed] == [LOGGED_STICK]
+    assert read_table(INSTALL, renamed, lua) == modifiers_of(LOGGED_STICK)
+    assert backup.reason == "avant de ramener modifiers.lua de FakePlane"
+    assert deleted_modifiers(saved, backups) == []
+    with pytest.raises(DcsConfigError, match="déjà"):
+        restore_modifiers(
+            INSTALL, saved, backups, "FakePlane", taken.id, is_running=closed, lua_interpreter=lua
+        )
+
+
+def test_a_keyboard_only_file_is_not_offered_back(lua, saved, tmp_path):
+    path = saved / "Config" / "Input" / "FakePlane" / "modifiers.lua"
+    write_table(INSTALL, path, "modifiers", {"LShift": dict(KEYBOARD_SHIFT)}, lua)
+    backups = BackupStore(tmp_path / "backups")
+    backups.create(saved / "Config" / "Input", "avant essai")
+    path.unlink()
+    assert deleted_modifiers(saved, backups) == []
+
+
+def test_a_profile_outside_config_input_is_refused(lua, saved, renamed, tmp_path):
+    backups = BackupStore(tmp_path / "backups")
+    taken = backups.create(saved / "Config" / "Input", "avant essai")
+    with pytest.raises(BackupNotFoundError):
+        restore_modifiers(INSTALL, saved, backups, "..", taken.id, is_running=closed, lua_interpreter=lua)
+
+
+def test_the_api_lists_fixes_and_flags_the_pages(make_client, renamed):
+    client = make_client()
+    fake = next(p for p in client.get("/api/bindings").json()["profiles"] if p["name"] == "FakePlane")
+    assert {d["full_name"]: d["inactive_modifiers"] for d in fake["devices"]}[STICK] == ["JOY_BTN5"]
+    assert [i["profile"] for i in client.get("/api/dcs-config/modifiers").json()["issues"]] == ["FakePlane"]
+
+    assert make_client(running=True).post("/api/dcs-config/modifiers/fix").status_code == 409
+    response = client.post("/api/dcs-config/modifiers/fix")
+    assert response.status_code == 200 and len(response.json()["fixed"]) == 1
+    assert client.get("/api/dcs-config/modifiers").json()["issues"] == []
+    fake = next(p for p in client.get("/api/bindings").json()["profiles"] if p["name"] == "FakePlane")
+    assert all(d["inactive_modifiers"] == [] for d in fake["devices"])
+
+
+def test_the_api_brings_a_modifiers_file_back(make_client, saved, renamed):
+    client = make_client()
+    taken = client.post("/api/dcs-config/backups").json()
+    renamed.unlink()
+    [offer] = client.get("/api/dcs-config/modifiers").json()["deleted"]
+    assert offer["backup"] == taken["id"]
+    body = {"profile": "FakePlane", "backup": "20200101-000000-000000"}
+    assert client.post("/api/dcs-config/modifiers/restore", json=body).status_code == 404
+    response = client.post(
+        "/api/dcs-config/modifiers/restore", json={"profile": "FakePlane", "backup": taken["id"]}
+    )
+    assert response.status_code == 200
+    assert renamed.is_file()

@@ -2,7 +2,7 @@
 import { ref, watch } from 'vue'
 import Button from 'primevue/button'
 import Checkbox from 'primevue/checkbox'
-import { useStore } from '../lib/store'
+import { inactiveHint, useStore } from '../lib/store'
 import type { Device } from '../lib/types'
 
 const store = useStore()
@@ -61,6 +61,7 @@ function onDrop(index: number) {
           <span class="t" :title="d.full_name">{{ d.name }}</span>
           <span class="s">{{ d.binding_count }} liaisons{{ layersText(d) }}</span>
         </span>
+        <span v-if="d.inactive_modifiers.length" class="pill warn" v-tooltip.left="inactiveHint(d.inactive_modifiers)">modificateur inactif</span>
         <span v-if="d.dcs_disabled" class="pill" v-tooltip.left="'Désactivé dans DCS : le jeu ignore ce périphérique (fenêtre Commandes DCS)'">désactivé</span>
         <span v-else-if="store.isHidden(d.name)" class="pill">caché</span>
         <span v-else-if="store.templateIdFor(d)" class="pill ok">gabarit</span>

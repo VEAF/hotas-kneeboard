@@ -20,6 +20,7 @@ export interface Device {
   inputs: Inputs
   auto_template_id: string | null
   dcs_disabled: boolean // listed in DCS's Config/Input/disabled.lua
+  inactive_modifiers: string[] // modifiers of its layers DCS drops: their device was renamed
 }
 
 export interface Profile {
@@ -158,6 +159,26 @@ export interface DcsDevicesResponse {
   seen: string[] // devices DCS created in its last two sessions (Logs/dcs.log, dcs.log.old)
   absent: { device: string; profiles: string[] }[] // devices with diffs DCS did not see
   log_date: string | null // when DCS last wrote dcs.log
+}
+
+/** A modifier DCS drops because its device was renamed by its driver (same GUID, new name) */
+export interface ModifierIssue {
+  profile: string
+  modifier: string
+  key: string | null
+  device: string // the name in modifiers.lua
+  new_device: string | null // the name DCS logged; null when it cannot be fixed
+  problem: string | null
+}
+
+export interface ModifiersResponse {
+  issues: ModifierIssue[]
+  deleted: { profile: string; backup: string; created: string }[] // modifiers.lua gone, held by a backup
+}
+
+export interface ModifiersFixed {
+  fixed: { profile: string; modifier: string; device: string; new_device: string }[]
+  backup: DcsBackup
 }
 
 /** A device whose hat carries some of the 8 generic views ("View Up slow"…) of DCS's defaults */

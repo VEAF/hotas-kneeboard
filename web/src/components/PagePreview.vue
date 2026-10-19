@@ -5,7 +5,7 @@ import Select from 'primevue/select'
 import SelectButton from 'primevue/selectbutton'
 import ProgressSpinner from 'primevue/progressspinner'
 import Button from 'primevue/button'
-import { loadTemplate, useStore } from '../lib/store'
+import { inactiveHint, loadTemplate, useStore } from '../lib/store'
 import { editor, fromTemplate, newDraft, open } from '../editor/state'
 import type { Page } from '../render/page'
 import type { LayerMode } from '../lib/types'
@@ -190,6 +190,11 @@ watch(
           class="pill warn"
           v-tooltip.bottom="'Le chemin de son fichier de commandes dépasse 260 caractères : l\'interpréteur de DCS ne peut pas le lire, la page montre les défauts du module. Un dossier Saved Games plus court règle le problème.'"
         >chemin trop long</span>
+        <span
+          v-if="store.device.value?.inactive_modifiers.length"
+          class="pill warn"
+          v-tooltip.bottom="inactiveHint(store.device.value.inactive_modifiers)"
+        >modificateur inactif</span>
         <span
           v-if="unchecked"
           class="pill warn"
