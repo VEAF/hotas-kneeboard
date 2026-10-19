@@ -726,7 +726,7 @@ La page d'accueil est le <code>README.md</code>, repris tel quel au moment du bu
   Chaque lot ajoute ses entrées à la fin de <code>[Unreleased]</code> dans <a href="https://github.com/VEAF/hotas-kneeboard/blob/develop/CHANGELOG.md"><code>CHANGELOG.md</code></a>, sans toucher à la version.</li>
 <li>Une release, c'est une PR de <code>develop</code> vers <code>main</code> qui monte la version dans <code>pyproject.toml</code> et <code>hotas_kneeboard/__init__.py</code> (les deux doivent être égales) et passe <code>[Unreleased]</code> sous ce numéro.
   À la fusion, la CI construit l'exe sous Windows et publie la release <code>vX.Y.Z</code> ; une fusion sans changement de version ne publie rien.
-  Les notes de la release sont celles que GitHub génère (la liste des PR), précédées du lien vers la documentation de cette version.</li>
+  Ses notes sont <a href="https://github.com/VEAF/hotas-kneeboard/blob/develop/RELEASE_NOTES.md"><code>RELEASE_NOTES.md</code></a>, réécrit à chaque release comme pour VMCT : en français, pour les pilotes (ce qui change pour eux, pas la plomberie), le titre finissant par le numéro de version ; la CI refuse de publier si le titre ne porte pas la version, et ajoute sous le titre le lien vers la documentation de cette version.</li>
 <li>La CI (tests Python et de l'interface) tourne sur chaque PR et sur chaque poussée vers <code>develop</code> et <code>main</code>.</li>
 </ul>
 <h2 id="règles-du-dépôt">Règles du dépôt<a class="headerlink" href="#règles-du-dépôt" title="Permanent link">&para;</a></h2>
