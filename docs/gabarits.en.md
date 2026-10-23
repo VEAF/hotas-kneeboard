@@ -66,10 +66,13 @@ It shows, for each template, the number of inputs found and the tokens it did no
 
 - the DCS names are only known for 20 templates; the others are chosen by hand, once, and the app remembers it;
 - the WinWing names come from the list of devices DCS recognises (`Scripts\Input\DefaultAssignments.lua`) and from the profiles shipped by the modules, old firmware names included (`WINWING THROTTLE BASE2 + …`); recent firmwares are named `WINCTRL …`, and only those seen on a real PC are known;
-- a name shared by two templates is put on neither: the left- or right-handed T.16000M, the F/A-18 throttle with or without axes, the F/A-18 UFC and HUD plugged together (`WINWING UFC1 + HUD1`);
+- a name shared by two templates is put on neither: the F/A-18 throttle with or without axes, the F/A-18 UFC and HUD plugged together (`WINWING UFC1 + HUD1`); the T.16000M gets the right-handed drawing, its factory setting (the left-handed one is chosen by hand);
+- the F/A-18 HUD only exists plugged into the UFC: its buttons are 65 to 83 of `WINWING UFC1 + HUD1`, as WinWing numbers them;
 - the Virpil templates have no DCS name, and will have none: the name Windows gives a Virpil device is the base's ("VPC Stick MT-50CM3"), not the grip's on it, and Virpil's configuration software lets you change it; choose your grip's template by hand;
 - the Orion JGRIP-F16 has two drawings: Joystick Diagrams calls "with shaker kit" the one showing the grip with its add-on module (mini-stick, hat 21 to 25, brake lever with detents 1, 2, 41, 42 and 3, axes RX, RY and RZ), and "without shaker kit" the bare grip; the DCS names are on the first one, which covers both: without the module, its boxes stay empty;
 - the numbering of the converted templates is the one Joystick Diagrams drew, not necessarily the device's: on the JGRIP-F16, hat 14 was turned a quarter turn from WinWing's diagram;
+- the WinWing, Virpil and Thrustmaster templates were compared with the manufacturers' documentation (WinWing's SimAppPro software and the WinWing profiles shipped by the DCS modules, the "Button Mapping" templates of Virpil's support, Thrustmaster's manuals), and fixed where it contradicted them; still without a source: the WinWing T1 Super Taurus throttle, the Ursa Minor sticks, the Virpil MT-50 CM2 throttle and the F-15E right grip;
+- a Virpil device's numbering is the one of the profile its configuration software loaded: the templates follow the button mappings Virpil publishes;
 - no template is marked checked yet.
 
 ## Checking a template

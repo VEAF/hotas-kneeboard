@@ -113,10 +113,12 @@
   },
   "Virpil/Virpil Stick MT-50CM2.svg": {
    "id": "virpil-stick-mt-50cm2",
+   "maintained": true,
    "devices": []
   },
   "Virpil/Virpil Stick VFX.svg": {
    "id": "virpil-stick-vfx",
+   "maintained": true,
    "devices": []
   },
   "Virpil/Virpil Stick WarBRD.svg": {
@@ -137,10 +139,12 @@
   },
   "WinWing/18-HUD Unit1/WinWing - 18-HUD Unit 1.svg": {
    "id": "winwing-18-hud-unit-1",
+   "maintained": true,
    "devices": []
   },
   "WinWing/18-UFC Unit1/WinWing 18-UFC Unit 1.svg": {
    "id": "winwing-18-ufc-unit-1",
+   "maintained": true,
    "devices": [
     "WINWING UFC1"
    ]
@@ -230,6 +234,7 @@
   },
   "WinWing/PCR Panel of Combat Ready/PCR Panel of Combat Ready.svg": {
    "id": "winwing-pcr-panel-of-combat-ready",
+   "maintained": true,
    "devices": [
     "WINWING F18 COMBAT READY PANEL"
    ]
