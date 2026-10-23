@@ -207,6 +207,7 @@ class Tokens:
         self.unknown: list[str] = []
         self.duplicates: list[str] = []
         self.remove: list[ET.Element] = []
+        self.page_width = px(root.get("width"), 0) or float("inf")
         items = drawables(root)
         for index, element in enumerate(items):
             if is_label_group(element):
@@ -221,12 +222,18 @@ class Tokens:
                 self.unknown.append(label.text)
             return
         self.remove.append(label.group)
+        layout = label.box()
+        if key and layout and layout[2] > self.page_width / 2:
+            # a stray token as wide as the page (Virpil Control Panel #1 has one, on top of the
+            # page's background, besides the real Button_22 box): not a box
+            self.unknown.append(f"{label.text} (stray, as wide as the page)")
+            return
         # the box drawn under the token, else where draw.io laid the text out
         center, box = label.center(), None
         if previous is not None and tag(previous) == "rect" and center and inside(center, rect_box(previous)):
             box = rect_box(previous)
             self.remove.append(previous)
-        box = box or label.box()
+        box = box or layout
         if key is None:  # a placeholder
             return
         if box is None:
@@ -235,6 +242,9 @@ class Tokens:
         key = remap.get(key, key)
         box = [round(v, 1) for v in box]
         if key in self.inputs:
+            known = [self.inputs[key]["box"], *self.inputs[key].get("more_boxes", [])]
+            if box in known:  # the same token drawn twice on the same spot
+                return
             # the same input drawn twice (two views of a device): the label goes in both
             self.inputs[key].setdefault("more_boxes", []).append(box)
             self.duplicates.append(key)
