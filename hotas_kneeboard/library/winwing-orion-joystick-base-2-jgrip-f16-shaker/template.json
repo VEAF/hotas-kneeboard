@@ -1,7 +1,13 @@
 {
  "format": 1,
  "name": "WINWING Orion Joystick Base 2 + JGRIP-F16",
- "devices": [],
+ "devices": [
+  "WINCTRL Orion Joystick Base Metal 2 + JGRIP-F16",
+  "WINWING Orion Joystick Base 2 + JGRIP-F16",
+  "WINWING JOYSTICK BASE2 + JGRIP-F16",
+  "WINWING Orion Joystick Base 2 + JGRIP-F16 + MFSSB",
+  "WINWING Orion Joystick Base 2 + ZAXIS + JGRIP-F16 + MFSSB"
+ ],
  "image": "background.svg",
  "size": [
   816.0,
@@ -122,13 +128,21 @@
   },
   "JOY_BTN15": {
    "box": [
+    601.0,
+    136.0,
+    140.0,
+    30.0
+   ]
+  },
+  "JOY_BTN16": {
+   "box": [
     671.0,
     166.0,
     140.0,
     30.0
    ]
   },
-  "JOY_BTN16": {
+  "JOY_BTN17": {
    "box": [
     601.0,
     196.0,
@@ -136,18 +150,10 @@
     30.0
    ]
   },
-  "JOY_BTN17": {
+  "JOY_BTN18": {
    "box": [
     531.0,
     166.0,
-    140.0,
-    30.0
-   ]
-  },
-  "JOY_BTN18": {
-   "box": [
-    601.0,
-    136.0,
     140.0,
     30.0
    ]
@@ -455,6 +461,14 @@
     140.0,
     30.0
    ]
+  },
+  "JOY_Z": {
+   "box": [
+    126.0,
+    545.0,
+    140.0,
+    30.0
+   ]
   }
  },
  "credits": {
@@ -463,5 +477,8 @@
   "license": "GPL-2.0",
   "converted_by": "scripts/convert_jd_templates.py"
  },
- "checked": null
+ "checked": {
+  "by": "David",
+  "date": "2026-10-23"
+ }
 }

@@ -110,6 +110,25 @@ def test_nested_drawing_and_input_drawn_twice(tmp_path):
     assert "<g />" not in background
 
 
+def test_token_drawn_twice_on_the_same_spot_gives_one_box(tmp_path):
+    body = ('<rect x="10" y="20" width="80" height="20"/>' + label("Button_1", 10, 30)) * 2
+    _, data, _ = run(tmp_path, body)
+    assert data["inputs"] == {"JOY_BTN1": {"box": [10.0, 20.0, 80.0, 20.0]}}
+
+
+def test_stray_token_as_wide_as_the_page_is_not_a_box(tmp_path):
+    body = (
+        '<rect x="0" y="0" width="400" height="300" fill="#fff"/>'
+        + label("Button_22", 0, 150, width=400)
+        + '<rect x="200" y="20" width="80" height="20"/>'
+        + label("Button_22", 200, 30)
+    )
+    report, data, background = run(tmp_path, body)
+    assert data["inputs"] == {"JOY_BTN22": {"box": [200.0, 20.0, 80.0, 20.0]}}
+    assert report["unknown"] == ["Button_22 (stray, as wide as the page)"]
+    assert 'width="400" height="300" fill="#fff"' in background  # the page's background stays
+
+
 def test_remap_after_checking_the_real_numbering(tmp_path):
     body = '<rect x="10" y="20" width="80" height="20"/>' + label("POV_2_U", 10, 30)
     _, data, _ = run(tmp_path, body, META | {"remap": {"JOY_BTN_POV2_U": "JOY_BTN_POV1_U"}})
