@@ -5,6 +5,10 @@ Chaque lot ajoute ses entrées à la fin de `[Unreleased]` ; une release les pas
 
 ## [Unreleased]
 
+### Ajouté
+
+- L'éditeur de gabarits reconnaît le hat quand tu appuies dessus (« Vérifier », « Identifier ») : il le lit comme le hat 1, dans ses huit directions.
+
 ### Corrigé
 
 - Gabarits comparés à la documentation des fabricants (FEAT-TEMPLATE-LIBRARY, #4) :

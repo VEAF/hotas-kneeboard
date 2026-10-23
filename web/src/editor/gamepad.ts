@@ -1,7 +1,9 @@
 // "Press the button to identify it": the browser's Gamepad API reports the devices the system
 // sees as game controllers. Its button index i is taken as DCS's JOY_BTN(i+1) and its axes in
 // DirectInput order; both are a guess to check on each device, manual entry stays the reference.
-// Hats are not reported the same way by every browser: they are left to manual entry.
+// A hat comes as one more axis after those (index 9 in Chrome and Firefox on Windows, measured on
+// the Orion JGRIP-F16 in Firefox): -1 up, then 2/7 per eighth clockwise, a value out of [-1, 1]
+// when released. It is taken as hat 1.
 
 import { AXES } from './catalog'
 import { t } from '../lib/i18n'
@@ -14,6 +16,13 @@ export interface Detected {
 
 const PRESSED = 0.5
 const AXIS_MOVE = 0.5
+const HAT_DIRECTIONS = ['U', 'UR', 'R', 'DR', 'D', 'DL', 'L', 'UL']
+
+/** The direction of a hat reported as an axis value, or null when it is released */
+export function hatDirection(value: number): string | null {
+  if (!(Math.abs(value) <= 1.05)) return null
+  return HAT_DIRECTIONS[Math.round(((value + 1) * 7) / 2) % 8]
+}
 
 interface Baseline {
   buttons: boolean[]
@@ -64,6 +73,14 @@ export function detectInput(signal: AbortSignal, onAppear?: (device: string) => 
         if (axis !== -1 && axis < AXES.length) {
           stop()
           resolve({ key: AXES[axis], device: pad.id })
+          return
+        }
+        const hat = pad.axes.findIndex(
+          (v, i) => i >= AXES.length && hatDirection(v) !== null && hatDirection(base.axes[i] ?? 2) === null,
+        )
+        if (hat !== -1) {
+          stop()
+          resolve({ key: `JOY_BTN_POV1_${hatDirection(pad.axes[hat])}`, device: pad.id })
           return
         }
       }

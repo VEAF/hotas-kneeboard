@@ -40,7 +40,7 @@ Elle a une **case** (où s'écrit la commande) et, si tu veux, un **repère** (u
 **Identifier** (touche `I`), puis appuie sur le bouton du périphérique : l'éditeur reconnaît l'entrée et l'attribue à l'entrée sélectionnée (ou à la prochaine que tu places).
 Il passe par la Gamepad API du navigateur, qui numérote les boutons à sa façon : vérifie le numéro qu'il donne, la liste reste la référence.
 Si le périphérique vient d'apparaître (le navigateur ne montre une manette qu'après un premier appui), l'éditeur demande d'appuyer une seconde fois.
-Les hats ne sont pas reconnus : choisis-les dans la liste.
+Un hat est reconnu comme le hat 1, dans ses huit directions ; pour un deuxième hat, choisis-le dans la liste.
 
 ## Vérifier la numérotation sur le périphérique
 

@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextFree } from '../catalog'
-import { detectInput } from '../gamepad'
+import { detectInput, hatDirection } from '../gamepad'
 import {
   addExtraBox,
   addInput,
@@ -178,6 +178,23 @@ describe('gamepad', () => {
     pads = [pad([], [0, 0, 0.9])]
     await vi.advanceTimersByTimeAsync(50)
     await expect(found).resolves.toMatchObject({ key: 'JOY_Z' })
+  })
+
+  it('reports a hat, given as the axis after the eight DCS axes', async () => {
+    const released = [0, 0, 0, 0, 0, 0, 0, 0, 0, 3.29] // Chrome and Firefox: index 9, out of [-1, 1]
+    pads = [pad([], released)]
+    const found = detectInput(new AbortController().signal)
+    pads = [pad([], [...released.slice(0, 9), 3 / 7])] // -1 + 2/7 × 5: down-left
+    await vi.advanceTimersByTimeAsync(50)
+    await expect(found).resolves.toMatchObject({ key: 'JOY_BTN_POV1_DL' })
+  })
+
+  it('reads the eight directions of a hat, and none when released', () => {
+    expect([-1, -5 / 7, -3 / 7, -1 / 7, 1 / 7, 3 / 7, 5 / 7, 1].map(hatDirection)).toEqual([
+      'U', 'UR', 'R', 'DR', 'D', 'DL', 'L', 'UL',
+    ])
+    expect(hatDirection(3.29)).toBeNull()
+    expect(hatDirection(1.29)).toBeNull()
   })
 
   it('waits for a second press on a device that just appeared', async () => {
