@@ -83,8 +83,9 @@ export function detectInput(signal: AbortSignal, onAppear?: (device: string) => 
           resolve({ key: AXES[axis], device: pad.id })
           return
         }
+        // a new direction, released in between or not (left to right in one move)
         const hat = pad.axes.findIndex(
-          (v, i) => i >= AXES.length && hatDirection(v) !== null && hatDirection(base.axes[i] ?? 2) === null,
+          (v, i) => i >= AXES.length && hatDirection(v) !== null && hatDirection(v) !== hatDirection(base.axes[i] ?? 2),
         )
         if (hat !== -1) {
           stop()

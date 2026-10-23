@@ -11,7 +11,7 @@ Chaque lot ajoute ses entrées à la fin de `[Unreleased]` ; une release les pas
 
 ### Corrigé
 
-- Éditeur de gabarits, « Vérifier » : un bouton ou une direction du hat encore tenu quand l'écoute reprend est de nouveau entendu une fois relâché ; il fallait jusque-là appuyer sur autre chose entre deux appuis.
+- Éditeur de gabarits, « Vérifier » : un bouton ou une direction du hat encore tenu quand l'écoute reprend est de nouveau entendu une fois relâché, et le hat passé d'une direction à l'autre sans arrêt au centre est entendu ; il fallait jusque-là appuyer sur autre chose entre deux appuis.
 - Gabarits comparés à la documentation des fabricants (FEAT-TEMPLATE-LIBRARY, #4) :
   - manche WinWing Orion JGRIP-F16 : le gabarit reconnu automatiquement est le dessin avec le module additionnel, qui a toutes les cases (gâchette et crans 1, 2, 3, 41, 42, chapeau 21 à 25, mini-manche 26 à 30, axes RX, RY, RZ) ; chapeau 14 renuméroté comme sur le schéma de WinWing, case pour l'axe Z du socle, noms DCS des variantes MFSSB et ZAXIS (#18) ;
   - HUD F/A-18 WinWing : boutons 65 à 83 et molettes X, Y, Z, SLIDER2, comme dans `WINWING UFC1 + HUD1` ;

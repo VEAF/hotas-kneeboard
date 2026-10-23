@@ -209,6 +209,16 @@ describe('gamepad', () => {
     await expect(again).resolves.toMatchObject({ key: 'JOY_BTN6' })
   })
 
+  it('hears a hat moved from one direction to another without a stop in the middle', async () => {
+    const hat = (v: number) => [0, 0, 0, 0, 0, 0, 0, 0, 0, v]
+    pads = [pad([], hat(5 / 7))] // left, held when listening started
+    const found = detectInput(new AbortController().signal)
+    await vi.advanceTimersByTimeAsync(50)
+    pads = [pad([], hat(-3 / 7))] // straight to right
+    await vi.advanceTimersByTimeAsync(50)
+    await expect(found).resolves.toMatchObject({ key: 'JOY_BTN_POV1_R' })
+  })
+
   it('reads the eight directions of a hat, and none when released', () => {
     expect([-1, -5 / 7, -3 / 7, -1 / 7, 1 / 7, 3 / 7, 5 / 7, 1].map(hatDirection)).toEqual([
       'U', 'UR', 'R', 'DR', 'D', 'DL', 'L', 'UL',
