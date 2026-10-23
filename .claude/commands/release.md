@@ -42,7 +42,7 @@ Trois questions, **une à la fois**, chacune avec ta reco tirée du CHANGELOG (D
 
 ## Étape 3 : les notes de version
 
-1. Écris le contenu complet de `RELEASE_NOTES.md`, sur le modèle de la version précédente (`git show main:RELEASE_NOTES.md`) :
+1. Écris le contenu complet de `RELEASE_NOTES.md`, sur le modèle de la version précédente (`git show origin/main:RELEASE_NOTES.md` ; la branche `main` locale n'est pas tenue à jour) :
    - titre exactement `# HOTAS Kneeboard — X.Y.Z` (`release.yml` le contrôle) ;
    - en français d'abord, pour les pilotes, puis la même chose en anglais sous `## 🇬🇧 In English` ;
    - une phrase d'accroche, puis des sections par thème avec un emoji, des puces qui disent ce que le pilote y gagne.
