@@ -5,6 +5,8 @@ Chaque lot ajoute ses entrées à la fin de `[Unreleased]` ; une release les pas
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-23
+
 ### Ajouté
 
 - L'éditeur de gabarits reconnaît le hat quand tu appuies dessus (« Vérifier », « Identifier ») : il le lit comme le hat 1, dans ses huit directions.
