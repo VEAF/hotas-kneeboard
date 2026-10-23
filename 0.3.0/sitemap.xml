@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+    <url>
+        <loc>https://veaf.github.io/hotas-kneeboard/0.3.0/</loc>
+        <lastmod>2026-10-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/hotas-kneeboard/0.3.0/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/hotas-kneeboard/0.3.0en/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/hotas-kneeboard/0.3.0/developpement/</loc>
+        <lastmod>2026-10-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/hotas-kneeboard/0.3.0/developpement/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/hotas-kneeboard/0.3.0en/developpement/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/hotas-kneeboard/0.3.0/editeur-de-gabarits/</loc>
+        <lastmod>2026-10-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/hotas-kneeboard/0.3.0/editeur-de-gabarits/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/hotas-kneeboard/0.3.0en/editeur-de-gabarits/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/hotas-kneeboard/0.3.0/gabarits/</loc>
+        <lastmod>2026-10-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/hotas-kneeboard/0.3.0/gabarits/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/hotas-kneeboard/0.3.0en/gabarits/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/hotas-kneeboard/0.3.0/guide-utilisateur/</loc>
+        <lastmod>2026-10-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/hotas-kneeboard/0.3.0/guide-utilisateur/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/hotas-kneeboard/0.3.0en/guide-utilisateur/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/hotas-kneeboard/0.3.0/en/</loc>
+        <lastmod>2026-10-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/hotas-kneeboard/0.3.0/en/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/hotas-kneeboard/0.3.0"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/hotas-kneeboard/0.3.0/en/developpement/</loc>
+        <lastmod>2026-10-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/hotas-kneeboard/0.3.0/en/developpement/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/hotas-kneeboard/0.3.0developpement/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/hotas-kneeboard/0.3.0/en/editeur-de-gabarits/</loc>
+        <lastmod>2026-10-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/hotas-kneeboard/0.3.0/en/editeur-de-gabarits/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/hotas-kneeboard/0.3.0editeur-de-gabarits/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/hotas-kneeboard/0.3.0/en/gabarits/</loc>
+        <lastmod>2026-10-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/hotas-kneeboard/0.3.0/en/gabarits/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/hotas-kneeboard/0.3.0gabarits/"/>
+    </url>
+    <url>
+        <loc>https://veaf.github.io/hotas-kneeboard/0.3.0/en/guide-utilisateur/</loc>
+        <lastmod>2026-10-23</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://veaf.github.io/hotas-kneeboard/0.3.0/en/guide-utilisateur/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://veaf.github.io/hotas-kneeboard/0.3.0guide-utilisateur/"/>
+    </url>
+</urlset>

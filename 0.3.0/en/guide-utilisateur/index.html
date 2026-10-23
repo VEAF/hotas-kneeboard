@@ -1,0 +1,1262 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="DCS World kneeboard pages and printable sheets, drawn on your own devices">
+      
+      
+      
+        <link rel="canonical" href="https://veaf.github.io/hotas-kneeboard/0.3.0/en/guide-utilisateur/">
+      
+      
+        <link rel="prev" href="../">
+      
+      
+        <link rel="next" href="../editeur-de-gabarits/">
+      
+      
+        
+          <link rel="alternate" href="../../guide-utilisateur/" hreflang="fr">
+        
+          <link rel="alternate" href="./" hreflang="en">
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>User guide - HOTAS Kneeboard</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#user-guide" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../" title="HOTAS Kneeboard" class="md-header__button md-logo" aria-label="HOTAS Kneeboard" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            HOTAS Kneeboard
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              User guide
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="Select language">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="../../guide-utilisateur/" hreflang="fr" class="md-select__link">
+              Français
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/VEAF/hotas-kneeboard" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    VEAF/hotas-kneeboard
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../" title="HOTAS Kneeboard" class="md-nav__button md-logo" aria-label="HOTAS Kneeboard" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    HOTAS Kneeboard
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/VEAF/hotas-kneeboard" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    VEAF/hotas-kneeboard
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User guide
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#first-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        First start
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-screen" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The screen
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reading-a-page" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reading a page
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-buttons-of-other-programs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The buttons of other programs
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#exporting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exporting
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Exporting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#to-the-kneeboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        To the kneeboard
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#as-a-pdf" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        As a PDF
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dcs-controls" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DCS controls
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="DCS controls">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#disabling-a-device" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Disabling a device
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#forgetting-an-absent-device" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Forgetting an absent device
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#repairing-the-modifiers-of-a-renamed-device" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Repairing the modifiers of a renamed device
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removing-the-hat-views" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Removing the hat views
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#devices-without-buttons" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Devices without buttons
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removing-bindings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Removing bindings
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Settings
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#keyboard-shortcuts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Keyboard shortcuts
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#common-problems" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common problems
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../editeur-de-gabarits/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Template editor
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../gabarits/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Templates
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../developpement/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#first-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        First start
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-screen" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The screen
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reading-a-page" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reading a page
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-buttons-of-other-programs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The buttons of other programs
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#exporting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exporting
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Exporting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#to-the-kneeboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        To the kneeboard
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#as-a-pdf" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        As a PDF
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dcs-controls" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DCS controls
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="DCS controls">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#disabling-a-device" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Disabling a device
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#forgetting-an-absent-device" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Forgetting an absent device
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#repairing-the-modifiers-of-a-renamed-device" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Repairing the modifiers of a renamed device
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removing-the-hat-views" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Removing the hat views
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#devices-without-buttons" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Devices without buttons
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#removing-bindings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Removing bindings
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Settings
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#keyboard-shortcuts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Keyboard shortcuts
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#common-problems" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common problems
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="user-guide">User guide<a class="headerlink" href="#user-guide" title="Permanent link">&para;</a></h1>
+<h2 id="first-start">First start<a class="headerlink" href="#first-start" title="Permanent link">&para;</a></h2>
+<p>Run <code>HOTAS-Kneeboard.exe</code>.
+A console opens with the address of the app (<code>http://127.0.0.1:8642/</code>) and your browser opens on it.
+The app runs as long as the console is open: closing it quits the app.
+Running the exe again while it is already running simply opens the browser on the running one.</p>
+<p>The app finds by itself:</p>
+<ul>
+<li>the DCS install, in the Windows registry (<code>HKCU\Software\Eagle Dynamics\DCS World</code>);</li>
+<li>the <code>Saved Games\DCS</code> (or <code>DCS.openbeta</code>) folder of your profile;</li>
+<li>the game's language, to show the commands as DCS shows them.</li>
+</ul>
+<p>The <strong>DCS</strong> badge at the top is green when everything is found; hover over it to see the folders.
+If something is missing, a banner says so, with a direct way to the settings.</p>
+<p>The app reads your files without changing them, except when you ask it to change your DCS controls (see <a href="#dcs-controls">DCS controls</a>): it then backs everything up before writing.
+Otherwise, it only writes the kneeboard pages, and its own settings in <code>%APPDATA%\HOTAS Kneeboard\</code>.</p>
+<p>The interface is in English or in French: by default it follows your browser's language, and the settings let you choose (see <a href="#settings">Settings</a>).</p>
+<h2 id="the-screen">The screen<a class="headerlink" href="#the-screen" title="Permanent link">&para;</a></h2>
+<p>Three columns, from left to right.</p>
+<p><img alt="The main screen: the modules, the devices of the A-10C II, the page of the stick" src="../images/ecran-principal.png" /></p>
+<p><strong>Modules.</strong>
+Every controls profile you set up in DCS (an aircraft, a helicopter, the interface layer…), under the name the game's controls screen gives it ("AH-64D Pilot", "F/A-18C"), in alphabetical order.
+Under the name, the profile's folder in <code>Saved Games\DCS\Config\Input</code> when it differs (<code>AH-64D_BLK_II_PLT</code>), and the aircraft's kneeboard folder; on the right, the number of devices exported out of the number of devices shown.
+Two profiles with the same name (DCS sometimes keeps the old folder of a renamed module, like <code>Mi-24P Pilot</code> and <code>Mi-24P_pilot</code>) are told apart by their folder, in brackets.
+The filter searches the name, the folder and the aircraft type.
+A module DCS does not find in your install is marked "module not installed": only your changes are known, not its defaults.</p>
+<p><strong>Devices.</strong>
+The devices set up for this module.
+The checkbox includes the device in the exports or not; drag and drop changes the order of the pages.
+"template": the device has a drawing; "list": it has none, its page is a list of commands.
+The eye, when hovering over a row, hides the device in every module (see <a href="#settings">Settings</a>).</p>
+<p><strong>The page.</strong>
+The page as it will be in the kneeboard, fitted to the room available.
+Above it: the template used (found automatically, or chosen by hand in the list, and then remembered), the button to <strong>Create</strong> it or <strong>Edit</strong> it in the editor, the display of the layers.
+A choice by hand holds for this device in every module; the first entry of the list, <strong>Automatic</strong>, names the template recognised by the device's name and goes back to it.
+When the template chosen by hand is not that one (the stick drawn with the picture of the throttle), the <strong>chosen by hand</strong> badge says so: its tooltip names the template recognised, a click goes back to it.
+At the bottom right, the zoom: whole page, full width, more or less (or Ctrl+wheel).</p>
+<p>The line between two columns can be dragged to widen or narrow the modules column or the devices one; the app remembers it, and a double click on the line puts back the default width.</p>
+<p>In the top bar, the book opens this documentation, the one of your version of the app and in the interface's language, in a new tab; the shortcuts window (<code>?</code>) leads there too.</p>
+<h2 id="reading-a-page">Reading a page<a class="headerlink" href="#reading-a-page" title="Permanent link">&para;</a></h2>
+<p><img alt="The top of a page: a label per button, the free boxes dotted, the Paddle layer in orange" src="../images/page-detail.png" /></p>
+<ul>
+<li><strong>A label per bound button</strong>, laid on the box of the drawing.
+  The text shrinks to fit; if it really does not fit, the box gets longer.</li>
+<li><strong>The dotted boxes</strong> are inputs of the drawing without a command: free buttons.</li>
+<li><strong>A two-position switch</strong> fits on one label: "LG Handle - UP / DN".
+  A released position alone (without a pressed position) is written in italics, after "released:".</li>
+<li><strong>Modifier layers.</strong>
+  A command bound with a modifier (the Warthog's "Paddle", for example) shows in the same label, in colour, after a small badge ("P").
+  The legend is at the bottom of the page ("P = Paddle").
+  With "Per layer", each layer has its own page.</li>
+<li><strong>Off template.</strong>
+  A command bound to an input that has no box on the drawing is listed under the drawing: nothing gets lost.
+  It is often the sign of a template to check (see the <a href="../editeur-de-gabarits/#check-the-numbering-on-the-device">editor</a>).</li>
+<li><strong>"numbering not checked"</strong>: the template comes from the library and nobody has checked yet, on the real device, that every button lands in the right box.</li>
+<li><strong>Drawings too wide</strong> for one page (the WinWing Orion throttles, base and handles) are cut into two pages, where the template says; on screen, the two halves are side by side if the window is wide enough.</li>
+<li><strong>A device without a template</strong> has a list page: the input ("Button 14", "Hat 1 ↑", "Axis X"), then the command.
+  If the list is long, it goes on onto a following page.</li>
+</ul>
+<p>The words the app writes itself on the pages ("released:", the template's credit line, the head of a list page) are in French when the commands are in French, in English otherwise: a page never mixes two languages.</p>
+<h2 id="the-buttons-of-other-programs">The buttons of other programs<a class="headerlink" href="#the-buttons-of-other-programs" title="Permanent link">&para;</a></h2>
+<p>A button may serve something other than DCS: SRS's push to talk, VectorXR's overlay, a VoiceAttack voice command.
+These buttons show on the pages, beside the DCS commands, each program in its colour and with its badge ("SRS", "VXR" for VectorXR); the legend is at the bottom of the page.
+They are on every page, even with "Per layer": these programs ignore DCS's modifiers.</p>
+<ul>
+<li><strong>SRS</strong> is read directly, never touching its settings.
+  Each aircraft has its SRS profile: the module's is found by its name ("F-16" for "F-16C_50", "A-10C" for "A-10C II"), otherwise it is the <code>default</code> profile.
+  The <strong>Other programs</strong> button, at the top of the page, lets you choose another one for this module, or none; the choice is remembered.</li>
+<li><strong>VectorXR</strong> is read directly too, and its buttons hold for every module.
+  Only what is used in DCS counts: a disabled profile, or a profile of another game, does not show.
+  A VectorXR module saved turned off (PivotXR, DepthXR…) keeps its buttons: it turns on again in flight, and its DCS profiles are used all the same.
+  The label names the profile when there are several ("PivotXR snapviews: view Right MFD").</li>
+<li><strong>Another program</strong> is entered by hand, from <strong>Other programs</strong>: the program's name, the button (in the list, or by pressing it with <strong>Identify</strong>) and what it does.
+  The entries are edited and deleted in the same place.</li>
+</ul>
+<p><img alt="The Other programs window" src="../images/autres-logiciels.png" /></p>
+<p>In the settings, the <strong>Other programs</strong> tab gives SRS's folder (found in the Windows registry, to enter if it is not), what was read, and lets you hide a program from the pages or change its colour.</p>
+<h2 id="exporting">Exporting<a class="headerlink" href="#exporting" title="Permanent link">&para;</a></h2>
+<h3 id="to-the-kneeboard">To the kneeboard<a class="headerlink" href="#to-the-kneeboard" title="Permanent link">&para;</a></h3>
+<p><strong>Kneeboard</strong> (or Ctrl+E) writes the module's pages into <code>Saved Games\DCS\Kneeboard\&lt;aircraft&gt;\</code>, one per ticked device (two for a cut drawing, one per layer if you chose "Per layer").</p>
+<ul>
+<li>The folder's name is DCS's aircraft type (<code>A-10C_2</code> for the "A-10C II" profile), read in the module: it is the one the game looks at.</li>
+<li>The pages are named <code>HOTAS - &lt;module&gt; - 01 &lt;device&gt;.png</code>, in the order of the list.</li>
+<li>A new export replaces the pages of the same module, and only those: your own pages stay, and so do the pages of another seat of the same aircraft (the pilot and AI menu profiles of the AH-64D share the <code>AH-64D_BLK_II</code> folder).</li>
+<li>The export is all or nothing: if a page cannot be written (a picture open in another program, for example), the previous pages stay in place.</li>
+<li>A profile that is not an aircraft (the interface layer) has no kneeboard.</li>
+</ul>
+<p>The pages show in this aircraft's kneeboard at the next mission.
+Their height is set in the settings (1024 pixels by default); the width follows the drawing's proportions.</p>
+<p><strong>Every module at once</strong>: the arrow beside <strong>Kneeboard</strong>, then <strong>Every module</strong> (or Shift+E).
+Each aircraft of the list that has at least one device ticked gets its pages, as if you exported it by hand; the profiles that are not aircraft (Default, UiLayer) are skipped.
+A window shows how far the export has got ("Module 7 of 20", the module's name, a bar); count about ten seconds for twenty modules.
+<strong>Stop</strong> stops at the end of the module in progress: the modules already written stay so, and the final message says how many were not.
+If a module fails, the others go on, and the final message says which one and why.</p>
+<p><img alt="The arrow beside Kneeboard: this module, or every module" src="../images/export-menu.png" /></p>
+<h3 id="as-a-pdf">As a PDF<a class="headerlink" href="#as-a-pdf" title="Permanent link">&para;</a></h3>
+<p><strong>PDF</strong> (or Ctrl+P) downloads a PDF of the same pages, one A4 page per page, at about 200 dots per inch.
+The arrow beside it, <strong>Every module</strong> (or Shift+P), makes a single PDF, <code>HOTAS - every module.pdf</code>, module after module in the order of the list, with the same aircraft as for the kneeboard; each page carries the name of its module at its head.
+The same window shows the progress; <strong>Stop</strong> then writes no PDF at all, a PDF of part of the modules would pass for the whole.</p>
+<h2 id="dcs-controls">DCS controls<a class="headerlink" href="#dcs-controls" title="Permanent link">&para;</a></h2>
+<p>The slider button, at the top, opens the <strong>DCS controls</strong> window: what the app can change in your controls, and the backups it makes before.</p>
+<p><img alt="The DCS controls window: disabled devices, absent devices" src="../images/commandes-dcs.png" /></p>
+<ul>
+<li><strong>DCS must be closed.</strong>
+  The game writes its controls files again when you save in its controls screen: the app refuses any change while DCS (or a dedicated server) is running.</li>
+<li><strong>Before each change</strong>, the whole <code>Saved Games\DCS\Config\Input</code> folder is backed up in a zip, in <code>%APPDATA%\HOTAS Kneeboard\backups\</code>.
+  The last 20 backups are kept; <strong>Back up now</strong> makes one by hand.</li>
+<li><strong>Restore…</strong> puts your controls back exactly in the state of this backup, for every module: the files that appeared since are removed.
+  The state before the restore is itself backed up first, at the top of the list: a restore is undone by restoring that one.</li>
+</ul>
+<h3 id="disabling-a-device">Disabling a device<a class="headerlink" href="#disabling-a-device" title="Permanent link">&para;</a></h3>
+<p>The <strong>Devices disabled in DCS</strong> list holds every known device: those set up in a module, and those DCS saw at its last two starts ("seen by DCS lately", read in <code>Saved Games\DCS\Logs\dcs.log</code> and <code>dcs.log.old</code>).</p>
+<ul>
+<li>The switch disables the device like the "Disable" button of the game's controls screen: DCS ignores it in every module, and its controls are kept for when it is enabled again.</li>
+<li>It is useful for a plugged device DCS does not need: a Bluetooth gamepad, a vJoy.</li>
+<li>In a module's list of devices, a disabled device has the <strong>disabled</strong> badge.</li>
+</ul>
+<h3 id="forgetting-an-absent-device">Forgetting an absent device<a class="headerlink" href="#forgetting-an-absent-device" title="Permanent link">&para;</a></h3>
+<p>The <strong>Absent devices</strong> list shows the devices that have saved controls, but that DCS did not see at its last two starts: an uninstalled vJoy, a device renamed by an update of its driver, a stick sold on.
+It cannot tell them from a device simply unplugged those days: the choice is yours.</p>
+<ul>
+<li><strong>Forget…</strong> then <strong>Forget</strong> deletes the device's controls in every module, after a backup: a restore brings them back.</li>
+<li>A device DCS saw lately is never offered, nor is a disabled device: plugged in, it might not show in DCS's log.</li>
+<li>Without a DCS log, or if the log names no device, the list is empty: start DCS once, with the devices plugged in.</li>
+</ul>
+<h3 id="repairing-the-modifiers-of-a-renamed-device">Repairing the modifiers of a renamed device<a class="headerlink" href="#repairing-the-modifiers-of-a-renamed-device" title="Permanent link">&para;</a></h3>
+<p>A modifier ("Paddle", a lever of the stick held to change layer) is saved with the full name of its device.
+When a driver update renames the device (WinWing: "WINWING Orion Joystick Base 2" became "WINCTRL Orion Joystick Base Metal 2"), DCS no longer recognises it and ignores it without a word.
+The bindings that use it are still shown, in the game as here, but no longer work in flight.</p>
+<ul>
+<li>The <strong>Modifiers</strong> section lists them, module by module, with the old and the new name; in the list of devices and on the page, the <strong>inactive modifier</strong> badge says so too.</li>
+<li>A device is recognised by its GUID, the same before and after the renaming, and by the name DCS gave it at its last two starts (<code>Saved Games\DCS\Logs\dcs.log</code>): plug it in and start DCS once before repairing.
+  A device simply unplugged is not reported.</li>
+<li><strong>Repair</strong> gives these modifiers the name DCS uses now, in every module, after a backup.</li>
+<li>When DCS has ignored a modifier, it writes the modifiers file again without it at the next save, and deletes it if only the default settings are left.
+  If a backup of the app still has this file, the module is offered with <strong>Bring back</strong>: the file comes back with the names repaired, only this file is written.
+  If you deleted this file yourself, leave it.</li>
+</ul>
+<h3 id="removing-the-hat-views">Removing the hat views<a class="headerlink" href="#removing-the-hat-views" title="Permanent link">&para;</a></h3>
+<p>Every module puts the 8 slow views ("View Up slow", "View Down Left slow"…) on the first hat of <strong>every</strong> device: the rudder pedals, the ICP, the MFDs have them too, even if the game's controls screen does not always show them.
+With TrackIR or VR they are useless and clutter the pages; the <strong>Hat views</strong> section removes them at once.</p>
+<p><img alt="The Hat views section" src="../images/commandes-dcs-vues-du-chapeau.png" /></p>
+<ul>
+<li><strong>Search</strong> computes the preview (a few seconds): each device concerned, the number of views, the modules (unfoldable) and the files that will be created.</li>
+<li><strong>By default</strong>, only the devices on whose hat you put nothing yourself, in any module, are ticked: the rudder pedals, the ICP, the MFDs, a throttle whose hat is not used.
+  The others are listed greyed out, with what you put on their hat.</li>
+<li><strong>Every device, hats in use included</strong> makes them tickable too: only the 8 default views go, your own bindings on the hat stay.</li>
+<li><strong>Every installed module</strong> extends the removal to the modules you never set up: a controls file is created for each module and each device concerned.
+  Without the option, only the modules that have a folder in <code>Saved Games\DCS\Config\Input</code> are touched.</li>
+<li>A file is only created for a device DCS saw at its last two starts, under the exact name the game gives it; an absent device keeps its existing files, processed as well.</li>
+<li><strong>Remove…</strong> then <strong>Remove</strong>: a single backup for the whole operation, then the controls are read again and compared with the preview.
+  "As previewed" means every view announced is gone; otherwise, each difference is listed.</li>
+<li>The files are written again the way DCS saves them: an entry that no longer does anything (a default setting changed since an update of the module) disappears, as when you save in the game.
+  A file that keeps no difference with the default settings is deleted, as DCS does: the device then no longer shows in this module of the app, nothing is lost.</li>
+<li>To go back, restore the backup "before removing the hat views" in the list of backups.</li>
+</ul>
+<h3 id="devices-without-buttons">Devices without buttons<a class="headerlink" href="#devices-without-buttons" title="Permanent link">&para;</a></h3>
+<p>When a module has nothing for a device, DCS gives it the bindings of "any joystick": rudder pedals get a weapon release on button 2, nosewheel steering on 4, a view recenter on 5… buttons they do not have.
+DCS writes nowhere how many buttons a device has: you are the one who says it.</p>
+<ol>
+<li>Tick, in the list, the devices that have neither button nor hat (the rudder pedals); the app remembers it.</li>
+<li><strong>Search</strong>: the preview gives, per device and per module, the generic buttons that would go.</li>
+<li><strong>Remove…</strong> then <strong>Remove</strong>: a single backup before, the controls read again after writing and compared with the preview; <strong>Undo this removal</strong> restores the backup.</li>
+</ol>
+<p><img alt="The Devices without buttons section, the rudder pedals ticked" src="../images/commandes-dcs-sans-boutons.png" /></p>
+<p>Only the button and hat bindings that come from this generic profile go: what you put on the device yourself, what the module has for this very hardware, and every axis stay.
+A binding whose DCS command number the app does not know (Combined Arms' secondary fire and turret) cannot be removed from here: the preview shows it apart, remove it in the game's controls screen.
+By default, only the modules where the device is set up are touched; the "Every installed module" option creates a file in each one, so that a new aircraft is already clean.</p>
+<h3 id="removing-bindings">Removing bindings<a class="headerlink" href="#removing-bindings" title="Permanent link">&para;</a></h3>
+<p>The <strong>Bindings</strong> button, above the page, lists every binding of the device in this module: the input ("Button 1", "Axis Z"), the modifier if there is one, the command, and its origin.</p>
+<ul>
+<li>"your setup": you set it in the DCS controls screen;</li>
+<li>"default for this device": the module has it for this very device (the Warthog in the A-10C, for example), including in the file it ships and that DCS copies into yours;</li>
+<li>"generic default": the module has nothing for this device, and DCS gives it what it gives any joystick.</li>
+</ul>
+<p><img alt="The Bindings window of the stick, in the A-10C II" src="../images/liaisons.png" /></p>
+<p>The generic defaults are often worth removing: that is where you see a button doing two things without knowing it, an "Engine Stop Right" of yours and the "Gun Trigger" the A-10C puts on button 1 of any joystick, or the throttle on a stick's Z axis.</p>
+<ol>
+<li>Tick the bindings to remove (buttons, hats or axes); the filter searches the input and the command.</li>
+<li><strong>Delete (n)</strong>, then <strong>Remove</strong> to confirm.</li>
+<li>The pages are read again without them. <strong>Undo</strong>, in the same window, restores the backup made just before.</li>
+</ol>
+<p>As for the rest of this window, DCS must be closed, and the whole <code>Config\Input</code> is backed up first; the device's file is written again as DCS saves it, a default binding removed being written there as removed.
+The removal only holds for this module: the same command stays in the others.</p>
+<h2 id="settings">Settings<a class="headerlink" href="#settings" title="Permanent link">&para;</a></h2>
+<p>The cog wheel, at the top, opens the settings.
+They are saved in <code>%APPDATA%\HOTAS Kneeboard\settings.json</code>; the exact path is recalled at the bottom of the window.</p>
+<p><img alt="The settings, General tab" src="../images/reglages.png" /></p>
+<p><strong>General.</strong></p>
+<ul>
+<li>The interface language: the browser's by default (French if your browser is in French, English otherwise), or French or English as you choose.
+  It applies at once, to the menus as to the app's messages, and to the documentation the book opens.</li>
+<li>The DCS folders: left empty, they are found automatically.</li>
+<li>The commands language: the game's by default, or another language shipped with DCS.
+  The words the app writes itself on the pages ("released:", the template's credit line, the head of a list page) follow this language: in French when the commands are in French, in English otherwise, so that a page does not mix two languages.</li>
+<li>The height of the kneeboard pages.</li>
+<li>Cutting into two pages the drawings that have a cut line.</li>
+</ul>
+<p><strong>Devices.</strong>
+Every device seen in your modules, with the number of modules it is set up in.
+Untick a device to hide it everywhere: a vJoy, a device unplugged for good, a ghost duplicate.
+A hidden device leaves the lists, the counts and the exports, in every module; it applies at once.
+"N hidden: Show", at the bottom of the list of devices, shows them again (greyed out); the eye or the <code>H</code> key hides or shows them one by one.</p>
+<p><strong>Other programs.</strong>
+SRS's folder, the programs shown on the pages and their colour: see <a href="#the-buttons-of-other-programs">the buttons of other programs</a>.</p>
+<p>The rest is remembered as you go: devices exported, order of the pages, template chosen by hand, display of the layers, zoom, light or dark theme.</p>
+<h2 id="keyboard-shortcuts">Keyboard shortcuts<a class="headerlink" href="#keyboard-shortcuts" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>↑ ↓</td>
+<td>Previous / next device</td>
+</tr>
+<tr>
+<td>PgUp PgDn</td>
+<td>Previous / next module</td>
+</tr>
+<tr>
+<td>Alt + ↑ ↓</td>
+<td>Move the device (order of the pages)</td>
+</tr>
+<tr>
+<td>Space</td>
+<td>Include the device in the export or not</td>
+</tr>
+<tr>
+<td>H</td>
+<td>Hide or show the device, in every module</td>
+</tr>
+<tr>
+<td>L</td>
+<td>Layers: on the same page / one page per layer</td>
+</tr>
+<tr>
+<td>/</td>
+<td>Filter the modules</td>
+</tr>
+<tr>
+<td>Ctrl + E</td>
+<td>Export the module to the kneeboard</td>
+</tr>
+<tr>
+<td>Ctrl + P</td>
+<td>PDF of the module</td>
+</tr>
+<tr>
+<td>F5</td>
+<td>Read the DCS files and the templates again</td>
+</tr>
+<tr>
+<td>Ctrl + wheel</td>
+<td>Zoom on the page</td>
+</tr>
+<tr>
+<td>?</td>
+<td>The list of shortcuts</td>
+</tr>
+</tbody>
+</table>
+<p>The template editor has its own shortcuts, listed in its left column.</p>
+<h2 id="common-problems">Common problems<a class="headerlink" href="#common-problems" title="Permanent link">&para;</a></h2>
+<p><strong>"DCS install not found" or "DCS Saved Games folder not found".</strong>
+Enter the folder in the settings: the one that holds <code>bin\luae.exe</code> for the install, the one that holds <code>Config\Input</code> for Saved Games.</p>
+<p><strong>A page does not match what you set in DCS.</strong>
+You changed your controls in DCS while the app was running: F5 reads the files again.</p>
+<p><strong>"module not installed" or "no base profile".</strong>
+DCS did not find the defaults of this module or of this device: the page only shows what your changes add.</p>
+<p><strong>A button lands in the wrong box, or a command is "off template".</strong>
+The template's numbering does not match your device: check it in the <a href="../editeur-de-gabarits/#check-the-numbering-on-the-device">editor</a>.</p>
+<p><strong>A device shows twice, or has a strange name ("… BOOT").</strong>
+Windows saw it once under another name, and DCS kept its setup; hide it in the settings.</p>
+<p><strong>A binding with a modifier ("Paddle + …") does not work in flight.</strong>
+The device's driver may have renamed it: the page then has the "inactive modifier" badge. See <a href="#repairing-the-modifiers-of-a-renamed-device">Repairing the modifiers of a renamed device</a>.</p>
+<p><strong>The pages do not show in the kneeboard.</strong>
+Restart the mission: DCS reads the kneeboard folder when loading.
+Check the folder given in the message after the export, and that you are flying the aircraft of this module.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.top", "search.highlight", "search.suggest", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>
