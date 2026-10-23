@@ -711,12 +711,16 @@ They are draw.io drawings exported as SVG, with a box per input holding a token 
 <p>It shows, for each template, the number of inputs found and the tokens it did not recognise.</p>
 <p><strong>Good to know:</strong></p>
 <ul>
-<li>the DCS names are only known for 20 templates; the others are chosen by hand, once, and the app remembers it;</li>
+<li>the DCS names are only known for 21 templates; the others are chosen by hand, once, and the app remembers it;</li>
 <li>the WinWing names come from the list of devices DCS recognises (<code>Scripts\Input\DefaultAssignments.lua</code>) and from the profiles shipped by the modules, old firmware names included (<code>WINWING THROTTLE BASE2 + …</code>); recent firmwares are named <code>WINCTRL …</code>, and only those seen on a real PC are known;</li>
-<li>a name shared by two templates is put on neither: the left- or right-handed T.16000M, the JGRIP-F16 with or without the vibration kit, the F/A-18 throttle with or without axes, the F/A-18 UFC and HUD plugged together (<code>WINWING UFC1 + HUD1</code>);</li>
+<li>a name shared by two templates is put on neither: the F/A-18 throttle with or without axes, the F/A-18 UFC and HUD plugged together (<code>WINWING UFC1 + HUD1</code>); the T.16000M gets the right-handed drawing, its factory setting (the left-handed one is chosen by hand);</li>
+<li>the F/A-18 HUD only exists plugged into the UFC: its buttons are 65 to 83 of <code>WINWING UFC1 + HUD1</code>, as WinWing numbers them;</li>
 <li>the Virpil templates have no DCS name, and will have none: the name Windows gives a Virpil device is the base's ("VPC Stick MT-50CM3"), not the grip's on it, and Virpil's configuration software lets you change it; choose your grip's template by hand;</li>
-<li>the numbering of the converted templates is the one Joystick Diagrams drew, not necessarily the device's: the Orion JGRIP-F16's has no box for the trigger (button 1) nor for buttons 2 and 21 to 29;</li>
-<li>no template is marked checked yet.</li>
+<li>the Orion JGRIP-F16 has two drawings: Joystick Diagrams calls "with shaker kit" the one showing the grip with its add-on module (mini-stick, hat 21 to 25, brake lever with detents 1, 2, 41, 42 and 3, axes RX, RY and RZ), and "without shaker kit" the bare grip; the DCS names are on the first one, which covers both: without the module, its boxes stay empty;</li>
+<li>the numbering of the converted templates is the one Joystick Diagrams drew, not necessarily the device's: on the JGRIP-F16, hat 14 was turned a quarter turn from WinWing's diagram;</li>
+<li>the WinWing, Virpil and Thrustmaster templates were compared with the manufacturers' documentation (WinWing's SimAppPro software and the WinWing profiles shipped by the DCS modules, the "Button Mapping" templates of Virpil's support, Thrustmaster's manuals), and fixed where it contradicted them; still without a source: the WinWing T1 Super Taurus throttle, the Ursa Minor sticks, the Virpil MT-50 CM2 throttle and the F-15E right grip;</li>
+<li>a Virpil device's numbering is the one of the profile its configuration software loaded: the templates follow the button mappings Virpil publishes;</li>
+<li>two templates are marked checked on the real device: the WinWing Orion JGRIP-F16 stick with its add-on module, and the WinWing Orion throttle with an F15EX left grip and an F15 right grip ("15E" drawing).</li>
 </ul>
 <h2 id="checking-a-template">Checking a template<a class="headerlink" href="#checking-a-template" title="Permanent link">&para;</a></h2>
 <p>With the device plugged in:</p>
