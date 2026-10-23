@@ -1,11 +1,7 @@
 {
  "format": 1,
  "name": "WINWING Orion Joystick Base 2 + JGRIP-F16",
- "devices": [
-  "WINCTRL Orion Joystick Base Metal 2 + JGRIP-F16",
-  "WINWING Orion Joystick Base 2 + JGRIP-F16",
-  "WINWING JOYSTICK BASE2 + JGRIP-F16"
- ],
+ "devices": [],
  "image": "background.svg",
  "size": [
   816.0,
@@ -312,6 +308,14 @@
    "box": [
     126.0,
     504.0,
+    140.0,
+    30.0
+   ]
+  },
+  "JOY_Z": {
+   "box": [
+    126.0,
+    545.0,
     140.0,
     30.0
    ]

@@ -113,10 +113,12 @@
   },
   "Virpil/Virpil Stick MT-50CM2.svg": {
    "id": "virpil-stick-mt-50cm2",
+   "maintained": true,
    "devices": []
   },
   "Virpil/Virpil Stick VFX.svg": {
    "id": "virpil-stick-vfx",
+   "maintained": true,
    "devices": []
   },
   "Virpil/Virpil Stick WarBRD.svg": {
@@ -137,10 +139,12 @@
   },
   "WinWing/18-HUD Unit1/WinWing - 18-HUD Unit 1.svg": {
    "id": "winwing-18-hud-unit-1",
+   "maintained": true,
    "devices": []
   },
   "WinWing/18-UFC Unit1/WinWing 18-UFC Unit 1.svg": {
    "id": "winwing-18-ufc-unit-1",
+   "maintained": true,
    "devices": [
     "WINWING UFC1"
    ]
@@ -161,15 +165,23 @@
   },
   "WinWing/Orion2 16(EX) Joystick Combo/16EX Metal Joystick Grip(None Shaker Kit)/WINWING Orion Joystick Base 2 + JGRIP-F16.svg": {
    "id": "winwing-orion-joystick-base-2-jgrip-f16-no-shaker",
-   "devices": [
-    "WINCTRL Orion Joystick Base Metal 2 + JGRIP-F16",
-    "WINWING Orion Joystick Base 2 + JGRIP-F16",
-    "WINWING JOYSTICK BASE2 + JGRIP-F16"
-   ]
+   "maintained": true,
+   "devices": []
   },
   "WinWing/Orion2 16(EX) Joystick Combo/16EX Metal Joystick Grip(with Shaker Kit)/WINWING Orion Joystick Base 2 + JGRIP-F16.svg": {
    "id": "winwing-orion-joystick-base-2-jgrip-f16-shaker",
-   "devices": []
+   "maintained": true,
+   "checked": {
+    "by": "David",
+    "date": "2026-10-23"
+   },
+   "devices": [
+    "WINCTRL Orion Joystick Base Metal 2 + JGRIP-F16",
+    "WINWING Orion Joystick Base 2 + JGRIP-F16",
+    "WINWING JOYSTICK BASE2 + JGRIP-F16",
+    "WINWING Orion Joystick Base 2 + JGRIP-F16 + MFSSB",
+    "WINWING Orion Joystick Base 2 + ZAXIS + JGRIP-F16 + MFSSB"
+   ]
   },
   "WinWing/Orion2 16EX Throttle Combo/Orion2 16EX Throttle Combo.svg": {
    "id": "winwing-orion2-16ex-throttle-combo",
@@ -206,7 +218,15 @@
   },
   "WinWing/Orion2 Throttle Base+15E Metal Throttle Grip/Orion2 Throttle Base+15E Metal Throttle Grip.svg": {
    "id": "winwing-orion2-throttle-base-15e-metal-throttle-grip",
-   "devices": [],
+   "checked": {
+    "by": "David",
+    "date": "2026-10-23"
+   },
+   "devices": [
+    "WINCTRL Orion Throttle Base II + F15EX HANDLE L + F15 HANDLE R",
+    "WINWING Orion Throttle Base II + F15EX HANDLE L + F15 HANDLE R",
+    "WINWING THROTTLE BASE2 + F15EX HANDLE L + F15 HANDLE R"
+   ],
    "split_at": [
     568
    ]
@@ -214,10 +234,7 @@
   "WinWing/Orion2 Throttle Base+15EX - Metal Throttle Grip/WINWING Orion Throttle Base II + F15EX HANDLE L + F15EX HANDLE R.svg": {
    "id": "winwing-orion-throttle-base-ii-f15ex-handle-l-f15ex-handle-r",
    "devices": [
-    "WINCTRL Orion Throttle Base II + F15EX HANDLE L + F15 HANDLE R",
     "WINWING Orion Throttle Base II + F15EX HANDLE L + F15EX HANDLE R",
-    "WINWING Orion Throttle Base II + F15EX HANDLE L + F15 HANDLE R",
-    "WINWING THROTTLE BASE2 + F15EX HANDLE L + F15 HANDLE R",
     "WINWING THROTTLE BASE2 + F15EX HANDLE L + F15EX HANDLE R"
    ],
    "split_at": [
@@ -226,6 +243,7 @@
   },
   "WinWing/PCR Panel of Combat Ready/PCR Panel of Combat Ready.svg": {
    "id": "winwing-pcr-panel-of-combat-ready",
+   "maintained": true,
    "devices": [
     "WINWING F18 COMBAT READY PANEL"
    ]

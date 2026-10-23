@@ -1,7 +1,11 @@
 {
  "format": 1,
  "name": "Orion2 Throttle Base+15E Metal Throttle Grip",
- "devices": [],
+ "devices": [
+  "WINCTRL Orion Throttle Base II + F15EX HANDLE L + F15 HANDLE R",
+  "WINWING Orion Throttle Base II + F15EX HANDLE L + F15 HANDLE R",
+  "WINWING THROTTLE BASE2 + F15EX HANDLE L + F15 HANDLE R"
+ ],
  "image": "background.svg",
  "size": [
   1157.0,
@@ -775,7 +779,10 @@
   "license": "GPL-2.0",
   "converted_by": "scripts/convert_jd_templates.py"
  },
- "checked": null,
+ "checked": {
+  "by": "David",
+  "date": "2026-10-23"
+ },
  "split_at": [
   568
  ]

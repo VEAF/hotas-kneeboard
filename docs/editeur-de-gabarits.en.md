@@ -40,7 +40,7 @@ It has a **box** (where the command is written) and, if you want, a **marker** (
 **Identify** (`I` key), then press the device's button: the editor recognises the input and gives it to the selected input (or to the next one you place).
 It goes through the browser's Gamepad API, which numbers the buttons its own way: check the number it gives, the list stays the reference.
 If the device has just appeared (the browser only shows a controller after a first press), the editor asks you to press a second time.
-Hats are not recognised: choose them in the list.
+A hat is recognised as hat 1, in its eight directions; for a second hat, choose it in the list.
 
 ## Check the numbering on the device
 
