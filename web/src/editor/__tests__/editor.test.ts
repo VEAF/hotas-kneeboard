@@ -145,10 +145,11 @@ describe('editor state', () => {
 
 describe('gamepad', () => {
   let pads: (Gamepad | null)[] = []
-  const pad = (pressed: number[], axes = [0, 0, 0]): Gamepad =>
+  // hats are known per device id from one listening to the next: a test about hats names its own
+  const pad = (pressed: number[], axes = [0, 0, 0], id = 'WINWING ICP (Vendor: 4098)'): Gamepad =>
     ({
       index: 0,
-      id: 'WINWING ICP (Vendor: 4098)',
+      id,
       buttons: Array.from({ length: 20 }, (_, i) => ({ pressed: pressed.includes(i), value: pressed.includes(i) ? 1 : 0, touched: false })),
       axes,
     }) as unknown as Gamepad
@@ -182,9 +183,9 @@ describe('gamepad', () => {
 
   it('reports a hat, given as the axis after the eight DCS axes', async () => {
     const released = [0, 0, 0, 0, 0, 0, 0, 0, 0, 3.29] // Chrome and Firefox: index 9, out of [-1, 1]
-    pads = [pad([], released)]
+    pads = [pad([], released, 'hat 1')]
     const found = detectInput(new AbortController().signal)
-    pads = [pad([], [...released.slice(0, 9), 3 / 7])] // -1 + 2/7 × 5: down-left
+    pads = [pad([], [...released.slice(0, 9), 3 / 7], 'hat 1')] // -1 + 2/7 × 5: down-left
     await vi.advanceTimersByTimeAsync(50)
     await expect(found).resolves.toMatchObject({ key: 'JOY_BTN_POV1_DL' })
   })
@@ -192,31 +193,47 @@ describe('gamepad', () => {
   it('hears again a button or a hat held when listening started, once released', async () => {
     // the check listens again right after a press, the finger still on it
     const hat = (v: number) => [0, 0, 0, 0, 0, 0, 0, 0, 0, v]
-    pads = [pad([5], hat(-1))]
+    pads = [pad([5], hat(-1), 'hat 2')]
     const found = detectInput(new AbortController().signal)
-    pads = [pad([], hat(3.29))]
+    pads = [pad([], hat(3.29), 'hat 2')]
     await vi.advanceTimersByTimeAsync(50)
-    pads = [pad([], hat(3 / 7))]
+    pads = [pad([], hat(3 / 7), 'hat 2')]
     await vi.advanceTimersByTimeAsync(50)
     await expect(found).resolves.toMatchObject({ key: 'JOY_BTN_POV1_DL' })
 
-    pads = [pad([5], hat(3.29))]
+    pads = [pad([5], hat(3.29), 'hat 2')]
     const again = detectInput(new AbortController().signal)
-    pads = [pad([], hat(3.29))]
+    pads = [pad([], hat(3.29), 'hat 2')]
     await vi.advanceTimersByTimeAsync(50)
-    pads = [pad([5], hat(3.29))]
+    pads = [pad([5], hat(3.29), 'hat 2')]
     await vi.advanceTimersByTimeAsync(50)
     await expect(again).resolves.toMatchObject({ key: 'JOY_BTN6' })
   })
 
   it('hears a hat moved from one direction to another without a stop in the middle', async () => {
     const hat = (v: number) => [0, 0, 0, 0, 0, 0, 0, 0, 0, v]
-    pads = [pad([], hat(5 / 7))] // left, held when listening started
+    const before = new AbortController()
+    pads = [pad([], hat(3.29), 'hat 3')] // seen released once: a hat
+    const first = detectInput(before.signal)
+    before.abort()
+    await expect(first).rejects.toMatchObject({ name: 'AbortError' })
+    pads = [pad([], hat(5 / 7), 'hat 3')] // left, held when listening started again
     const found = detectInput(new AbortController().signal)
     await vi.advanceTimersByTimeAsync(50)
-    pads = [pad([], hat(-3 / 7))] // straight to right
+    pads = [pad([], hat(-3 / 7), 'hat 3')] // straight to right
     await vi.advanceTimersByTimeAsync(50)
     await expect(found).resolves.toMatchObject({ key: 'JOY_BTN_POV1_R' })
+  })
+
+  it('does not take a ninth axis that wanders for a hat', async () => {
+    const axes = (v: number) => [0, 0, 0, 0, 0, 0, 0, 0, v]
+    pads = [pad([], axes(0.1), 'nine axes')]
+    const found = detectInput(new AbortController().signal)
+    pads = [pad([], axes(-0.2), 'nine axes')] // "DR" then "D" if it were a hat
+    await vi.advanceTimersByTimeAsync(50)
+    pads = [pad([3], axes(-0.2), 'nine axes')]
+    await vi.advanceTimersByTimeAsync(50)
+    await expect(found).resolves.toMatchObject({ key: 'JOY_BTN4' })
   })
 
   it('reads the eight directions of a hat, and none when released', () => {

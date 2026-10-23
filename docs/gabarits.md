@@ -64,7 +64,7 @@ Il affiche, pour chaque gabarit, le nombre d'entrées trouvées et les jetons qu
 
 **À savoir :**
 
-- les noms DCS ne sont connus que pour 20 gabarits ; les autres se choisissent à la main, une fois, et l'application s'en souvient ;
+- les noms DCS ne sont connus que pour 21 gabarits ; les autres se choisissent à la main, une fois, et l'application s'en souvient ;
 - les noms WinWing viennent de la liste des périphériques que DCS reconnaît (`Scripts\Input\DefaultAssignments.lua`) et des profils livrés par les modules, anciens noms de firmware compris (`WINWING THROTTLE BASE2 + …`) ; les firmwares récents s'appellent `WINCTRL …`, et ne sont connus que ceux vus sur un vrai PC ;
 - un nom partagé par deux gabarits n'est mis sur aucun des deux : le throttle F/A-18 avec ou sans axes, l'UFC et le HUD F/A-18 branchés ensemble (`WINWING UFC1 + HUD1`) ; le T.16000M a le dessin droitier, son réglage d'usine (le dessin gaucher se choisit à la main) ;
 - le HUD F/A-18 n'existe que branché sur l'UFC : ses boutons sont les 65 à 83 de `WINWING UFC1 + HUD1`, comme le numérote WinWing ;

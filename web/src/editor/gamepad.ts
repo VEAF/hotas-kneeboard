@@ -29,6 +29,20 @@ interface Baseline {
   axes: number[]
 }
 
+/** Device id -> its axes seen released out of [-1, 1]: hats. A plain axis never leaves [-1, 1],
+ * and may wander between two "directions"; kept from one listening to the next, so a hat already
+ * held when listening starts is still known as one. */
+const knownHats = new Map<string, Set<number>>()
+
+function noteHats(pad: Gamepad): Set<number> {
+  const hats = knownHats.get(pad.id) ?? new Set<number>()
+  pad.axes.forEach((v, i) => {
+    if (i >= AXES.length && hatDirection(v) === null) hats.add(i)
+  })
+  knownHats.set(pad.id, hats)
+  return hats
+}
+
 export function gamepadSupported(): boolean {
   return typeof navigator !== 'undefined' && typeof navigator.getGamepads === 'function'
 }
@@ -45,7 +59,9 @@ export function detectInput(signal: AbortSignal, onAppear?: (device: string) => 
     const baselines = new Map<string, Baseline>()
     const keyOf = (pad: Gamepad) => `${pad.index}|${pad.id}`
     for (const pad of navigator.getGamepads()) {
-      if (pad) baselines.set(keyOf(pad), { buttons: pad.buttons.map((b) => b.value > PRESSED), axes: [...pad.axes] })
+      if (!pad) continue
+      baselines.set(keyOf(pad), { buttons: pad.buttons.map((b) => b.value > PRESSED), axes: [...pad.axes] })
+      noteHats(pad)
     }
     let frame = 0
     const stop = () => cancelAnimationFrame(frame)
@@ -68,10 +84,11 @@ export function detectInput(signal: AbortSignal, onAppear?: (device: string) => 
         pad.buttons.forEach((b, i) => {
           if (base.buttons[i] && b.value <= PRESSED) base.buttons[i] = false
         })
+        const hats = noteHats(pad)
         pad.axes.forEach((v, i) => {
-          if (i >= AXES.length && hatDirection(v) === null) base.axes[i] = v
+          if (hats.has(i) && hatDirection(v) === null) base.axes[i] = v
         })
-        const button =pad.buttons.findIndex((b, i) => b.value > PRESSED && !base.buttons[i])
+        const button = pad.buttons.findIndex((b, i) => b.value > PRESSED && !base.buttons[i])
         if (button !== -1) {
           stop()
           resolve({ key: `JOY_BTN${button + 1}`, device: pad.id })
@@ -85,7 +102,7 @@ export function detectInput(signal: AbortSignal, onAppear?: (device: string) => 
         }
         // a new direction, released in between or not (left to right in one move)
         const hat = pad.axes.findIndex(
-          (v, i) => i >= AXES.length && hatDirection(v) !== null && hatDirection(v) !== hatDirection(base.axes[i] ?? 2),
+          (v, i) => hats.has(i) && hatDirection(v) !== null && hatDirection(v) !== hatDirection(base.axes[i] ?? 2),
         )
         if (hat !== -1) {
           stop()

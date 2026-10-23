@@ -64,7 +64,7 @@ It shows, for each template, the number of inputs found and the tokens it did no
 
 **Good to know:**
 
-- the DCS names are only known for 20 templates; the others are chosen by hand, once, and the app remembers it;
+- the DCS names are only known for 21 templates; the others are chosen by hand, once, and the app remembers it;
 - the WinWing names come from the list of devices DCS recognises (`Scripts\Input\DefaultAssignments.lua`) and from the profiles shipped by the modules, old firmware names included (`WINWING THROTTLE BASE2 + …`); recent firmwares are named `WINCTRL …`, and only those seen on a real PC are known;
 - a name shared by two templates is put on neither: the F/A-18 throttle with or without axes, the F/A-18 UFC and HUD plugged together (`WINWING UFC1 + HUD1`); the T.16000M gets the right-handed drawing, its factory setting (the left-handed one is chosen by hand);
 - the F/A-18 HUD only exists plugged into the UFC: its buttons are 65 to 83 of `WINWING UFC1 + HUD1`, as WinWing numbers them;
