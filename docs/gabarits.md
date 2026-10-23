@@ -73,7 +73,7 @@ Il affiche, pour chaque gabarit, le nombre d'entrées trouvées et les jetons qu
 - la numérotation des gabarits convertis est celle que Joystick Diagrams a dessinée, pas forcément celle du périphérique : sur le JGRIP-F16, le chapeau 14 était tourné d'un quart de tour par rapport au schéma de WinWing ;
 - les gabarits WinWing, Virpil et Thrustmaster ont été comparés à la documentation des fabricants (le logiciel SimAppPro de WinWing et les profils WinWing livrés par les modules de DCS, les modèles « Button Mapping » du support Virpil, les manuels Thrustmaster), et corrigés quand elle les contredisait ; restent sans source : le throttle WinWing T1 Super Taurus, les manches Ursa Minor, le throttle Virpil MT-50 CM2 et la poignée droite F-15E ;
 - la numérotation d'un périphérique Virpil est celle du profil chargé par son logiciel de configuration : les gabarits suivent les modèles que Virpil publie ;
-- aucun gabarit n'est encore marqué vérifié.
+- un seul gabarit est marqué vérifié sur le vrai périphérique : le manche WinWing Orion JGRIP-F16 avec son module additionnel.
 
 ## Vérifier un gabarit
 

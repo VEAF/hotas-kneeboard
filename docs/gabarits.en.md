@@ -73,7 +73,7 @@ It shows, for each template, the number of inputs found and the tokens it did no
 - the numbering of the converted templates is the one Joystick Diagrams drew, not necessarily the device's: on the JGRIP-F16, hat 14 was turned a quarter turn from WinWing's diagram;
 - the WinWing, Virpil and Thrustmaster templates were compared with the manufacturers' documentation (WinWing's SimAppPro software and the WinWing profiles shipped by the DCS modules, the "Button Mapping" templates of Virpil's support, Thrustmaster's manuals), and fixed where it contradicted them; still without a source: the WinWing T1 Super Taurus throttle, the Ursa Minor sticks, the Virpil MT-50 CM2 throttle and the F-15E right grip;
 - a Virpil device's numbering is the one of the profile its configuration software loaded: the templates follow the button mappings Virpil publishes;
-- no template is marked checked yet.
+- only one template is marked checked on the real device: the WinWing Orion JGRIP-F16 stick with its add-on module.
 
 ## Checking a template
 
