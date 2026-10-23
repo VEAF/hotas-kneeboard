@@ -779,7 +779,10 @@
   "license": "GPL-2.0",
   "converted_by": "scripts/convert_jd_templates.py"
  },
- "checked": null,
+ "checked": {
+  "by": "David",
+  "date": "2026-10-23"
+ },
  "split_at": [
   568
  ]

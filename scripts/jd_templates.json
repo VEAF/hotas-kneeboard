@@ -218,6 +218,10 @@
   },
   "WinWing/Orion2 Throttle Base+15E Metal Throttle Grip/Orion2 Throttle Base+15E Metal Throttle Grip.svg": {
    "id": "winwing-orion2-throttle-base-15e-metal-throttle-grip",
+   "checked": {
+    "by": "David",
+    "date": "2026-10-23"
+   },
    "devices": [
     "WINCTRL Orion Throttle Base II + F15EX HANDLE L + F15 HANDLE R",
     "WINWING Orion Throttle Base II + F15EX HANDLE L + F15 HANDLE R",
