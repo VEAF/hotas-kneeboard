@@ -22,6 +22,10 @@ Chaque lot ajoute ses entrées à la fin de `[Unreleased]` ; une release les pas
   - Virpil Control Panel #1 : la case du bouton 22 n'occupe plus toute la page, et le fond du dessin est revenu ;
   - throttle WinWing Orion avec poignées F15EX à gauche et F15 à droite : reconnu sur le dessin « 15E », celui de sa poignée droite (trois interrupteurs à 3 positions 3 à 11), et plus sur le dessin à deux poignées F15EX.
 
+### Documentation
+
+- Les releases suivent une marche écrite, la commande `/release` reprise de VEAF-Mission-Creation-Tools, et un test vérifie à chaque PR que le CHANGELOG a sa section `[Unreleased]` et que les numéros de version s'accordent (CHORE-RELEASE-COMMAND, #68).
+
 ## [0.2.1] - 2026-10-19
 
 ### Ajouté
