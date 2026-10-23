@@ -212,10 +212,12 @@ The tracking follows the organisation of VEAF-Mission-Creation-Tools, with GitHu
 - `develop` is the default branch and gets the work, `main` only gets releases.
 - A lot is a `feature/`, `fix/` or `chore/<LOT-ID>` branch made from `develop`, and a single PR to `develop`, which closes its tickets and the lot.
   Each lot adds its entries at the end of `[Unreleased]` in [`CHANGELOG.md`](https://github.com/VEAF/hotas-kneeboard/blob/develop/CHANGELOG.md), without touching the version.
-- A release is a PR from `develop` to `main` that raises the version in `pyproject.toml` and `hotas_kneeboard/__init__.py` (the two must be equal) and moves `[Unreleased]` under that number.
-  On merge, the CI builds the exe on Windows and publishes the `vX.Y.Z` release; a merge without a version change publishes nothing.
+- A release is prepared with Claude Code's `/release` command ([`.claude/commands/release.md`](https://github.com/VEAF/hotas-kneeboard/blob/develop/.claude/commands/release.md)), which goes through its steps.
+  It takes two PRs: `chore/RELEASE-X.Y.Z` to `develop`, which raises the version in `pyproject.toml`, `hotas_kneeboard/__init__.py` and `uv.lock` and moves `[Unreleased]` under that number, re-opening an empty section; then `develop` to `main`, merged with a merge commit.
+  `tests/test_changelog.py` checks that `[Unreleased]` exists and comes first, that the version has its entry in the changelog and that the three files agree.
+  On the merge into `main`, the CI builds the exe on Windows and publishes the `vX.Y.Z` release; a merge without a version change publishes nothing.
   If the interface changed since the previous release, the PR also retakes the [screenshots](#the-screenshots).
-  Its notes are [`RELEASE_NOTES.md`](https://github.com/VEAF/hotas-kneeboard/blob/develop/RELEASE_NOTES.md), rewritten at each release as for VMCT: in French, for the pilots (what changes for them, not the plumbing), the title ending with the version number; the CI refuses to publish if the title does not carry the version, and adds under the title the link to the documentation of that version.
+  Its notes are [`RELEASE_NOTES.md`](https://github.com/VEAF/hotas-kneeboard/blob/develop/RELEASE_NOTES.md), rewritten at each release as for VMCT: in French then English, for the pilots (what changes for them, not the plumbing), the title ending with the version number; the CI refuses to publish if the title does not carry the version, and adds under the title the link to the documentation of that version.
 - The CI (Python and interface tests) runs on each PR and on each push to `develop` and `main`.
 
 ## Repository rules
