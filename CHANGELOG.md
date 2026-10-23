@@ -14,7 +14,8 @@ Chaque lot ajoute ses entrées à la fin de `[Unreleased]` ; une release les pas
   - PCR WinWing : l'interrupteur LST/NFLR est 13, 14, 15 (il portait deux fois le 15) ; cases des molettes de volume COMM (RX, RY) ;
   - Virpil V.F.X : la gâchette est 1 puis 6 ; le 2 est le poussoir du sélecteur ;
   - Virpil MongoosT-50CM2 : numérotation du modèle publié par Virpil (celle du gabarit était décalée de 4) ;
-  - Virpil Control Panel #1 : la case du bouton 22 n'occupe plus toute la page, et le fond du dessin est revenu.
+  - Virpil Control Panel #1 : la case du bouton 22 n'occupe plus toute la page, et le fond du dessin est revenu ;
+  - throttle WinWing Orion avec poignées F15EX à gauche et F15 à droite : reconnu sur le dessin « 15E », celui de sa poignée droite (trois interrupteurs à 3 positions 3 à 11), et plus sur le dessin à deux poignées F15EX.
 
 ## [0.2.1] - 2026-10-19
 
