@@ -66,9 +66,10 @@ Il affiche, pour chaque gabarit, le nombre d'entrées trouvées et les jetons qu
 
 - les noms DCS ne sont connus que pour 20 gabarits ; les autres se choisissent à la main, une fois, et l'application s'en souvient ;
 - les noms WinWing viennent de la liste des périphériques que DCS reconnaît (`Scripts\Input\DefaultAssignments.lua`) et des profils livrés par les modules, anciens noms de firmware compris (`WINWING THROTTLE BASE2 + …`) ; les firmwares récents s'appellent `WINCTRL …`, et ne sont connus que ceux vus sur un vrai PC ;
-- un nom partagé par deux gabarits n'est mis sur aucun des deux : le T.16000M gaucher ou droitier, le JGRIP-F16 avec ou sans kit vibreur, le throttle F/A-18 avec ou sans axes, l'UFC et le HUD F/A-18 branchés ensemble (`WINWING UFC1 + HUD1`) ;
+- un nom partagé par deux gabarits n'est mis sur aucun des deux : le T.16000M gaucher ou droitier, le throttle F/A-18 avec ou sans axes, l'UFC et le HUD F/A-18 branchés ensemble (`WINWING UFC1 + HUD1`) ;
 - les gabarits Virpil n'ont pas de nom DCS, et n'en auront pas : le nom que Windows donne à un périphérique Virpil est celui du socle (« VPC Stick MT-50CM3 »), pas de la poignée qui est dessus, et le logiciel de configuration de Virpil permet de le changer ; choisis le gabarit de ta poignée à la main ;
-- la numérotation des gabarits convertis est celle que Joystick Diagrams a dessinée, pas forcément celle du périphérique : celui de l'Orion JGRIP-F16 n'a pas de case pour la gâchette (bouton 1) ni pour les boutons 2 et 21 à 29 ;
+- l'Orion JGRIP-F16 a deux dessins : Joystick Diagrams appelle « avec kit vibreur » celui qui montre la poignée avec son module additionnel (mini-manche, chapeau 21 à 25, levier de frein à crans 1, 2, 41, 42 et 3, axes RX, RY et RZ), et « sans kit vibreur » la poignée nue ; les noms DCS sont sur le premier, qui couvre les deux : sans le module, ses cases restent vides ;
+- la numérotation des gabarits convertis est celle que Joystick Diagrams a dessinée, pas forcément celle du périphérique : sur le JGRIP-F16, le chapeau 14 était tourné d'un quart de tour par rapport au schéma de WinWing ;
 - aucun gabarit n'est encore marqué vérifié.
 
 ## Vérifier un gabarit

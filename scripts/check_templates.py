@@ -3,7 +3,7 @@
 For every device configured in Saved Games/DCS/Config/Input, with the template the app gives it
 (the automatic match, or the one chosen in the app), lists the inputs that have a binding in at
 least one module but no box on the drawing. Such an input is either a numbering error of the
-template (the Orion JGRIP-F16 has no box for its trigger, button 1) or a button the drawing
+template (the Warthog throttle coolie drawn as hat 2) or a button the drawing
 lacks; check it on the device with the editor's "Vérifier" mode.
 
 Hats bound only to DCS's generic view commands ("View Up slow"…) are left out: DCS gives them

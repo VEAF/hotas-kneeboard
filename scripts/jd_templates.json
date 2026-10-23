@@ -161,15 +161,19 @@
   },
   "WinWing/Orion2 16(EX) Joystick Combo/16EX Metal Joystick Grip(None Shaker Kit)/WINWING Orion Joystick Base 2 + JGRIP-F16.svg": {
    "id": "winwing-orion-joystick-base-2-jgrip-f16-no-shaker",
-   "devices": [
-    "WINCTRL Orion Joystick Base Metal 2 + JGRIP-F16",
-    "WINWING Orion Joystick Base 2 + JGRIP-F16",
-    "WINWING JOYSTICK BASE2 + JGRIP-F16"
-   ]
+   "maintained": true,
+   "devices": []
   },
   "WinWing/Orion2 16(EX) Joystick Combo/16EX Metal Joystick Grip(with Shaker Kit)/WINWING Orion Joystick Base 2 + JGRIP-F16.svg": {
    "id": "winwing-orion-joystick-base-2-jgrip-f16-shaker",
-   "devices": []
+   "maintained": true,
+   "devices": [
+    "WINCTRL Orion Joystick Base Metal 2 + JGRIP-F16",
+    "WINWING Orion Joystick Base 2 + JGRIP-F16",
+    "WINWING JOYSTICK BASE2 + JGRIP-F16",
+    "WINWING Orion Joystick Base 2 + JGRIP-F16 + MFSSB",
+    "WINWING Orion Joystick Base 2 + ZAXIS + JGRIP-F16 + MFSSB"
+   ]
   },
   "WinWing/Orion2 16EX Throttle Combo/Orion2 16EX Throttle Combo.svg": {
    "id": "winwing-orion2-16ex-throttle-combo",
