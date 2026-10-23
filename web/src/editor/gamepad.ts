@@ -63,7 +63,15 @@ export function detectInput(signal: AbortSignal, onAppear?: (device: string) => 
           continue
         }
         const base = known
-        const button = pad.buttons.findIndex((b, i) => b.value > PRESSED && !base.buttons[i])
+        // held when listening started (the check listens again at once, the finger still on the
+        // button or the hat): counts again once released
+        pad.buttons.forEach((b, i) => {
+          if (base.buttons[i] && b.value <= PRESSED) base.buttons[i] = false
+        })
+        pad.axes.forEach((v, i) => {
+          if (i >= AXES.length && hatDirection(v) === null) base.axes[i] = v
+        })
+        const button =pad.buttons.findIndex((b, i) => b.value > PRESSED && !base.buttons[i])
         if (button !== -1) {
           stop()
           resolve({ key: `JOY_BTN${button + 1}`, device: pad.id })
