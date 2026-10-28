@@ -5,6 +5,11 @@ Chaque lot ajoute ses entrées à la fin de `[Unreleased]` ; une release les pas
 
 ## [Unreleased]
 
+### Corrigé
+
+- Kneeboard : DCS étirait chaque page pour remplir son cadre, qui est plus étroit que haut (2 sur 3) ; les pages en largeur (ICP, MFD WinWing…) sortaient comprimées de moitié et illisibles. Les pages sont maintenant écrites aux proportions du cadre, le dessin centré dans des marges blanches : plus rien n'est déformé, et une page en largeur tient toute la largeur du cadre, centrée en hauteur (FIX-KNEEBOARD-ASPECT, #74).
+- Pied de page : le crédit du gabarit passe sur sa propre ligne quand il chevaucherait le reste (nom du module et du périphérique, légende des logiciels comme SRS et VectorXR, sur une moitié de throttle par exemple) (#74).
+
 ## [0.3.0] - 2026-10-23
 
 ### Ajouté

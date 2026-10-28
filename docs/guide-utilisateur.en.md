@@ -107,7 +107,9 @@ In the settings, the **Other programs** tab gives SRS's folder (found in the Win
 - A profile that is not an aircraft (the interface layer) has no kneeboard.
 
 The pages show in this aircraft's kneeboard at the next mission.
-Their height is set in the settings (1024 pixels by default); the width follows the drawing's proportions.
+Their height is set in the settings (1024 pixels by default).
+Their width is that of DCS's kneeboard frame, two thirds of the height: the game stretches any picture to fill this frame, so the drawing is centred in it with white margins rather than distorted.
+A page wider than high (an ICP, an MFD) therefore takes the frame's whole width, but only half its height.
 
 **Every module at once**: the arrow beside **Kneeboard**, then **Every module** (or Shift+E).
 Each aircraft of the list that has at least one device ticked gets its pages, as if you exported it by hand; the profiles that are not aircraft (Default, UiLayer) are skipped.
