@@ -123,6 +123,17 @@ describe('pages', () => {
     expect(svg.lastIndexOf('x="600"')).toBeGreaterThan(svg.lastIndexOf('IFF OUT'))
   })
 
+  it('puts the template credit on a line of its own when it would overlap the footer', () => {
+    const credit = (page: { svg: string }) => Number(page.svg.match(/<text x="[\d.]+" y="([\d.]+)"[^>]*text-anchor="end">Gabarit/)![1])
+    const roomy = diagramPage(ctx(null))
+    expect(credit(roomy)).toBe(1000 + 18)
+    expect(roomy.height).toBe(1000 + 28)
+    const narrow: Template = { ...template, size: [300, 1000] }
+    const crowded = diagramPage({ ...ctx(null), template: { data: narrow, image: 'x' } })
+    expect(credit(crowded)).toBe(1000 + 18 + 14)
+    expect(crowded.height).toBe(1000 + 28 + 14)
+  })
+
   it('lists the bound inputs without a box under the drawing', () => {
     const { JOY_Z: _, ...inputs } = template.inputs
     const page = diagramPage({ ...ctx(null), template: { data: { ...template, inputs }, image: 'x' } })
