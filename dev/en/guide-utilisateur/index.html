@@ -1003,7 +1003,9 @@ They are on every page, even with "Per layer": these programs ignore DCS's modif
 <li>A profile that is not an aircraft (the interface layer) has no kneeboard.</li>
 </ul>
 <p>The pages show in this aircraft's kneeboard at the next mission.
-Their height is set in the settings (1024 pixels by default); the width follows the drawing's proportions.</p>
+Their height is set in the settings (1024 pixels by default).
+Their width is that of DCS's kneeboard frame, two thirds of the height: the game stretches any picture to fill this frame, so the drawing is centred in it with white margins rather than distorted.
+A page wider than high (an ICP, an MFD) therefore takes the frame's whole width, but only half its height.</p>
 <p><strong>Every module at once</strong>: the arrow beside <strong>Kneeboard</strong>, then <strong>Every module</strong> (or Shift+E).
 Each aircraft of the list that has at least one device ticked gets its pages, as if you exported it by hand; the profiles that are not aircraft (Default, UiLayer) are skipped.
 A window shows how far the export has got ("Module 7 of 20", the module's name, a bar); count about ten seconds for twenty modules.
