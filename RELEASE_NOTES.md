@@ -1,71 +1,67 @@
-# HOTAS Kneeboard — 0.3.0
+# HOTAS Kneeboard — 0.3.1
 
-**Des gabarits sur lesquels on peut compter.**
-Huit gabarits WinWing et Virpil ont été repris d'après la documentation des fabricants, et deux vérifiés bouton par bouton sur le vrai matériel : les cases tombent sur les bons boutons.
+**Des pages lisibles dans DCS, et une cause de « aucun périphérique » en moins.**
+Les pages en largeur ne sortent plus écrasées dans le kneeboard, et un mod d'avion bavard ne fait plus disparaître tous tes périphériques.
 
 ---
 
-## 🎯 Les gabarits corrigés
+## 📋 Le kneeboard
 
-- **Manche WinWing Orion JGRIP-F16** : le gabarit reconnu automatiquement est maintenant le dessin avec le module additionnel, qui a toutes les cases (gâchette et ses crans, chapeau 21 à 25, mini-manche 26 à 30, axes RX, RY, RZ).
-  Le chapeau 14 est numéroté comme sur le schéma de WinWing, et l'axe Z du socle a sa case.
-  Vérifié sur le vrai manche.
-- **Throttle WinWing Orion, poignée F15EX à gauche et F15 à droite** : reconnu sur le dessin de sa poignée droite (les trois interrupteurs à 3 positions), et plus sur celui à deux poignées F15EX.
-  Vérifié sur le vrai throttle.
-- **HUD F/A-18 WinWing** : boutons 65 à 83 et les quatre molettes.
-- **UFC F/A-18 WinWing** : les sélecteurs de canal COMM et les molettes VOL et BRT ont leur case.
-- **PCR WinWing** : l'interrupteur LST/NFLR est 13, 14, 15 (il portait deux fois le 15), et les molettes de volume COMM ont leur case.
-- **Virpil V.F.X** : la gâchette est 1 puis 6 ; le 2 est le poussoir du sélecteur.
-- **Virpil MongoosT-50CM2** : la numérotation est celle du modèle publié par Virpil ; celle du gabarit était décalée de 4.
-- **Virpil Control Panel #1** : la case du bouton 22 ne recouvre plus toute la page, et le fond du dessin est revenu.
+- **Plus rien n'est déformé** : DCS étirait chaque page pour remplir son cadre, plus étroit que haut.
+  Les pages en largeur (ICP, MFD WinWing…) sortaient comprimées de moitié et illisibles.
+  Elles sont maintenant écrites aux proportions du cadre, le dessin centré dans des marges blanches : une page en largeur tient toute la largeur, centrée en hauteur.
+- **Le pied de page ne se chevauche plus** : le crédit du gabarit passe sur sa propre ligne quand il recouvrirait le nom du module, du périphérique ou la légende SRS et VectorXR (sur une moitié de throttle par exemple).
+
+---
+
+## 🕹️ « Bindings could not be read »
+
+Avec cette erreur, aucun périphérique ne s'affichait.
+Une cause connue est corrigée : certains mods d'avions affichent un message en se chargeant, et ce message suffisait à faire échouer toute la lecture des commandes.
+Il va maintenant dans le journal de l'application.
+
+Si tu as encore l'erreur, elle montre désormais ce que DCS a renvoyé : envoie-nous-la, elle dit d'où vient le problème.
+
+Merci à **GunHed**, qui l'a signalée.
 
 ---
 
 ## ⚠️ Ce que tu as à faire
 
-Si tu as un **JGRIP-F16**, un **throttle Orion F15EX/F15** ou un **MongoosT-50CM2**, réexporte tes pages kneeboard : le dessin ou la numérotation ont changé, et les pages déjà dans DCS sont celles de l'ancien gabarit.
-Pour tous les autres périphériques, rien ne change.
+Réexporte tes pages kneeboard : celles déjà dans DCS gardent l'ancien format, étiré.
+Les nouvelles ont des marges blanches, c'est normal : c'est ce qui les garde aux bonnes proportions.
 
-Un gabarit te semble faux ? Signale-le sur <https://github.com/VEAF/hotas-kneeboard/issues> ou sur le Discord VEAF, avec le nom du périphérique : chaque signalement rend la bibliothèque plus juste pour tout le monde.
-
----
-
-## 🛠️ L'éditeur de gabarits
-
-- **Il entend le hat** : dans « Vérifier » et « Identifier », un appui sur le hat est reconnu comme le hat 1, dans ses huit directions.
-- **« Vérifier » n'a plus besoin d'un appui intermédiaire** : un bouton encore tenu quand l'écoute reprend est entendu une fois relâché, et le hat passé d'une direction à l'autre sans revenir au centre est entendu.
+Un souci ? Signale-le sur <https://github.com/VEAF/hotas-kneeboard/issues> ou sur le Discord VEAF, avec le fichier `%APPDATA%\HOTAS Kneeboard\hotas-kneeboard.log` : il dit ce qui s'est passé.
 
 ---
 
 ## 🇬🇧 In English
 
-**Templates you can rely on.**
-Eight WinWing and Virpil templates were reworked from the manufacturers' documentation, and two were checked button by button on the real hardware: the boxes land on the right buttons.
+**Readable pages in DCS, and one cause of "no devices" less.**
+Landscape pages no longer come out squashed in the kneeboard, and a chatty aircraft mod no longer makes all your devices disappear.
 
-**Documentation**: https://veaf.github.io/hotas-kneeboard/0.3.0/en/
+**Documentation**: https://veaf.github.io/hotas-kneeboard/0.3.1/en/
 
-### 🎯 Fixed templates
+### 📋 The kneeboard
 
-- **WinWing Orion JGRIP-F16 stick**: the automatically recognised template is now the drawing with the add-on module, which has every box (trigger and its detents, hat 21 to 25, mini-stick 26 to 30, RX, RY, RZ axes).
-  Hat 14 is numbered as on WinWing's diagram, and the base's Z axis has its box.
-  Checked on the real stick.
-- **WinWing Orion throttle, F15EX grip on the left and F15 on the right**: recognised on the drawing of its right grip (the three 3-position switches), no longer on the one with two F15EX grips.
-  Checked on the real throttle.
-- **WinWing F/A-18 HUD**: buttons 65 to 83 and the four knobs.
-- **WinWing F/A-18 UFC**: the COMM channel selectors and the VOL and BRT knobs have their box.
-- **WinWing PCR**: the LST/NFLR switch is 13, 14, 15 (it carried 15 twice), and the COMM volume knobs have their box.
-- **Virpil V.F.X**: the trigger is 1 then 6; 2 is the selector's push.
-- **Virpil MongoosT-50CM2**: the numbering is that of the model Virpil publishes; the template's was off by 4.
-- **Virpil Control Panel #1**: button 22's box no longer covers the whole page, and the drawing's background is back.
+- **Nothing is distorted anymore**: DCS stretched every page to fill its frame, which is narrower than it is tall.
+  Landscape pages (WinWing ICP, MFDs…) came out squeezed to half their width and unreadable.
+  They are now written in the frame's proportions, the drawing centred in white margins: a landscape page spans the full width, centred vertically.
+- **The footer no longer overlaps**: the template credit moves to its own line when it would cover the module or device name, or the SRS and VectorXR legend (on a throttle half, for instance).
+
+### 🕹️ "Bindings could not be read"
+
+With this error, no device showed up.
+A known cause is fixed: some aircraft mods print a message while loading, and that message was enough to make reading the controls fail entirely.
+It now goes to the app's log.
+
+If you still get the error, it now shows what DCS sent back: send it to us, it tells where the problem comes from.
+
+Thanks to **GunHed** for reporting it.
 
 ### ⚠️ What you have to do
 
-If you have a **JGRIP-F16**, an **Orion F15EX/F15 throttle** or a **MongoosT-50CM2**, export your kneeboard pages again: the drawing or the numbering changed, and the pages already in DCS are those of the old template.
-For every other device, nothing changes.
+Export your kneeboard pages again: the ones already in DCS keep the old, stretched format.
+The new ones have white margins, that's expected: they are what keeps the proportions right.
 
-A template looks wrong? Report it on <https://github.com/VEAF/hotas-kneeboard/issues> or on the VEAF Discord, with the device's name: every report makes the library more accurate for everyone.
-
-### 🛠️ The template editor
-
-- **It hears the hat**: in "Check" and "Identify", a press on the hat is recognised as hat 1, in its eight directions.
-- **"Check" no longer needs a press in between**: a button still held when listening resumes is heard once released, and the hat moved from one direction to another without going back to the centre is heard.
+Something wrong? Report it on <https://github.com/VEAF/hotas-kneeboard/issues> or on the VEAF Discord, with the file `%APPDATA%\HOTAS Kneeboard\hotas-kneeboard.log`: it says what happened.
