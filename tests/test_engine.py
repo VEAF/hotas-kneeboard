@@ -209,8 +209,17 @@ def test_invalid_output_raises(monkeypatch):
         "run",
         lambda *a, **k: subprocess.CompletedProcess(a, 0, b"not json", b""),
     )
-    with pytest.raises(effective.EffectiveBindingsError, match="invalid output"):
+    with pytest.raises(effective.EffectiveBindingsError, match="invalid output.*output: not json"):
         effective.load_effective_bindings(INSTALL, SAVED_GAMES, ["FakePlane"])
+
+
+def test_what_a_module_prints_goes_to_the_log(lua, caplog):
+    # the fixture's CommunityPlane prints from its entry.lua and its joystick profile
+    with caplog.at_level("WARNING", logger=effective.__name__):
+        result = effective.load_effective_bindings(INSTALL, SAVED_GAMES, ["CommunityPlane"], lua)
+    assert ("JOY_BTN1", (), "Tailhook") in bindings(result, "CommunityPlane", STICK)
+    assert "DCS Lua: print: CommunityPlane joystick\t1" in caplog.messages
+    assert "DCS Lua: CommunityPlane io.write" in caplog.messages
 
 
 def test_missing_interpreter_raises():

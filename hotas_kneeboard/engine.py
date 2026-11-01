@@ -210,10 +210,15 @@ def load_effective_bindings(
         _logger.warning(f"DCS Lua: {line}")
     if completed.returncode != 0:
         raise EffectiveBindingsError(f"{interpreter} exited with code {completed.returncode}: {stderr}")
+    stdout = completed.stdout.decode("utf-8", errors="replace")
     try:
-        result = json.loads(completed.stdout.decode("utf-8", errors="replace"))
+        result = json.loads(stdout)
     except ValueError as error:
-        raise EffectiveBindingsError(f"invalid output from the Lua loader: {error}") from error
+        # the start of the output tells what got in front of the JSON, or that there was none
+        start = stdout[:200].strip() or "(empty)"
+        raise EffectiveBindingsError(
+            f"invalid output from the Lua loader: {error}; output: {start}"
+        ) from error
     if not isinstance(result.get("profiles"), dict):
         raise EffectiveBindingsError("invalid output from the Lua loader: no profiles")
     _flag_long_paths(result, Path(saved_games_dir))
