@@ -5,6 +5,8 @@ Chaque lot ajoute ses entrées à la fin de `[Unreleased]` ; une release les pas
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-11-01
+
 ### Corrigé
 
 - Kneeboard : DCS étirait chaque page pour remplir son cadre, qui est plus étroit que haut (2 sur 3) ; les pages en largeur (ICP, MFD WinWing…) sortaient comprimées de moitié et illisibles. Les pages sont maintenant écrites aux proportions du cadre, le dessin centré dans des marges blanches : plus rien n'est déformé, et une page en largeur tient toute la largeur du cadre, centrée en hauteur (FIX-KNEEBOARD-ASPECT, #74).
