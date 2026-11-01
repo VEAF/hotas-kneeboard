@@ -70,6 +70,16 @@ end
 
 local function warn(msg) io.stderr:write('warning: ' .. tostring(msg) .. '\n') end
 
+-- stdout carries the JSON alone: what a module file prints (a debug message left in a community
+-- mod) goes to stderr, which engine.py logs, instead of corrupting the output
+local stdout = io.stdout
+function print(...)
+	local parts = {}
+	for i = 1, select('#', ...) do parts[i] = tostring((select(i, ...))) end
+	io.stderr:write('print: ' .. table.concat(parts, '\t') .. '\n')
+end
+function io.write(...) return io.stderr:write(...) end
+
 local function readFile(path)
 	local f = io.open(path, 'rb')
 	if not f then return nil end
@@ -964,7 +974,7 @@ do
 	end
 end
 
-io.write(jsonEncode({
+stdout:write(jsonEncode({
 	rewrites = rewrites,
 	injector = injectorActive,
 	learned_symbols = learned,

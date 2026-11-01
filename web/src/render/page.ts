@@ -267,7 +267,9 @@ function offTemplateBand(
   return { svg, height: height + 4 }
 }
 
-function footer(ctx: PageContext, top: number, width: number, legend: Legend, part?: string): string {
+/** The line under the drawing; the template's credit goes on a line of its own when it does not fit
+ * beside the rest */
+function footer(ctx: PageContext, top: number, width: number, legend: Legend, part?: string): { svg: string; height: number } {
   const language = ctx.lang ?? 'en'
   const left = [ctx.profile, ctx.device.name, ctx.layer !== null ? tIn(language, 'page.layer', { layer: layerLabel(ctx.layer, language) }) : null, part]
     .filter(Boolean)
@@ -276,14 +278,16 @@ function footer(ctx: PageContext, top: number, width: number, legend: Legend, pa
   const programs = [...legend.programs].map(([program, style]) => (style.tag === program ? program : `${style.tag} = ${program}`))
   const legendText = [...layers, ...programs].join('   ')
   const credits = ctx.template ? creditLine(ctx.template.data, language) : ''
-  return (
+  const leftWidth = ctx.measurer.width(left, 12) + (legendText ? 14 + ctx.measurer.width(legendText, 12) : 0)
+  const ownLine = credits !== '' && 16 + leftWidth + 16 + ctx.measurer.width(credits, 10) + 16 > width
+  const svg =
     `<text x="16" y="${top + 18}" font-size="12" fill="${INK}">${esc(left)}` +
     (legendText ? `<tspan fill="${MUTED}" dx="14">${esc(legendText)}</tspan>` : '') +
     `</text>` +
     (credits
-      ? `<text x="${width - 16}" y="${top + 18}" font-size="10" fill="${MUTED}" text-anchor="end">${esc(credits)}</text>`
+      ? `<text x="${width - 16}" y="${top + 18 + (ownLine ? CREDIT_LINE : 0)}" font-size="10" fill="${MUTED}" text-anchor="end">${esc(credits)}</text>`
       : '')
-  )
+  return { svg, height: FOOTER_HEIGHT + (ownLine ? CREDIT_LINE : 0) }
 }
 
 export function creditLine(template: Template, language: Lang = 'en'): string {
@@ -293,6 +297,7 @@ export function creditLine(template: Template, language: Lang = 'en'): string {
 }
 
 const FOOTER_HEIGHT = 28
+const CREDIT_LINE = 14
 
 /** Where a template is cut into pages: its `split_at` (vertical lines, set where the drawing has
  * room for it, e.g. between a throttle's base and its handles), kept inside the drawing */
@@ -335,8 +340,9 @@ export function diagramPages(ctx: PageContext, splitWide: boolean): Page[] {
   const cuts = splitWide ? cutsOf(template.data) : []
   if (!cuts.length) {
     const band = offTemplateBand(language, off, height, width, legend, ctx.measurer, showChips)
-    const total = height + band.height + FOOTER_HEIGHT
-    const svg = svgOpen(width, total, ctx) + body + band.svg + footer(ctx, height + band.height, width, legend) + '</svg>'
+    const foot = footer(ctx, height + band.height, width, legend)
+    const total = height + band.height + foot.height
+    const svg = svgOpen(width, total, ctx) + body + band.svg + foot.svg + '</svg>'
     return [{ title: pageTitle(ctx), width, height: total, svg }]
   }
   // one page per part, each showing its part of the same drawing; the bindings without box go on
@@ -347,13 +353,14 @@ export function diagramPages(ctx: PageContext, splitWide: boolean): Page[] {
     const partWidth = to - from
     const last = index === parts.length - 1
     const band = last ? offTemplateBand(language, off, height, partWidth, legend, ctx.measurer, showChips) : { svg: '', height: 0 }
-    const total = height + band.height + FOOTER_HEIGHT
     const part = `${index + 1}/${parts.length}`
+    const foot = footer(ctx, height + band.height, partWidth, legend, part)
+    const total = height + band.height + foot.height
     const svg =
       svgOpen(partWidth, total, ctx) +
       `<svg x="0" y="0" width="${partWidth}" height="${height}" viewBox="${from} 0 ${partWidth} ${height}">${body}</svg>` +
       band.svg +
-      footer(ctx, height + band.height, partWidth, legend, part) +
+      foot.svg +
       '</svg>'
     return { title: `${pageTitle(ctx)} (${part})`, width: partWidth, height: total, svg }
   })
@@ -395,7 +402,7 @@ export function listPages(ctx: PageContext): Page[] {
       title: index ? `${pageTitle(ctx)} ${tIn(language, 'page.continued', { n: index + 1 })}` : pageTitle(ctx),
       width: LIST_WIDTH,
       height: LIST_HEIGHT,
-      svg: svgOpen(LIST_WIDTH, LIST_HEIGHT, ctx) + heading + body + footer(ctx, LIST_HEIGHT - FOOTER_HEIGHT, LIST_WIDTH, legend) + '</svg>',
+      svg: svgOpen(LIST_WIDTH, LIST_HEIGHT, ctx) + heading + body + footer(ctx, LIST_HEIGHT - FOOTER_HEIGHT, LIST_WIDTH, legend).svg + '</svg>',
     })
     body = ''
     baseline = top

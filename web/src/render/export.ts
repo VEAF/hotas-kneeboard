@@ -30,8 +30,21 @@ function loadImage(url: string): Promise<HTMLImageElement> {
   })
 }
 
-/** The page drawn at `height` pixels (the width follows), as a canvas */
-export async function pageCanvas(page: Page, height: number): Promise<HTMLCanvasElement> {
+/** Width over height of DCS's kneeboard: its frame is declared 0.142 × 0.214 in
+ * `Scripts/Aircrafts/_Common/Cockpit/KNEEBOARD/declare_kneeboard_device.lua`, and DCS stretches
+ * every picture to fill it */
+export const DCS_KNEEBOARD_RATIO = 0.142 / 0.214
+
+/** Where the page goes in a `width` × `height` picture: as large as it fits, centred */
+export function fitPage(page: Page, width: number, height: number): { x: number; y: number; width: number; height: number } {
+  const scale = Math.min(width / page.width, height / page.height)
+  const [w, h] = [page.width * scale, page.height * scale]
+  return { x: (width - w) / 2, y: (height - h) / 2, width: w, height: h }
+}
+
+/** The page drawn at `height` pixels, as a canvas: as wide as the page, or `ratio` times the height
+ * with the page fitted in white margins */
+export async function pageCanvas(page: Page, height: number, ratio = page.width / page.height): Promise<HTMLCanvasElement> {
   const url = URL.createObjectURL(new Blob([page.svg], { type: 'image/svg+xml' }))
   try {
     const image = await loadImage(url)
@@ -39,19 +52,21 @@ export async function pageCanvas(page: Page, height: number): Promise<HTMLCanvas
     await new Promise((r) => setTimeout(r, 30))
     const canvas = document.createElement('canvas')
     canvas.height = Math.round(height)
-    canvas.width = Math.round((page.width * height) / page.height)
+    canvas.width = Math.round(height * ratio)
     const context = canvas.getContext('2d')!
     context.fillStyle = '#fff'
     context.fillRect(0, 0, canvas.width, canvas.height)
-    context.drawImage(image, 0, 0, canvas.width, canvas.height)
+    const at = fitPage(page, canvas.width, canvas.height)
+    context.drawImage(image, at.x, at.y, at.width, at.height)
     return canvas
   } finally {
     URL.revokeObjectURL(url)
   }
 }
 
-export async function pagePngBase64(page: Page, height: number): Promise<string> {
-  const canvas = await pageCanvas(page, height)
+/** A kneeboard page for DCS: in the proportions of its frame, so that DCS does not distort it */
+export async function kneeboardPngBase64(page: Page, height: number): Promise<string> {
+  const canvas = await pageCanvas(page, height, DCS_KNEEBOARD_RATIO)
   return canvas.toDataURL('image/png').split(',')[1]
 }
 
@@ -65,11 +80,8 @@ export async function pagesPdf(pages: Page[], fileName: string): Promise<void> {
   for (const [index, page] of pages.entries()) {
     if (index > 0) doc.addPage('a4', 'portrait')
     const canvas = await pageCanvas(page, PDF_PIXEL_HEIGHT)
-    const maxWidth = A4.width - 2 * PDF_MARGIN
-    const maxHeight = A4.height - 2 * PDF_MARGIN
-    const scale = Math.min(maxWidth / page.width, maxHeight / page.height)
-    const [w, h] = [page.width * scale, page.height * scale]
-    doc.addImage(canvas, 'JPEG', (A4.width - w) / 2, (A4.height - h) / 2, w, h, undefined, 'FAST')
+    const at = fitPage(page, A4.width - 2 * PDF_MARGIN, A4.height - 2 * PDF_MARGIN)
+    doc.addImage(canvas, 'JPEG', PDF_MARGIN + at.x, PDF_MARGIN + at.y, at.width, at.height, undefined, 'FAST')
   }
   doc.save(fileName)
 }

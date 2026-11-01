@@ -20,7 +20,7 @@ import { exportableModules, failuresDetail, type ExportProgress, type ModuleFail
 import type { Profile } from './lib/types'
 import SplitButton from 'primevue/splitbutton'
 import { useStore } from './lib/store'
-import { pagePngBase64, pagesPdf } from './render/export'
+import { kneeboardPngBase64, pagesPdf } from './render/export'
 import { lang, t, tn } from './lib/i18n'
 import { usePrimeVue } from 'primevue/config'
 
@@ -121,7 +121,7 @@ function stopExport() {
 async function writeKneeboardOf(p: Profile) {
   const pages = await store.modulePages(p)
   const payload = []
-  for (const page of pages) payload.push({ title: page.title, png: await pagePngBase64(page, state.settings!.page_height) })
+  for (const page of pages) payload.push({ title: page.title, png: await kneeboardPngBase64(page, state.settings!.page_height) })
   return api.writeKneeboard(p.unit_type!, p.name, payload)
 }
 

@@ -5,6 +5,14 @@ Chaque lot ajoute ses entrées à la fin de `[Unreleased]` ; une release les pas
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-11-01
+
+### Corrigé
+
+- Kneeboard : DCS étirait chaque page pour remplir son cadre, qui est plus étroit que haut (2 sur 3) ; les pages en largeur (ICP, MFD WinWing…) sortaient comprimées de moitié et illisibles. Les pages sont maintenant écrites aux proportions du cadre, le dessin centré dans des marges blanches : plus rien n'est déformé, et une page en largeur tient toute la largeur du cadre, centrée en hauteur (FIX-KNEEBOARD-ASPECT, #74).
+- Pied de page : le crédit du gabarit passe sur sa propre ligne quand il chevaucherait le reste (nom du module et du périphérique, légende des logiciels comme SRS et VectorXR, sur une moitié de throttle par exemple) (#74).
+- Liaisons : un mod d'avion qui affiche un message en se chargeant (un `print` de débogage resté dans ses fichiers de commandes) faisait échouer toute la lecture, « Bindings could not be read: invalid output from the Lua loader », et aucun périphérique n'apparaissait. Ces messages vont maintenant dans le journal (`%APPDATA%\HOTAS Kneeboard\hotas-kneeboard.log`), et l'erreur, si elle revient, montre le début de ce que DCS a renvoyé (FIX-LUA-STDOUT, #76).
+
 ## [0.3.0] - 2026-10-23
 
 ### Ajouté

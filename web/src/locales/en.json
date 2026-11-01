@@ -418,7 +418,7 @@
   "settings.language.hint": "The names as DCS shows them, translated by its {l10n} files",
   "settings.language.label": "Commands language",
   "settings.not_found": "not found",
-  "settings.page_height.hint": "The width follows the drawing's proportions.",
+  "settings.page_height.hint": "The width is that of DCS's kneeboard frame (two thirds of the height), the drawing centred in it.",
   "settings.page_height.label": "Height of the kneeboard pages (pixels)",
   "settings.page_height.missing": "Enter the height of the pages, between 256 and 4096 pixels.",
   "settings.programs.color": "Colour of {program}",

@@ -103,7 +103,9 @@ Dans les réglages, l'onglet **Autres logiciels** indique le dossier de SRS (tro
 - Un profil qui n'est pas un avion (la couche d'interface) n'a pas de kneeboard.
 
 Les pages apparaissent dans le kneeboard de cet avion à la mission suivante.
-Leur hauteur se règle dans les réglages (1024 pixels par défaut) ; la largeur suit les proportions du dessin.
+Leur hauteur se règle dans les réglages (1024 pixels par défaut).
+Leur largeur est celle du cadre du kneeboard de DCS, les deux tiers de la hauteur : le jeu étire toute image pour remplir ce cadre, alors le dessin y est centré dans des marges blanches plutôt que déformé.
+Une page plus large que haute (un ICP, un MFD) tient donc toute la largeur du cadre, mais seulement la moitié de sa hauteur.
 
 **Tous les modules d'un coup** : la flèche à côté de **Kneeboard**, puis **Tous les modules** (ou Maj+E).
 Chaque avion de la liste qui a au moins un périphérique coché reçoit ses pages, comme si tu l'exportais à la main ; les profils qui ne sont pas des avions (Default, UiLayer) sont sautés.
