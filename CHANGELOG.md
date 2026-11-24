@@ -5,6 +5,8 @@ Chaque lot ajoute ses entrées à la fin de `[Unreleased]` ; une release les pas
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-11-24
+
 ### Ajouté
 
 - Thème sombre : un gabarit déclare son `theme` (`light` ou `dark`, choix dans l'éditeur), et ses pages (écran, PNG, PDF) sont alors dessinées sur fond sombre avec un texte clair. Un réglage « Thème des pages » peut imposer le clair ou le sombre à tous les gabarits (FEAT-LEGIBILITY, #80).

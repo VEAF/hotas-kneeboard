@@ -147,8 +147,11 @@ class Shooter:
         self.close()
 
     def reglages(self) -> None:
+        # the general tab outgrew the window: taller, so that the whole dialog is in the picture
+        self.page.set_viewport_size({"width": WIDTH, "height": HEIGHT + 340})
         self.shot(self.dialog("app.bar.settings"), "reglages.png")
         self.close()
+        self.page.set_viewport_size({"width": WIDTH, "height": HEIGHT})
 
     def commandes(self) -> None:
         d = self.dialog("app.bar.dcs_config")
