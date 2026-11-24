@@ -92,6 +92,13 @@ describe('text', () => {
     expect(tight.size).toBe(MIN_LABEL_SIZE)
     expect(tight.height).toBeGreaterThan(10)
   })
+
+  it('never goes below the smallest size asked, and the largest follows it', () => {
+    const big = fitTexts(['A very long command name that cannot fit'], (t) => t, () => 0, 40, 10, approximateMeasurer, { max: 14, min: 14 })
+    expect(big.size).toBe(14)
+    const between = fitTexts(['A very long command name that cannot fit'], (t) => t, () => 0, 40, 10, approximateMeasurer, { max: 11, min: 9.3 })
+    expect(between.size).toBe(9.3)
+  })
 })
 
 describe('pages', () => {
@@ -101,6 +108,40 @@ describe('pages', () => {
     expect(all.get('JOY_BTN2')!.map((e) => e.layer)).toEqual(['', 'Paddle'])
     expect(all.get('JOY_BTN9')![0]).toMatchObject({ text: 'relâché : Switch Released', released: true })
     expect([...entriesByInput(device, 'Paddle').keys()]).toEqual(['JOY_BTN2'])
+  })
+
+  it("draws a page in the template's theme, or in the one the user forces", () => {
+    const dark = { ...ctx(null), template: { data: { ...template, theme: 'dark' as const }, image: 'x' } }
+    const page = diagramPage(dark)
+    expect(page.svg).toContain('fill="#1a1a1a"') // paper
+    expect(page.paper).toBe('#1a1a1a') // the margins of the kneeboard picture
+    expect(diagramPage(ctx(null)).paper).toBe('#ffffff')
+    expect(page.svg).toContain('fill="#f2f4f6"') // ink
+    expect(diagramPage({ ...dark, theme: 'light' }).svg).toContain('fill="#ffffff"')
+    expect(diagramPage({ ...ctx(null), theme: 'dark' }).svg).toContain('fill="#1a1a1a"')
+    expect(diagramPage(ctx(null)).svg).not.toContain('#1a1a1a') // light stays as it was
+    expect(listPages({ ...ctx(null, false), theme: 'dark' })[0].svg).toContain('fill="#1a1a1a"')
+  })
+
+  it('draws bold text and keeps the text at least as large as asked', () => {
+    expect(diagramPage(ctx(null)).svg).toContain('font-weight:600')
+    expect(diagramPage({ ...ctx(null), text: { bold: true } }).svg).toContain('font-weight:700')
+    // the text of the label boxes: not the chips (text-anchor), the footer and the band (fixed sizes)
+    const boxText = (svg: string) =>
+      [...svg.matchAll(/<text [^>]*>/g)]
+        .map((m) => m[0])
+        .filter((tag) => !tag.includes('text-anchor') && !/font-size="(10|11|12)"/.test(tag))
+        .map((tag) => Number(/font-size="([\d.]+)"/.exec(tag)![1]))
+    expect(Math.min(...boxText(diagramPage({ ...ctx(null), text: { minSize: 14 } }).svg))).toBeGreaterThanOrEqual(14)
+    expect(Math.min(...boxText(diagramPage(ctx(null)).svg))).toBeLessThan(14)
+  })
+
+  it('widens a box whose text cannot fit its width at the smallest size', () => {
+    const narrow: Template = { ...template, inputs: { JOY_BTN17: { box: [10, 10, 10, 24] } } }
+    const widths = (min?: number) =>
+      [...diagramPage({ ...ctx(null), template: { data: narrow, image: 'x' }, text: { minSize: min } }).svg.matchAll(/<rect x="10" y="[\d.]+" width="([\d.]+)"/g)].map((m) => Number(m[1]))
+    expect(Math.max(...widths())).toBeGreaterThan(10) // the word 'Handle' at 6.5 is wider than 10
+    expect(Math.max(...widths(14))).toBeGreaterThan(Math.max(...widths()))
   })
 
   it('draws a label in every box of an input, an empty box for a free one, the rest under the drawing', () => {

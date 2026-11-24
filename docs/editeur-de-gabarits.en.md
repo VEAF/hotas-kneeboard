@@ -60,6 +60,12 @@ For a drawing too wide for one page (a throttle and its base), **Cut into two pa
 Drag it through a white area, between two parts of the drawing: it must cut neither the device nor a box.
 **Do not cut** removes it.
 
+## Page theme
+
+Choose **Dark** for a drawing made for a dark background (a light picture on black, white text): the pages are then drawn dark, with dark boxes and light text.
+**Light** is the default theme.
+In the settings, **Page theme** can force one or the other on every template.
+
 ## Preview, saving, sharing
 
 - **Preview** (`P` key) shows the template with the real bindings of a module: choose the module and the device in the list.

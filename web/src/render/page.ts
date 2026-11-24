@@ -4,7 +4,7 @@
 
 import type { Box, Device, Label, Template } from '../lib/types'
 import { BASE_LAYER, compareInputs, inputName, layerColor, layerLabel, layerTags } from './inputs'
-import { fitTexts, LABEL_FONT, LABEL_WEIGHT, wrap, type Measurer } from './text'
+import { DEFAULT_SIZES, fitTexts, LABEL_FONT, LABEL_WEIGHT, MAX_LABEL_SIZE, weighted, wrap, type Measurer, type TextSizes } from './text'
 import type { ProgramMarks, ProgramStyle } from './programs'
 import { tIn, type Lang } from '../lib/i18n'
 
@@ -13,6 +13,8 @@ export interface Page {
   width: number
   height: number
   svg: string
+  /** the colour of its paper: what the margins of a kneeboard picture are filled with */
+  paper: string
 }
 
 export interface PageContext {
@@ -29,6 +31,43 @@ export interface PageContext {
   programs?: { marks: ProgramMarks; styles: Map<string, ProgramStyle> }
   /** the language of the page's own words: the commands' (pageLanguage); English when not told */
   lang?: Lang
+  /** 'auto': the template's theme (light for a list page); else forced */
+  theme?: 'auto' | 'light' | 'dark'
+  /** labels: smallest size the text shrinks to, and bold or not */
+  text?: { minSize?: number; bold?: boolean }
+}
+
+export type Theme = 'light' | 'dark'
+
+/** What a page is drawn with */
+interface Palette {
+  dark: boolean
+  paper: string
+  ink: string
+  muted: string
+  rule: string
+  softRule: string
+  emptyStroke: string
+}
+
+const PALETTES: Record<Theme, Palette> = {
+  light: { dark: false, paper: '#ffffff', ink: '#1b1f24', muted: '#5d6570', rule: '#c9ced5', softRule: '#e1e4e8', emptyStroke: '#9aa1aa' },
+  dark: { dark: true, paper: '#1a1a1a', ink: '#f2f4f6', muted: '#a3abb5', rule: '#4a515a', softRule: '#2f353c', emptyStroke: '#6b737d' },
+}
+
+function themeOf(ctx: PageContext): Theme {
+  if (ctx.theme === 'light' || ctx.theme === 'dark') return ctx.theme
+  return ctx.template?.data.theme === 'dark' ? 'dark' : 'light'
+}
+
+/** The context with what the settings change: the weight measured is the weight drawn */
+function styled(ctx: PageContext): PageContext {
+  return { ...ctx, measurer: weighted(ctx.measurer, ctx.text?.bold ? BOLD_WEIGHT : LABEL_WEIGHT) }
+}
+
+function sizesOf(ctx: PageContext): TextSizes {
+  const min = Math.max(ctx.text?.minSize ?? DEFAULT_SIZES.min, 1)
+  return { max: Math.max(MAX_LABEL_SIZE, min), min }
 }
 
 interface Entry {
@@ -39,9 +78,7 @@ interface Entry {
   program?: string
 }
 
-const INK = '#1b1f24'
-const MUTED = '#5d6570'
-const PAPER = '#ffffff'
+const BOLD_WEIGHT = 700
 const LIST_WIDTH = 827
 const LIST_HEIGHT = 1169
 
@@ -82,12 +119,19 @@ function pageTitle(ctx: PageContext): string {
 }
 
 function svgOpen(width: number, height: number, ctx: PageContext): string {
-  const style = `${ctx.fontCss ?? ''} text{font-family:${LABEL_FONT};font-weight:${LABEL_WEIGHT}}`
+  const weight = ctx.text?.bold ? BOLD_WEIGHT : LABEL_WEIGHT
+  const style = `${ctx.fontCss ?? ''} text{font-family:${LABEL_FONT};font-weight:${weight}}`
   return (
     `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" ` +
     `viewBox="0 0 ${width} ${height}" width="${width}" height="${height}">` +
-    `<style>${style}</style><rect x="0" y="0" width="${width}" height="${height}" fill="${PAPER}"/>`
+    `<style>${style}</style><rect x="0" y="0" width="${width}" height="${height}" fill="${PALETTES[themeOf(ctx)].paper}"/>`
   )
+}
+
+/** White or near-black, whichever reads better on `color` (#rrggbb) */
+function readableOn(color: string): string {
+  const [r, g, b] = [1, 3, 5].map((i) => parseInt(color.slice(i, i + 2), 16))
+  return (r * 299 + g * 587 + b * 114) / 1000 > 150 ? '#111111' : '#ffffff'
 }
 
 function chip(x: number, baseline: number, size: number, tag: string, color: string): { svg: string; width: number } {
@@ -97,12 +141,13 @@ function chip(x: number, baseline: number, size: number, tag: string, color: str
     width,
     svg:
       `<rect x="${x}" y="${baseline - size * 0.82}" width="${width}" height="${height}" rx="2" fill="${color}"/>` +
-      `<text x="${x + width / 2}" y="${baseline - size * 0.08}" font-size="${size * 0.72}" fill="#fff" ` +
+      `<text x="${x + width / 2}" y="${baseline - size * 0.08}" font-size="${size * 0.72}" fill="${readableOn(color)}" ` +
       `text-anchor="middle" font-weight="700">${esc(tag)}</text>`,
   }
 }
 
 interface Legend {
+  pal: Palette
   tags: Map<string, string>
   colors: Map<string, string>
   /** the programs that have a button on this device */
@@ -111,24 +156,25 @@ interface Legend {
 
 function legendOf(ctx: PageContext): Legend {
   const { device } = ctx
+  const pal = PALETTES[themeOf(ctx)]
   const tags = layerTags(device.layers)
   const colors = new Map<string, string>()
-  device.layers.filter((l) => l !== BASE_LAYER).forEach((l, i) => colors.set(l, layerColor(i)))
+  device.layers.filter((l) => l !== BASE_LAYER).forEach((l, i) => colors.set(l, layerColor(i, pal.dark)))
   const programs = new Map<string, ProgramStyle>()
   for (const marks of Object.values(ctx.programs?.marks ?? {})) {
-    for (const { program } of marks) programs.set(program, ctx.programs?.styles.get(program) ?? { tag: '?', color: INK })
+    for (const { program } of marks) programs.set(program, ctx.programs?.styles.get(program) ?? { tag: '?', color: pal.ink })
   }
-  return { tags, colors, programs }
+  return { pal, tags, colors, programs }
 }
 
 /** Colour of an entry, and its tag when it has one: a layer's when chips are shown, a program's always */
 function look(entry: Entry, legend: Legend, showChips: boolean): { color: string; tag: string | null } {
   if (entry.program) {
     const style = legend.programs.get(entry.program)
-    return { color: style?.color ?? INK, tag: style?.tag ?? '?' }
+    return { color: style?.color ?? legend.pal.ink, tag: style?.tag ?? '?' }
   }
-  if (entry.layer === BASE_LAYER) return { color: INK, tag: null }
-  return { color: legend.colors.get(entry.layer) ?? INK, tag: showChips ? (legend.tags.get(entry.layer) ?? '?') : null }
+  if (entry.layer === BASE_LAYER) return { color: legend.pal.ink, tag: null }
+  return { color: legend.colors.get(entry.layer) ?? legend.pal.ink, tag: showChips ? (legend.tags.get(entry.layer) ?? '?') : null }
 }
 
 function chipWidth(entry: Entry, size: number, legend: Legend, showChips: boolean): number {
@@ -152,6 +198,7 @@ function labelBox(
   measurer: Measurer,
   showChips: boolean,
   drawingHeight: number,
+  sizes: TextSizes,
 ): DrawnLabel {
   const [x, top, width, height] = box
   const pad = 2.5
@@ -162,12 +209,15 @@ function labelBox(
     width - 2 * pad,
     height - 2 * pad,
     measurer,
+    sizes,
   )
   const boxHeight = Math.max(height, fit.height + 2 * pad)
+  // at the smallest size a long word may still be wider than the box: the box widens, to the right
+  const boxWidth = Math.max(width, fit.width + 2 * pad)
   const y = top + boxHeight > drawingHeight ? Math.max(0, drawingHeight - boxHeight) : top
   let out =
-    `<rect x="${x}" y="${y}" width="${width}" height="${boxHeight}" rx="3" fill="${PAPER}" ` +
-    `fill-opacity="0.94" stroke="${INK}" stroke-width="1"/>`
+    `<rect x="${x}" y="${y}" width="${boxWidth}" height="${boxHeight}" rx="3" fill="${legend.pal.paper}" ` +
+    `fill-opacity="0.94" stroke="${legend.pal.ink}" stroke-width="1"/>`
   let baseline = y + pad + (boxHeight - 2 * pad - fit.height) / 2 + fit.size * 0.9
   for (const block of fit.blocks) {
     const entry = block.item
@@ -184,27 +234,27 @@ function labelBox(
       baseline += fit.lineHeight
     })
   }
-  return { svg: out, grown: boxHeight > height }
+  return { svg: out, grown: boxHeight > height || boxWidth > width }
 }
 
 /** Leader line from the box to the input on the picture (templates made by hand; the converted
  * ones have theirs in the picture) */
-function leader(box: Box, anchor: [number, number]): string {
+function leader(box: Box, anchor: [number, number], pal: Palette): string {
   const [x, y, width, height] = box
   const [ax, ay] = anchor
   const sx = Math.min(Math.max(ax, x), x + width)
   const sy = Math.min(Math.max(ay, y), y + height)
   return (
-    `<line x1="${sx}" y1="${sy}" x2="${ax}" y2="${ay}" stroke="${INK}" stroke-width="1.2"/>` +
-    `<circle cx="${ax}" cy="${ay}" r="2.2" fill="${INK}"/>`
+    `<line x1="${sx}" y1="${sy}" x2="${ax}" y2="${ay}" stroke="${pal.ink}" stroke-width="1.2"/>` +
+    `<circle cx="${ax}" cy="${ay}" r="2.2" fill="${pal.ink}"/>`
   )
 }
 
-function emptyBox(box: Box): string {
+function emptyBox(box: Box, pal: Palette): string {
   const [x, y, width, height] = box
   return (
-    `<rect x="${x}" y="${y}" width="${width}" height="${height}" rx="3" fill="${PAPER}" fill-opacity="0.7" ` +
-    `stroke="#9aa1aa" stroke-width="0.8" stroke-dasharray="3 2"/>`
+    `<rect x="${x}" y="${y}" width="${width}" height="${height}" rx="3" fill="${pal.paper}" fill-opacity="0.7" ` +
+    `stroke="${pal.emptyStroke}" stroke-width="0.8" stroke-dasharray="3 2"/>`
   )
 }
 
@@ -241,8 +291,8 @@ function offTemplateBand(
   const columns = [laidOut.slice(0, split || 1), laidOut.slice(split || 1)]
   const titleHeight = 22
   let svg =
-    `<line x1="${margin}" y1="${top + 6}" x2="${width - margin}" y2="${top + 6}" stroke="#c9ced5"/>` +
-    `<text x="${margin}" y="${top + 20}" font-size="11" fill="${MUTED}" font-weight="700" letter-spacing="0.6">` +
+    `<line x1="${margin}" y1="${top + 6}" x2="${width - margin}" y2="${top + 6}" stroke="${legend.pal.rule}"/>` +
+    `<text x="${margin}" y="${top + 20}" font-size="11" fill="${legend.pal.muted}" font-weight="700" letter-spacing="0.6">` +
     `${esc(tIn(language, 'page.off_template'))}</text>`
   let height = 0
   columns.forEach((column, c) => {
@@ -250,7 +300,7 @@ function offTemplateBand(
     let baseline = top + titleHeight + size + 4
     for (const row of column) {
       const { color, tag } = look(row.entry, legend, showChips)
-      if (row.name) svg += `<text x="${x}" y="${baseline}" font-size="${size}" fill="${MUTED}">${esc(row.name)}</text>`
+      if (row.name) svg += `<text x="${x}" y="${baseline}" font-size="${size}" fill="${legend.pal.muted}">${esc(row.name)}</text>`
       row.lines.forEach((line, i) => {
         let dx = 0
         if (i === 0 && tag !== null) {
@@ -281,11 +331,11 @@ function footer(ctx: PageContext, top: number, width: number, legend: Legend, pa
   const leftWidth = ctx.measurer.width(left, 12) + (legendText ? 14 + ctx.measurer.width(legendText, 12) : 0)
   const ownLine = credits !== '' && 16 + leftWidth + 16 + ctx.measurer.width(credits, 10) + 16 > width
   const svg =
-    `<text x="16" y="${top + 18}" font-size="12" fill="${INK}">${esc(left)}` +
-    (legendText ? `<tspan fill="${MUTED}" dx="14">${esc(legendText)}</tspan>` : '') +
+    `<text x="16" y="${top + 18}" font-size="12" fill="${legend.pal.ink}">${esc(left)}` +
+    (legendText ? `<tspan fill="${legend.pal.muted}" dx="14">${esc(legendText)}</tspan>` : '') +
     `</text>` +
     (credits
-      ? `<text x="${width - 16}" y="${top + 18 + (ownLine ? CREDIT_LINE : 0)}" font-size="10" fill="${MUTED}" text-anchor="end">${esc(credits)}</text>`
+      ? `<text x="${width - 16}" y="${top + 18 + (ownLine ? CREDIT_LINE : 0)}" font-size="10" fill="${legend.pal.muted}" text-anchor="end">${esc(credits)}</text>`
       : '')
   return { svg, height: FOOTER_HEIGHT + (ownLine ? CREDIT_LINE : 0) }
 }
@@ -311,7 +361,9 @@ export function diagramPage(ctx: PageContext): Page {
 }
 
 /** The device drawing; cut into pages at the template's `split_at` when `splitWide` */
-export function diagramPages(ctx: PageContext, splitWide: boolean): Page[] {
+export function diagramPages(context: PageContext, splitWide: boolean): Page[] {
+  const ctx = styled(context)
+  const sizes = sizesOf(ctx)
   const template = ctx.template!
   const [width, height] = template.data.size
   const legend = legendOf(ctx)
@@ -321,7 +373,7 @@ export function diagramPages(ctx: PageContext, splitWide: boolean): Page[] {
   let body = `<image x="0" y="0" width="${width}" height="${height}" href="${template.image}" preserveAspectRatio="xMidYMid meet"/>`
   const off: [string, Entry[]][] = []
   for (const [key, input] of Object.entries(template.data.inputs)) {
-    if (!entries.has(key)) for (const box of [input.box, ...(input.more_boxes ?? [])]) body += emptyBox(box)
+    if (!entries.has(key)) for (const box of [input.box, ...(input.more_boxes ?? [])]) body += emptyBox(box, legend.pal)
   }
   const labels: DrawnLabel[] = []
   for (const [key, list] of entries) {
@@ -330,9 +382,9 @@ export function diagramPages(ctx: PageContext, splitWide: boolean): Page[] {
       off.push([key, list])
       continue
     }
-    if (input.anchor) body += leader(input.box, input.anchor)
+    if (input.anchor) body += leader(input.box, input.anchor, legend.pal)
     for (const box of [input.box, ...(input.more_boxes ?? [])]) {
-      labels.push(labelBox(box, list, legend, ctx.measurer, showChips, height))
+      labels.push(labelBox(box, list, legend, ctx.measurer, showChips, height, sizes))
     }
   }
   body += labels.filter((l) => !l.grown).map((l) => l.svg).join('')
@@ -343,7 +395,7 @@ export function diagramPages(ctx: PageContext, splitWide: boolean): Page[] {
     const foot = footer(ctx, height + band.height, width, legend)
     const total = height + band.height + foot.height
     const svg = svgOpen(width, total, ctx) + body + band.svg + foot.svg + '</svg>'
-    return [{ title: pageTitle(ctx), width, height: total, svg }]
+    return [{ title: pageTitle(ctx), width, height: total, svg, paper: legend.pal.paper }]
   }
   // one page per part, each showing its part of the same drawing; the bindings without box go on
   // the last
@@ -362,13 +414,15 @@ export function diagramPages(ctx: PageContext, splitWide: boolean): Page[] {
       band.svg +
       foot.svg +
       '</svg>'
-    return { title: `${pageTitle(ctx)} (${part})`, width: partWidth, height: total, svg }
+    return { title: `${pageTitle(ctx)} (${part})`, width: partWidth, height: total, svg, paper: legend.pal.paper }
   })
 }
 
 /** List pages of a device without template, as many as the rows need */
-export function listPages(ctx: PageContext): Page[] {
+export function listPages(context: PageContext): Page[] {
+  const ctx = styled(context)
   const legend = legendOf(ctx)
+  const pal = legend.pal
   const showChips = ctx.layer === null
   const size = 14
   const lineHeight = size * 1.3
@@ -393,15 +447,16 @@ export function listPages(ctx: PageContext): Page[] {
   const flush = () => {
     const index = pages.length
     const heading =
-      `<text x="${margin}" y="56" font-size="28" font-weight="700" fill="${INK}">${esc(ctx.device.name)}</text>` +
-      `<text x="${margin}" y="80" font-size="13" fill="${MUTED}">` +
+      `<text x="${margin}" y="56" font-size="28" font-weight="700" fill="${pal.ink}">${esc(ctx.device.name)}</text>` +
+      `<text x="${margin}" y="80" font-size="13" fill="${pal.muted}">` +
       `${esc(ctx.profile)} · ${esc(tIn(language, 'page.no_template'))}` +
       `${index ? ` ${esc(tIn(language, 'page.continued', { n: index + 1 }))}` : ''}</text>` +
-      `<line x1="${margin}" y1="90" x2="${LIST_WIDTH - margin}" y2="90" stroke="${INK}" stroke-width="1.5"/>`
+      `<line x1="${margin}" y1="90" x2="${LIST_WIDTH - margin}" y2="90" stroke="${pal.ink}" stroke-width="1.5"/>`
     pages.push({
       title: index ? `${pageTitle(ctx)} ${tIn(language, 'page.continued', { n: index + 1 })}` : pageTitle(ctx),
       width: LIST_WIDTH,
       height: LIST_HEIGHT,
+      paper: pal.paper,
       svg: svgOpen(LIST_WIDTH, LIST_HEIGHT, ctx) + heading + body + footer(ctx, LIST_HEIGHT - FOOTER_HEIGHT, LIST_WIDTH, legend).svg + '</svg>',
     })
     body = ''
@@ -411,10 +466,10 @@ export function listPages(ctx: PageContext): Page[] {
     const rowHeight = row.lines.length * lineHeight + (row.first ? 6 : 2)
     if (baseline + rowHeight > bottom && body) flush()
     if (row.first && baseline > top) {
-      body += `<line x1="${margin}" y1="${baseline - size - 2}" x2="${LIST_WIDTH - margin}" y2="${baseline - size - 2}" stroke="#e1e4e8"/>`
+      body += `<line x1="${margin}" y1="${baseline - size - 2}" x2="${LIST_WIDTH - margin}" y2="${baseline - size - 2}" stroke="${pal.softRule}"/>`
     }
     const { color, tag } = look(row.entry, legend, showChips)
-    if (row.name) body += `<text x="${margin}" y="${baseline}" font-size="${size - 1}" fill="${MUTED}">${esc(row.name)}</text>`
+    if (row.name) body += `<text x="${margin}" y="${baseline}" font-size="${size - 1}" fill="${pal.muted}">${esc(row.name)}</text>`
     row.lines.forEach((line, i) => {
       let dx = 0
       if (i === 0 && tag !== null) {

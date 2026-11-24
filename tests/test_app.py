@@ -114,6 +114,17 @@ def test_kneeboard_export(client, tmp_path):
     assert bad.status_code == 422
 
 
+def test_page_look_settings_are_saved(client):
+    response = client.put(
+        "/api/settings", json={"page_theme": "dark", "label_min_size": 9, "label_bold": True}
+    )
+    assert response.status_code == 200
+    settings = client.get("/api/state").json()["settings"]
+    assert (settings["page_theme"], settings["label_min_size"], settings["label_bold"]) == ("dark", 9, True)
+    default = Settings()
+    assert (default.page_theme, default.label_min_size, default.label_bold) == ("auto", 6.5, False)
+
+
 def test_broken_settings_file_falls_back_to_defaults(tmp_path):
     path = tmp_path / "settings.json"
     path.write_text("{not json", encoding="utf-8")
@@ -172,6 +183,10 @@ def test_the_engine_refuses_a_value_that_would_add_records():
         {"device_templates": {"Fake Stick": 3}},
         {"language": "../../x"},
         {"page_height": "big"},
+        {"page_theme": "blue"},
+        {"label_min_size": 2},
+        {"label_min_size": "big"},
+        {"label_bold": "yes"},
         {"hidden_devices": "vJoy Device"},
         {"hidden_devices": [3]},
     ],

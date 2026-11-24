@@ -65,8 +65,10 @@ export function layerTags(layers: string[]): Map<string, string> {
 
 /** Colour of each modifier layer: orange, teal, violet, then again */
 const LAYER_COLORS = ['#c46a00', '#0f7f7a', '#7a4cc2', '#b03a5b']
-export function layerColor(index: number): string {
-  return LAYER_COLORS[index % LAYER_COLORS.length]
+/** brighter variants, readable on a dark page */
+const DARK_LAYER_COLORS = ['#ff9f3a', '#3cc9c1', '#b995f2', '#ff7a9c']
+export function layerColor(index: number, dark = false): string {
+  return (dark ? DARK_LAYER_COLORS : LAYER_COLORS)[index % LAYER_COLORS.length]
 }
 
 export function layerLabel(layer: string, language: Lang = lang.value): string {

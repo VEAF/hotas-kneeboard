@@ -3,7 +3,8 @@
 A Joystick Diagrams template is a draw.io drawing exported to SVG: the device picture, leader
 lines, notes, and one text box per input holding a token (``Button_14``, ``POV_1_U``,
 ``AXIS_X``) that Joystick Diagrams replaces with the command. For each template this script
-writes ``<library>/<id>/``:
+writes ``<library>/<id>/`` (``"theme": "dark"`` in its metadata for a drawing made on a dark
+background: the template is then dark, and draw.io's ``light-dark(a, b)`` colours keep ``b``):
 
 - ``background.svg``: the drawing without the token boxes (leader lines, notes and credits stay,
   so the label boxes land where the lines point); draw.io's HTML labels become plain SVG text,
@@ -38,6 +39,9 @@ AXES = {"X", "Y", "Z", "RX", "RY", "RZ"}
 HAT_DIRECTIONS = {"U", "UR", "R", "DR", "D", "DL", "L", "UL"}
 # texts Joystick Diagrams fills in itself: nothing to keep once converted
 PLACEHOLDERS = {"TEMPLATE_NAME", "JOYSTICK NAME"}
+# the boxes Joystick Diagrams fills with the action of a modifier layer (Button_5_Modifier_1_Action):
+# ours puts every layer in the box of the input, so these are removed like the placeholders
+MODIFIER_TOKEN = re.compile(r"^\w+_Modifier_\d+_\w*(\.\.\.)?$", re.IGNORECASE)
 # looks like a token, to report the ones dcs_input does not know
 TOKEN_LIKE = re.compile(r"^(button|btn|pov|hat|axis|slider)_\w+$|^\w+_axis$", re.IGNORECASE)
 # draw.io's fallback for viewers without foreignObject, useless once the labels are SVG text
@@ -215,7 +219,7 @@ class Tokens:
 
     def _label(self, label: Label, previous: ET.Element | None, remap: dict[str, str]) -> None:
         key = dcs_input(label.text)
-        if not key and label.text not in PLACEHOLDERS:
+        if not key and label.text not in PLACEHOLDERS and not MODIFIER_TOKEN.match(label.text):
             if label.text in DRAWIO_FALLBACKS:
                 self.remove.append(label.group)
             elif TOKEN_LIKE.match(label.text):
@@ -234,7 +238,7 @@ class Tokens:
             box = rect_box(previous)
             self.remove.append(previous)
         box = box or layout
-        if key is None:  # a placeholder
+        if key is None:  # a placeholder, a modifier box
             return
         if box is None:
             self.unknown.append(f"{label.text} (no box)")
@@ -278,6 +282,73 @@ def clean_drawing(root: ET.Element, remove: list[ET.Element]) -> None:
             group.append(replacement)
 
 
+def _split_arguments(text: str) -> list[str]:
+    """The arguments of a CSS function, split on the commas that are not inside parentheses."""
+    parts, depth, start = [], 0, 0
+    for i, char in enumerate(text):
+        if char == "(":
+            depth += 1
+        elif char == ")":
+            depth -= 1
+        elif char == "," and depth == 0:
+            parts.append(text[start:i].strip())
+            start = i + 1
+    parts.append(text[start:].strip())
+    return parts
+
+
+def _call_end(text: str, open_index: int) -> int:
+    """Index of the parenthesis closing the one at `open_index`, or -1."""
+    depth = 0
+    for i in range(open_index, len(text)):
+        if text[i] == "(":
+            depth += 1
+        elif text[i] == ")":
+            depth -= 1
+            if depth == 0:
+                return i
+    return -1
+
+
+def resolve_light_dark(value: str, dark: bool) -> str:
+    """draw.io 23+ writes colours as ``light-dark(a, b)``, which the page showing the picture
+    decides; a template is drawn for one theme. Keeps `b` for a dark template, `a` for a light one,
+    and the fallback of a ``var(--x, fallback)`` left in it."""
+    while (start := value.find("light-dark(")) != -1:
+        open_index = start + len("light-dark")
+        end = _call_end(value, open_index)
+        if end == -1:
+            break
+        arguments = _split_arguments(value[open_index + 1 : end])
+        if len(arguments) != 2:
+            break
+        value = value[:start] + arguments[1 if dark else 0] + value[end + 1 :]
+    while (start := value.find("var(--")) != -1:
+        end = _call_end(value, start + 3)
+        arguments = _split_arguments(value[start + 4 : end]) if end != -1 else []
+        if len(arguments) != 2:
+            break
+        value = value[:start] + arguments[1] + value[end + 1 :]
+    return value
+
+
+def apply_theme(root: ET.Element, dark: bool) -> None:
+    """Resolves every ``light-dark()`` of the drawing (attributes, styles, HTML labels) to one theme."""
+    for element in root.iter():
+        for name, value in list(element.attrib.items()):
+            if "light-dark(" in value or "var(--" in value:
+                element.set(name, resolve_light_dark(value, dark))
+        for field in ("text", "tail"):
+            value = getattr(element, field)
+            if value and "light-dark(" in value:
+                setattr(element, field, resolve_light_dark(value, dark))
+    style = root.get("style")
+    if style:
+        root.set(
+            "style", re.sub(r"color-scheme:[^;]*;?", f"color-scheme: {'dark' if dark else 'light'};", style)
+        )
+
+
 def drawing_size(root: ET.Element) -> list[float]:
     view_box = (root.get("viewBox") or "").split()
     if len(view_box) == 4:
@@ -290,6 +361,8 @@ def convert(source: Path, out_dir: Path, meta: dict) -> dict:
     root = tree.getroot()
     tokens = Tokens(root, meta.get("remap", {}))
     clean_drawing(root, tokens.remove)
+    dark = meta.get("theme") == "dark"
+    apply_theme(root, dark)
 
     folder = out_dir / meta["id"]
     folder.mkdir(parents=True, exist_ok=True)
@@ -303,13 +376,15 @@ def convert(source: Path, out_dir: Path, meta: dict) -> dict:
         "inputs": dict(sorted(tokens.inputs.items(), key=lambda kv: input_order(kv[0]))),
         "credits": {
             "author": meta.get("author", "Joystick Diagrams contributors"),
-            "source": SOURCE_URL + meta["source"].replace(" ", "%20"),
+            "source": meta.get("source_url") or SOURCE_URL + meta["source"].replace(" ", "%20"),
             "license": "GPL-2.0",
             "converted_by": "scripts/convert_jd_templates.py",
         },
         # numbering checked on the real device (lot L3), else null: Joystick Diagrams' as drawn
         "checked": meta.get("checked"),
     }
+    if dark:
+        data["theme"] = "dark"
     if meta.get("split_at"):
         # where the drawing is cut into kneeboard pages: through white, between its parts
         data["split_at"] = meta["split_at"]

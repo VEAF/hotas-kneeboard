@@ -345,6 +345,8 @@ async function pagesOf(profileName: string, d: Device): Promise<Page[]> {
       fontCss: FONT_CSS,
       programs: { marks, styles: styles.value },
       lang: pageLanguage(state.dcs?.language),
+      theme: state.settings?.page_theme ?? 'auto',
+      text: { minSize: state.settings?.label_min_size, bold: state.settings?.label_bold },
     },
     state.settings?.layer_mode ?? 'merge',
     state.settings?.split_wide ?? true,

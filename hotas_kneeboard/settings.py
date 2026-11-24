@@ -15,6 +15,7 @@ _logger = logging.getLogger(__name__)
 
 APP_NAME = "HOTAS Kneeboard"
 LAYER_MODES = ("merge", "split")
+PAGE_THEMES = ("auto", "light", "dark")
 COLOR = re.compile(r"#[0-9a-fA-F]{6}")
 INPUT = re.compile(r"JOY_[A-Z0-9_]+")
 # device_name: shown in the list of entries when the device is not plugged
@@ -57,6 +58,11 @@ class Settings:
     page_height: int = 1024
     # drawings whose template has a cut line (split_at) become several pages (kneeboard, PDF)
     split_wide: bool = True
+    # theme of the pages: "auto" is each template's own, else forced; text of the label boxes:
+    # the size it shrinks to at the smallest (the box grows below it), and bold or not
+    page_theme: str = "auto"
+    label_min_size: float = 6.5
+    label_bold: bool = False
     # other programs' buttons (programs.py): SRS install folder (None: registry, then Program
     # Files), DCS profile -> SRS profile chosen by the user ("" = none), entries made by hand,
     # programs not shown, colour of each program
@@ -80,11 +86,23 @@ class Settings:
             raise ValueError(t("settings.layer_mode", modes=" / ".join(LAYER_MODES)))
         if not isinstance(self.split_wide, bool):
             raise ValueError(t("settings.boolean", name="split_wide"))
+        self._validate_text()
         if isinstance(self.page_height, bool) or not isinstance(self.page_height, int | float):
             raise ValueError(t("settings.page_height_number"))
         if not 256 <= int(self.page_height) <= 4096:
             raise ValueError(t("settings.page_height_range"))
         self.page_height = int(self.page_height)
+
+    def _validate_text(self) -> None:
+        """How the pages look: theme and label text"""
+        if self.page_theme not in PAGE_THEMES:
+            raise ValueError(t("settings.page_theme"))
+        if not isinstance(self.label_bold, bool):
+            raise ValueError(t("settings.boolean", name="label_bold"))
+        size = self.label_min_size
+        if isinstance(size, bool) or not isinstance(size, int | float) or not 4 <= size <= 30:
+            raise ValueError(t("settings.label_min_size"))
+        self.label_min_size = float(size)
 
     def _validate_reading(self) -> None:
         """What changes what is read from DCS: folders and language"""

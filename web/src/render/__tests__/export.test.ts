@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { DCS_KNEEBOARD_RATIO, fitPage } from '../export'
 import type { Page } from '../page'
 
-const page = (width: number, height: number): Page => ({ title: '', width, height, svg: '' })
+const page = (width: number, height: number): Page => ({ title: '', width, height, svg: '', paper: '#ffffff' })
 
 describe('kneeboard pictures', () => {
   it('fits a landscape page across the frame, centred in height', () => {

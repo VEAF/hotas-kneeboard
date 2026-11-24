@@ -15,7 +15,8 @@
       },
       "credits": {"author": "…", "source": "…", "license": "GPL-2.0"},
       "checked": {"by": "David", "date": "2026-10-19"},  # numbering checked on the real device
-      "split_at": [566]                             # cut into two kneeboard pages there (optional)
+      "split_at": [566],                            # cut into two kneeboard pages there (optional)
+      "theme": "dark"                               # pages drawn dark: "light" (default) or "dark"
     }
 
 The library ships with the app (``hotas_kneeboard/library``); templates in the user's data
@@ -37,6 +38,7 @@ from .i18n import t
 _logger = logging.getLogger(__name__)
 
 FORMAT = 1
+THEMES = ("light", "dark")
 BUNDLED_DIR = Path(__file__).parent / "library"
 IMAGE_TYPES = {".svg": "image/svg+xml", ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg"}
 
@@ -118,6 +120,8 @@ def validate(data: dict, folder: Path) -> None:
         )
     ):
         raise TemplateError(t("template.split_at"))
+    if data.get("theme", "light") not in THEMES:
+        raise TemplateError(t("template.theme"))
     checked = data.get("checked")
     if checked is not None and not (
         isinstance(checked, dict) and all(isinstance(checked.get(k), str) for k in ("by", "date"))
