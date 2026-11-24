@@ -686,6 +686,10 @@
 <td><code>split_at</code></td>
 <td>Facultatif : les positions x où le dessin se coupe en plusieurs pages kneeboard.</td>
 </tr>
+<tr>
+<td><code>theme</code></td>
+<td>Facultatif : <code>light</code> (par défaut) ou <code>dark</code>. Un dessin fait pour un fond sombre (comme dans Joystick Diagrams) donne des pages sombres : papier, texte et cases sombres.</td>
+</tr>
 </tbody>
 </table>
 <p>Une position relâchée (<code>JOY_BTN17_OFF</code>) n'a pas de case à elle : elle s'écrit dans celle de <code>JOY_BTN17</code>.</p>
@@ -697,13 +701,15 @@
 </ol>
 <p>Un gabarit à toi passe devant un gabarit livré du même identifiant (le nom du dossier), et devant lui pour la correspondance automatique d'un périphérique.</p>
 <h2 id="les-gabarits-de-joystick-diagrams">Les gabarits de Joystick Diagrams<a class="headerlink" href="#les-gabarits-de-joystick-diagrams" title="Permanent link">&para;</a></h2>
-<p>Les 45 gabarits livrés sont convertis depuis ceux de <a href="https://github.com/Rexeh/joystick-diagrams">Joystick Diagrams</a> (Robert Cox, alias Rexeh, et ses contributeurs, GPL v2).
+<p>Les 45 premiers gabarits livrés sont convertis depuis ceux de <a href="https://github.com/Rexeh/joystick-diagrams">Joystick Diagrams</a> (Robert Cox, alias Rexeh, et ses contributeurs, GPL v2) ; le 46e, le VKB Gunfighter MCG Ultimate, est un dessin sombre fait avec Joystick Diagrams par ron533, converti de la même façon.
 Ce sont des dessins draw.io exportés en SVG, avec une case par entrée qui contient un jeton (<code>Button_14</code>, <code>POV_1_U</code>, <code>AXIS_X</code>) que Joystick Diagrams remplace par la commande.</p>
 <p><code>scripts/convert_jd_templates.py</code> les convertit :</p>
 <ul>
 <li>il retire les cases à jeton de l'image et garde le reste : la photo, les traits de rappel, les annotations, le crédit ;</li>
 <li>il remplace le texte HTML de draw.io par du texte SVG simple, que le navigateur sait dessiner dans un PNG et un PDF ;</li>
 <li>il note la position de chaque case sous le nom DCS de l'entrée, en reconnaissant les différentes graphies des jetons ;</li>
+<li>il retire aussi les cases de calques de Joystick Diagrams (<code>Button_5_Modifier_1_Action</code>) : ici, toutes les couches vont dans la case de l'entrée ;</li>
+<li>pour un dessin sombre (<code>"theme": "dark"</code> dans <code>scripts/jd_templates.json</code>), il note <code>theme: dark</code> et remplace chaque couleur <code>light-dark(a, b)</code> de draw.io par sa valeur sombre : sans cela, le rendu dépendrait du thème de la page qui affiche l'image ;</li>
 <li>il prend dans <code>scripts/jd_templates.json</code> l'identifiant du gabarit, les noms DCS connus, les corrections de numérotation (le coolie du throttle Warthog passe du hat 2 au hat 1), les lignes de découpe et l'état de vérification.</li>
 </ul>
 <div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>scripts/convert_jd_templates.py<span class="w"> </span>&lt;chemin<span class="w"> </span>de<span class="w"> </span>joystick-diagrams&gt;/templates
