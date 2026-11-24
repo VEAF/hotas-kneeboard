@@ -32,6 +32,7 @@ A template is a folder that holds `template.json` and the device's picture (SVG,
 | `more_boxes` | Optional: other boxes for the same input, when the device is drawn from several angles. |
 | `checked` | Who checked the numbering on the real device, and when; `null` otherwise. |
 | `split_at` | Optional: the x positions where the drawing is cut into several kneeboard pages. |
+| `theme` | Optional: `light` (default) or `dark`. A drawing made for a dark background (as in Joystick Diagrams) gives dark pages: dark paper, text and boxes. |
 
 A released position (`JOY_BTN17_OFF`) has no box of its own: it is written in the one of `JOY_BTN17`.
 
@@ -46,7 +47,7 @@ A template of yours comes before a shipped template with the same id (the folder
 
 ## The Joystick Diagrams templates
 
-The 45 shipped templates are converted from those of [Joystick Diagrams](https://github.com/Rexeh/joystick-diagrams) (Robert Cox, alias Rexeh, and its contributors, GPL v2).
+The first 45 shipped templates are converted from those of [Joystick Diagrams](https://github.com/Rexeh/joystick-diagrams) (Robert Cox, alias Rexeh, and its contributors, GPL v2); the 46th, the VKB Gunfighter MCG Ultimate, is a dark drawing made with Joystick Diagrams by ron533, converted the same way.
 They are draw.io drawings exported as SVG, with a box per input holding a token (`Button_14`, `POV_1_U`, `AXIS_X`) that Joystick Diagrams replaces with the command.
 
 `scripts/convert_jd_templates.py` converts them:
@@ -54,6 +55,8 @@ They are draw.io drawings exported as SVG, with a box per input holding a token 
 - it removes the token boxes from the picture and keeps the rest: the photo, the leader lines, the notes, the credit;
 - it replaces draw.io's HTML text with plain SVG text, which the browser can draw into a PNG and a PDF;
 - it records the position of each box under the input's DCS name, recognising the different spellings of the tokens;
+- it also removes Joystick Diagrams' layer boxes (`Button_5_Modifier_1_Action`): here every layer goes in the input's box;
+- for a dark drawing (`"theme": "dark"` in `scripts/jd_templates.json`), it records `theme: dark` and replaces each draw.io `light-dark(a, b)` colour with its dark value: without it, the rendering would depend on the theme of the page showing the picture;
 - it takes from `scripts/jd_templates.json` the template's id, the known DCS names, the numbering corrections (the Warthog throttle's coolie goes from hat 2 to hat 1), the cut lines and the checking state.
 
 ```bash

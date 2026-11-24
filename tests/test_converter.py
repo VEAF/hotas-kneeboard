@@ -151,11 +151,52 @@ def test_real_template(tmp_path):
         assert kept in background
 
 
+def test_light_dark_colours_are_resolved_to_one_theme():
+    value = "fill: light-dark(#000000, #ffffff); stroke: light-dark(rgb(0, 0, 0), rgb(255, 255, 255))"
+    assert converter.resolve_light_dark(value, dark=True) == "fill: #ffffff; stroke: rgb(255, 255, 255)"
+    assert converter.resolve_light_dark(value, dark=False) == "fill: #000000; stroke: rgb(0, 0, 0)"
+    # draw.io's own variable keeps its fallback
+    nested = "background: light-dark(#ffffff, var(--ge-dark-color, #121212))"
+    assert converter.resolve_light_dark(nested, dark=True) == "background: #121212"
+    assert converter.resolve_light_dark(nested, dark=False) == "background: #ffffff"
+    assert converter.resolve_light_dark("fill: #fff", dark=True) == "fill: #fff"
+
+
+def test_dark_drawing_is_a_dark_template_without_light_dark(tmp_path):
+    body = (
+        '<image x="0" y="0" width="400" height="300" xlink:href="data:image/png;base64,AA"/>'
+        '<rect x="10" y="20" width="80" height="20" fill="light-dark(#ffffff, #222222)"/>'
+        + label("Button_3", 10, 30)
+        + '<text x="5" y="5" fill="light-dark(#000000, #ffffff)">Note</text>'
+    )
+    _, data, background = run(tmp_path, body, META | {"theme": "dark"})
+    assert data["theme"] == "dark"
+    assert "light-dark" not in background
+    assert 'fill="#ffffff">Note' in background
+    _, light, light_background = run(tmp_path, body)
+    assert "theme" not in light
+    assert 'fill="#000000">Note' in light_background
+
+
+def test_modifier_boxes_of_joystick_diagrams_are_removed_not_reported(tmp_path):
+    body = (
+        '<rect x="10" y="20" width="80" height="20"/>'
+        + label("Button_3", 10, 30)
+        + '<rect x="10" y="60" width="80" height="20"/>'
+        + label("Button_3_Modifier_1_Action", 10, 70)
+    )
+    report, data, background = run(tmp_path, body)
+    assert list(data["inputs"]) == ["JOY_BTN3"]
+    assert report["unknown"] == []
+    assert "Modifier" not in background
+    assert 'y="60"' not in background  # its box goes with it
+
+
 def test_metadata_covers_every_template_once():
     metadata = json.loads(converter.METADATA.read_text(encoding="utf-8"))["templates"]
     ids = [m["id"] for m in metadata.values()]
     assert len(ids) == len(set(ids))
-    assert len(metadata) == 46
+    assert len(metadata) == 47
 
 
 def test_maintained_templates_are_not_converted_again(tmp_path, monkeypatch, capsys):

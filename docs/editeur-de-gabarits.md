@@ -60,6 +60,12 @@ Pour un dessin trop large pour une page (un throttle et sa base), **Découper en
 Glisse-la à travers une zone blanche, entre deux parties du dessin : elle ne doit couper ni l'appareil ni une case.
 **Ne pas découper** la retire.
 
+## Thème des pages
+
+Choisis **Sombre** pour un dessin fait pour un fond sombre (une image claire sur fond noir, du texte blanc) : les pages sont alors dessinées en sombre, avec des cases sombres et un texte clair.
+**Clair** est le thème par défaut.
+Dans les réglages, **Thème des pages** peut imposer l'un ou l'autre à tous les gabarits.
+
 ## Aperçu, enregistrement, partage
 
 - **Aperçu** (touche `P`) montre le gabarit avec les vraies liaisons d'un module : choisis le module et le périphérique dans la liste.

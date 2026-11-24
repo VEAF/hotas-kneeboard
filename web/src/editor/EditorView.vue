@@ -25,6 +25,7 @@ import {
   removeSelected,
   renameSelected,
   toggleAnchor,
+  setTheme,
   toggleSplit,
   undo,
 } from './state'
@@ -69,6 +70,11 @@ const catalog = computed(() =>
   })),
 )
 const templateOptions = computed(() => [...store.state.templates].sort((a, b) => a.name.localeCompare(b.name)))
+const themes = computed(() => [
+  { label: t('editor.theme.light'), value: 'light' },
+  { label: t('editor.theme.dark'), value: 'dark' },
+])
+
 const modes = computed(() => [
   { label: t('editor.mode.edit'), value: 'edit' },
   { label: t('editor.mode.preview'), value: 'preview' },
@@ -334,6 +340,8 @@ const previewSvg = computed(() => {
     measurer: canvasMeasurer(),
     fontCss: FONT_CSS,
     lang: pageLanguage(store.state.dcs?.language),
+    theme: store.state.settings?.page_theme ?? 'auto',
+    text: { minSize: store.state.settings?.label_min_size, bold: store.state.settings?.label_bold },
   }).svg
 })
 
@@ -558,6 +566,12 @@ const nextKey = computed(() => (draft.value ? inputName(nextFree(Object.keys(dra
             <template v-if="draft.split_at.length">{{ t('editor.split.hint_on') }}</template>
             <template v-else>{{ t('editor.split.hint_off') }}</template>
           </p>
+        </section>
+
+        <section class="block">
+          <span class="eyebrow">{{ t('editor.theme.title') }}</span>
+          <SelectButton :model-value="draft.theme" :options="themes" option-label="label" option-value="value" :allow-empty="false" size="small" :aria-label="t('editor.theme.title')" @update:model-value="setTheme" />
+          <p class="hint">{{ t('editor.theme.hint') }}</p>
         </section>
 
         <section class="block">

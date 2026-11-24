@@ -32,6 +32,7 @@ Un gabarit est un dossier qui contient `template.json` et l'image du périphéri
 | `more_boxes` | Facultatif : d'autres cases pour la même entrée, quand le périphérique est dessiné sous plusieurs angles. |
 | `checked` | Qui a vérifié la numérotation sur le vrai périphérique, et quand ; `null` sinon. |
 | `split_at` | Facultatif : les positions x où le dessin se coupe en plusieurs pages kneeboard. |
+| `theme` | Facultatif : `light` (par défaut) ou `dark`. Un dessin fait pour un fond sombre (comme dans Joystick Diagrams) donne des pages sombres : papier, texte et cases sombres. |
 
 Une position relâchée (`JOY_BTN17_OFF`) n'a pas de case à elle : elle s'écrit dans celle de `JOY_BTN17`.
 
@@ -46,7 +47,7 @@ Un gabarit à toi passe devant un gabarit livré du même identifiant (le nom du
 
 ## Les gabarits de Joystick Diagrams
 
-Les 45 gabarits livrés sont convertis depuis ceux de [Joystick Diagrams](https://github.com/Rexeh/joystick-diagrams) (Robert Cox, alias Rexeh, et ses contributeurs, GPL v2).
+Les 45 premiers gabarits livrés sont convertis depuis ceux de [Joystick Diagrams](https://github.com/Rexeh/joystick-diagrams) (Robert Cox, alias Rexeh, et ses contributeurs, GPL v2) ; le 46e, le VKB Gunfighter MCG Ultimate, est un dessin sombre fait avec Joystick Diagrams par ron533, converti de la même façon.
 Ce sont des dessins draw.io exportés en SVG, avec une case par entrée qui contient un jeton (`Button_14`, `POV_1_U`, `AXIS_X`) que Joystick Diagrams remplace par la commande.
 
 `scripts/convert_jd_templates.py` les convertit :
@@ -54,6 +55,8 @@ Ce sont des dessins draw.io exportés en SVG, avec une case par entrée qui cont
 - il retire les cases à jeton de l'image et garde le reste : la photo, les traits de rappel, les annotations, le crédit ;
 - il remplace le texte HTML de draw.io par du texte SVG simple, que le navigateur sait dessiner dans un PNG et un PDF ;
 - il note la position de chaque case sous le nom DCS de l'entrée, en reconnaissant les différentes graphies des jetons ;
+- il retire aussi les cases de calques de Joystick Diagrams (`Button_5_Modifier_1_Action`) : ici, toutes les couches vont dans la case de l'entrée ;
+- pour un dessin sombre (`"theme": "dark"` dans `scripts/jd_templates.json`), il note `theme: dark` et remplace chaque couleur `light-dark(a, b)` de draw.io par sa valeur sombre : sans cela, le rendu dépendrait du thème de la page qui affiche l'image ;
 - il prend dans `scripts/jd_templates.json` l'identifiant du gabarit, les noms DCS connus, les corrections de numérotation (le coolie du throttle Warthog passe du hat 2 au hat 1), les lignes de découpe et l'état de vérification.
 
 ```bash

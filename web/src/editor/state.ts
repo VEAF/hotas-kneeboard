@@ -20,6 +20,8 @@ export interface Draft {
   checked: { by: string; date: string } | null
   /** vertical lines where the drawing is cut into kneeboard pages */
   split_at: number[]
+  /** pages drawn dark, for a drawing made for a dark background */
+  theme: 'light' | 'dark'
 }
 
 /** Selected part: the label box (index 0 = box, 1.. = more_boxes) or the marker of an input */
@@ -67,6 +69,7 @@ export function newDraft(fields: Partial<Draft> = {}): Draft {
     credits: {},
     checked: null,
     split_at: [],
+    theme: 'light',
     ...fields,
   }
 }
@@ -101,6 +104,7 @@ export function fromTemplate(template: Template, image: string, user: boolean, f
     // a copy for another device is not checked on that one
     checked: copy ? null : (template.checked ?? null),
     split_at: [...(template.split_at ?? [])],
+    theme: template.theme ?? 'light',
   })
 }
 
@@ -246,6 +250,13 @@ export function toggleAnchor(): void {
 }
 
 /** A cut line in the middle, or none: a wide drawing (a throttle and its base) on two pages */
+export function setTheme(theme: 'light' | 'dark'): void {
+  const draft = editor.draft
+  if (!draft || draft.theme === theme) return
+  remember()
+  draft.theme = theme
+}
+
 export function toggleSplit(): void {
   const draft = editor.draft
   if (!draft) return
@@ -273,6 +284,7 @@ export function draftTemplate(draft: Draft): Template {
     user: true,
     checked: draft.checked,
     split_at: draft.split_at,
+    theme: draft.theme,
     inputs: draft.inputs,
   }
 }

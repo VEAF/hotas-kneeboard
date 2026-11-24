@@ -239,6 +239,10 @@ They are saved in `%APPDATA%\HOTAS Kneeboard\settings.json`; the exact path is r
   The words the app writes itself on the pages ("released:", the template's credit line, the head of a list page) follow this language: in French when the commands are in French, in English otherwise, so that a page does not mix two languages.
 - The height of the kneeboard pages.
 - Cutting into two pages the drawings that have a cut line.
+- The page theme: each template's own by default, or light, or dark for all.
+- The smallest text size in the label boxes (6.5 by default): the text shrinks to fit its box down to this size, and below it the box grows instead.
+  Raise it if the bindings are hard to read on a page.
+- Bold text in the label boxes.
 
 **Devices.**
 Every device seen in your modules, with the number of modules it is set up in.

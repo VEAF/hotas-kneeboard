@@ -69,9 +69,12 @@ export interface Template extends TemplateSummary {
   inputs: Record<string, TemplateInput>
   /** vertical lines where the drawing is cut into kneeboard pages (a wide throttle) */
   split_at?: number[]
+  /** pages drawn dark for a drawing made for a dark background; light when absent */
+  theme?: 'light' | 'dark'
 }
 
 export type LayerMode = 'merge' | 'split'
+export type PageTheme = 'auto' | 'light' | 'dark'
 
 export interface Settings {
   dcs_install_dir: string | null
@@ -89,6 +92,11 @@ export interface Settings {
   page_height: number
   /** drawings whose template has a cut line (split_at) become several pages */
   split_wide: boolean
+  /** "auto": each template's own theme */
+  page_theme: PageTheme
+  /** the text in the label boxes shrinks to this size at the smallest; the box grows below it */
+  label_min_size: number
+  label_bold: boolean
   /** SRS install folder; null: found in the registry */
   srs_dir: string | null
   /** DCS profile -> SRS profile chosen by the user ("" = none); not listed: matched by name */

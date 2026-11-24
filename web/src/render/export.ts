@@ -43,7 +43,7 @@ export function fitPage(page: Page, width: number, height: number): { x: number;
 }
 
 /** The page drawn at `height` pixels, as a canvas: as wide as the page, or `ratio` times the height
- * with the page fitted in white margins */
+ * with the page fitted in margins of its paper's colour */
 export async function pageCanvas(page: Page, height: number, ratio = page.width / page.height): Promise<HTMLCanvasElement> {
   const url = URL.createObjectURL(new Blob([page.svg], { type: 'image/svg+xml' }))
   try {
@@ -54,7 +54,7 @@ export async function pageCanvas(page: Page, height: number, ratio = page.width 
     canvas.height = Math.round(height)
     canvas.width = Math.round(height * ratio)
     const context = canvas.getContext('2d')!
-    context.fillStyle = '#fff'
+    context.fillStyle = page.paper
     context.fillRect(0, 0, canvas.width, canvas.height)
     const at = fitPage(page, canvas.width, canvas.height)
     context.drawImage(image, at.x, at.y, at.width, at.height)
@@ -80,6 +80,9 @@ export async function pagesPdf(pages: Page[], fileName: string): Promise<void> {
   for (const [index, page] of pages.entries()) {
     if (index > 0) doc.addPage('a4', 'portrait')
     const canvas = await pageCanvas(page, PDF_PIXEL_HEIGHT)
+    // a dark page keeps its paper colour all the way to the edge of the sheet
+    doc.setFillColor(page.paper)
+    doc.rect(0, 0, A4.width, A4.height, 'F')
     const at = fitPage(page, A4.width - 2 * PDF_MARGIN, A4.height - 2 * PDF_MARGIN)
     doc.addImage(canvas, 'JPEG', PDF_MARGIN + at.x, PDF_MARGIN + at.y, at.width, at.height, undefined, 'FAST')
   }
