@@ -234,6 +234,10 @@ Ils sont enregistrés dans `%APPDATA%\HOTAS Kneeboard\settings.json` ; le chemin
   Les mots que l'application écrit elle-même sur les pages (« relâché : », la ligne de crédit du gabarit, l'en-tête d'une page en liste) suivent cette langue : en français quand les commandes sont en français, en anglais sinon, pour qu'une page ne mélange pas deux langues.
 - La hauteur des pages kneeboard.
 - La découpe en deux pages des dessins qui ont une ligne de découpe.
+- Le thème des pages : celui de chaque gabarit par défaut, ou clair, ou sombre pour tous.
+- La taille minimale du texte dans les cases (6,5 par défaut) : le texte rétrécit pour tenir dans sa case jusqu'à cette taille, et en dessous c'est la case qui s'agrandit.
+  Monte-la si tu lis mal les liaisons sur une page.
+- Le texte des cases en gras.
 
 **Périphériques.**
 Tous les périphériques vus dans tes modules, avec le nombre de modules où ils sont configurés.

@@ -5,6 +5,15 @@ Chaque lot ajoute ses entrées à la fin de `[Unreleased]` ; une release les pas
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-11-24
+
+### Ajouté
+
+- Thème sombre : un gabarit déclare son `theme` (`light` ou `dark`, choix dans l'éditeur), et ses pages (écran, PNG, PDF) sont alors dessinées sur fond sombre avec un texte clair. Un réglage « Thème des pages » peut imposer le clair ou le sombre à tous les gabarits (FEAT-LEGIBILITY, #80).
+- Réglages du texte des cases : taille minimale (6,5 par défaut ; en dessous, la case s'agrandit au lieu de rétrécir le texte) et gras, pour mieux lire les liaisons (#80).
+- Gabarit du VKB Gunfighter MCG Ultimate, dessin sombre de ron533 (numérotation à vérifier sur le périphérique) (#80).
+- Convertisseur de gabarits : les couleurs `light-dark(a, b)` de draw.io sont résolues pour un seul thème, et les cases de calques de Joystick Diagrams (`Button_5_Modifier_1_Action`) sont retirées du dessin (#80).
+
 ## [0.3.1] - 2026-11-01
 
 ### Corrigé

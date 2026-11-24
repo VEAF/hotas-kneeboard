@@ -130,6 +130,17 @@ describe('editor state', () => {
     expect(draftTemplate(editor.draft!).split_at).toEqual([200])
   })
 
+  it('keeps the page theme through undo, the draft and the saved template', async () => {
+    const { setTheme, fromTemplate } = await import('../state')
+    expect(editor.draft!.theme).toBe('light')
+    setTheme('dark')
+    expect(draftTemplate(editor.draft!).theme).toBe('dark')
+    undo()
+    expect(editor.draft!.theme).toBe('light')
+    redo()
+    expect(fromTemplate({ ...draftTemplate(editor.draft!), size: [10, 10] }, 'data:', true).theme).toBe('dark')
+  })
+
   it('gives the renderer and the server a template', () => {
     addInput('JOY_X', [50, 50])
     const t = draftTemplate(editor.draft!)

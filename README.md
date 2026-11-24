@@ -20,7 +20,7 @@ A [VEAF](https://www.veaf.org) project, under the GPL v2 license.
 - **Other programs too**: the buttons SRS (per aircraft) and VectorXR use are read directly and drawn in their colour; those of another program (VoiceAttack, OpenKneeboard…) are entered by hand.
 - **To the kneeboard in one click**: the pages land in `Saved Games\DCS\Kneeboard\<aircraft>\` and you find them in flight.
 - **PDF** of every page of a module.
-- **45 device drawings** taken from [Joystick Diagrams](https://github.com/Rexeh/joystick-diagrams) (Thrustmaster, WinWing, Virpil, VKB, Saitek, CH…), and an **editor** to draw the missing ones or correct the others.
+- **46 device drawings** taken from [Joystick Diagrams](https://github.com/Rexeh/joystick-diagrams) (Thrustmaster, WinWing, Virpil, VKB, Saitek, CH…), and an **editor** to draw the missing ones or correct the others.
 - **Tidying up the DCS controls** (DCS closed, a backup before every change, undoable): remove a binding from a device, with its origin (yours, the one meant for this hardware, or the one DCS gives "any joystick"), remove at once the hat views or the buttons of rudder pedals in every module, disable or forget a device, repair the modifiers of a renamed device.
 - **Handy**: everything works from the keyboard, drag and drop for the order of the pages, choices remembered, useless devices hidden.
 - **In English or in French**: the interface follows your browser's language, or the one you choose in the settings.
@@ -85,7 +85,7 @@ Un projet de la [VEAF](https://www.veaf.org), sous licence GPL v2.
 - **Les autres logiciels aussi** : les boutons que SRS (par avion) et VectorXR utilisent sont lus directement et dessinés dans leur couleur ; ceux d'un autre logiciel (VoiceAttack, OpenKneeboard…) se saisissent à la main.
 - **Vers le kneeboard en un clic** : les pages arrivent dans `Saved Games\DCS\Kneeboard\<avion>\` et tu les retrouves en vol.
 - **PDF** de toutes les pages d'un module.
-- **45 dessins de périphériques** repris de [Joystick Diagrams](https://github.com/Rexeh/joystick-diagrams) (Thrustmaster, WinWing, Virpil, VKB, Saitek, CH…), et un **éditeur** pour dessiner ceux qui manquent ou corriger les autres.
+- **46 dessins de périphériques** repris de [Joystick Diagrams](https://github.com/Rexeh/joystick-diagrams) (Thrustmaster, WinWing, Virpil, VKB, Saitek, CH…), et un **éditeur** pour dessiner ceux qui manquent ou corriger les autres.
 - **Le ménage dans les commandes de DCS** (DCS fermé, sauvegarde avant chaque modification, annulable) : retirer une liaison d'un périphérique, avec son origine (la tienne, celle prévue pour ce matériel, ou celle que DCS donne à « n'importe quel joystick »), retirer d'un coup les vues du chapeau ou les boutons d'un palonnier dans tous les modules, désactiver ou oublier un périphérique, réparer les modificateurs d'un périphérique renommé.
 - **Pratique** : tout se fait au clavier, glisser-déposer pour l'ordre des pages, choix mémorisés, périphériques inutiles masqués.
 - **En français ou en anglais** : l'interface suit la langue de ton navigateur, ou celle que tu choisis dans les réglages.

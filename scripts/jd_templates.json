@@ -1,6 +1,16 @@
 {
  "_comment": "Joystick Diagrams template (path under its templates/) -> our template: folder id, DCS device names (without GUID), input remaps after checking the real numbering, checked {by, date} once checked on the real device, maintained: true once library/<id> was fixed by hand (the converter then leaves it alone), split_at: x where the drawing is cut into kneeboard pages (measured white column between its parts), skip reason.",
  "templates": {
+  "ron533/VKB Gunfighter MCG Ultimate.svg": {
+   "id": "vkb-gunfighter-mcg-ultimate",
+   "maintained": true,
+   "theme": "dark",
+   "author": "ron533",
+   "source_url": "https://forum.dcs.world/topic/393226-hotas-kneeboard/#comment-5825472",
+   "devices": [
+    "VKBsim Gunfighter MCG Ultimate"
+   ]
+  },
   "CH/CH Fighterstick USB.svg": {
    "id": "ch-fighterstick-usb",
    "devices": [

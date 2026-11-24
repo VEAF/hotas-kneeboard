@@ -174,6 +174,10 @@ watch(
       templateId.value,
       layerMode.value,
       state.settings?.split_wide,
+      // how the pages look
+      state.settings?.page_theme,
+      state.settings?.label_min_size,
+      state.settings?.label_bold,
       // other programs: what is read, and the user's choices about them
       state.programs,
       JSON.stringify([

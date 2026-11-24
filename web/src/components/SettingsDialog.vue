@@ -12,6 +12,7 @@ import Tab from 'primevue/tab'
 import TabPanels from 'primevue/tabpanels'
 import TabPanel from 'primevue/tabpanel'
 import { useStore } from '../lib/store'
+import type { PageTheme } from '../lib/types'
 import { PROGRAM_COLORS } from '../render/programs'
 import { t, tn } from '../lib/i18n'
 import Tr from './Tr'
@@ -32,6 +33,11 @@ const languages = computed(() => [
   ),
 ])
 // the interface's own languages, named in their language
+const pageThemes = computed(() => [
+  { label: t('settings.page_theme.auto'), value: 'auto' },
+  { label: t('settings.page_theme.light'), value: 'light' },
+  { label: t('settings.page_theme.dark'), value: 'dark' },
+])
 const uiLanguages = computed(() => [
   { label: t('settings.ui_language.auto'), value: 'auto' },
   { label: 'Français', value: 'fr' },
@@ -144,6 +150,20 @@ async function save() {
     <label class="check immediate" for="split-wide">
       <Checkbox input-id="split-wide" :model-value="state.settings?.split_wide ?? true" binary @update:model-value="(v: boolean) => store.changeSettings({ split_wide: v })" />
       <span>{{ t('settings.split_wide.label') }} <small>{{ t('settings.split_wide.hint') }}</small></span>
+    </label>
+    <label class="field immediate" for="page-theme">
+      <span class="eyebrow">{{ t('settings.page_theme.label') }}</span>
+      <Select input-id="page-theme" :model-value="state.settings?.page_theme ?? 'auto'" :options="pageThemes" option-label="label" option-value="value" @update:model-value="(v: PageTheme) => store.changeSettings({ page_theme: v })" />
+      <small>{{ t('settings.page_theme.hint') }}</small>
+    </label>
+    <label class="field immediate" for="label-min-size">
+      <span class="eyebrow">{{ t('settings.text_size.label') }}</span>
+      <InputNumber input-id="label-min-size" :model-value="state.settings?.label_min_size ?? 6.5" :min="4" :max="30" :step="0.5" :min-fraction-digits="0" :max-fraction-digits="1" show-buttons @update:model-value="(v: number | null) => v && store.changeSettings({ label_min_size: v })" />
+      <small>{{ t('settings.text_size.hint') }}</small>
+    </label>
+    <label class="check immediate" for="label-bold">
+      <Checkbox input-id="label-bold" :model-value="state.settings?.label_bold ?? false" binary @update:model-value="(v: boolean) => store.changeSettings({ label_bold: v })" />
+      <span>{{ t('settings.bold.label') }}</span>
     </label>
         </TabPanel>
         <TabPanel value="devices">

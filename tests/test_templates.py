@@ -55,6 +55,7 @@ def test_invalid_template_is_skipped(tmp_path):
         ({"size": [1e9, 10]}, "size"),
         ({"split_at": [500]}, "split_at"),  # outside the 100-wide drawing
         ({"split_at": "50"}, "split_at"),
+        ({"theme": "blue"}, "theme"),
         ({"inputs": {"JOY_BTN1": {"box": [1, 2, 3, 4], "anchor": [1]}}}, "anchor"),
     ],
 )
